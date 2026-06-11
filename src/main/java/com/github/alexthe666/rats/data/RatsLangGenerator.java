@@ -23,6 +23,8 @@ public class RatsLangGenerator extends LanguageProvider {
 
 	@Override
 	protected void addTranslations() {
+		this.add("config.jade.plugin_rats.tamed_rat_info", "Tamed Rat Info");
+
 		//Advancements
 		this.addAdvancement("root", "Rats", "Rat Patootie");
 		this.addAdvancement("rat_trap", "An Effective Classic", "Craft a Rat Trap");

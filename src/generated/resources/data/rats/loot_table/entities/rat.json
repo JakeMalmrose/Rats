@@ -103,11 +103,11 @@
               "condition": "minecraft:random_chance_with_enchanted_bonus",
               "enchanted_chance": {
                 "type": "minecraft:linear",
-                "base": 1.0E-4,
-                "per_level_above_first": 1.0E-4
+                "base": 0.0001,
+                "per_level_above_first": 0.0001
               },
               "enchantment": "minecraft:looting",
-              "unenchanted_chance": 1.0E-4
+              "unenchanted_chance": 0.0001
             },
             {
               "condition": "rats:ratlantis_loaded"
@@ -178,7 +178,7 @@
               "condition": "rats:has_toga_and_in_ratlantis"
             }
           ],
-          "name": "rats:gameplay/ratlantis_exclusive_rat_loot"
+          "value": "rats:gameplay/ratlantis_exclusive_rat_loot"
         }
       ],
       "functions": [
@@ -188,7 +188,8 @@
             "max": 1.0,
             "min": 0.0
           },
-          "function": "minecraft:enchanted_count_increase","enchantment": "minecraft:looting"
+          "function": "minecraft:enchanted_count_increase",
+          "enchantment": "minecraft:looting"
         }
       ],
       "rolls": 1.0

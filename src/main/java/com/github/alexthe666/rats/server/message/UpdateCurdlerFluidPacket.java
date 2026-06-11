@@ -8,10 +8,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import com.github.alexthe666.rats.server.block.entity.AutoCurdlerBlockEntity;
-import net.minecraft.client.Minecraft;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.Level;
+import com.github.alexthe666.rats.client.ClientPacketHandlers;
 
 public record UpdateCurdlerFluidPacket(long blockPos, FluidStack fluid) implements CustomPacketPayload {
 
@@ -49,12 +46,6 @@ public record UpdateCurdlerFluidPacket(long blockPos, FluidStack fluid) implemen
 	}
 
 	public static void handle(UpdateCurdlerFluidPacket packet, IPayloadContext context) {
-		context.enqueueWork(() -> {
-			BlockPos pos = BlockPos.of(packet.blockPos());
-			Level level = Minecraft.getInstance().level;
-			if (level != null && level.getBlockEntity(pos) instanceof AutoCurdlerBlockEntity curdler) {
-				curdler.getTank().setFluid(packet.fluid());
-			}
-		});
+		context.enqueueWork(() -> ClientPacketHandlers.handleUpdateCurdlerFluid(packet));
 	}
 }

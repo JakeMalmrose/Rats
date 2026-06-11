@@ -5,7 +5,7 @@ license="GNU LESSER GENERAL PUBLIC LICENSE"
 
 [[mods]]
 modId="rats"
-version="8.2.3B01"
+version="8.2.4"
 displayName="Rats Unofficial Port(Fixed)"
 itemIcon="rats:cheese"
 displayURL="https://www.curseforge.com/minecraft/mc-mods/rats-unofficial-port"

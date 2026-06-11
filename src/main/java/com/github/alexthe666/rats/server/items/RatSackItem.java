@@ -6,7 +6,6 @@ import com.github.alexthe666.rats.registry.RatsItemRegistry;
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import com.github.alexthe666.rats.server.misc.RatsLangConstants;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.resources.language.I18n;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
@@ -90,7 +89,7 @@ public class RatSackItem extends Item {
 			if (tagInfo.contains("Rat")) {
 				CompoundTag ratTag = tag.getCompound(tagInfo);
 				ratCount++;
-				String ratName = I18n.get("entity.rats.rat");
+				String ratName = Component.translatable("entity.rats.rat").getString();
 				if (!ratTag.getString("CustomName").isEmpty()) {
 					Component ratNameTag = Component.Serializer.fromJson(ratTag.getString("CustomName"), RegistryAccess.EMPTY);
 					if (ratNameTag != null) {

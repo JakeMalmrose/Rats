@@ -14,6 +14,7 @@ import com.mojang.math.Axis;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.Entity;
@@ -24,6 +25,8 @@ import net.minecraft.core.Holder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import com.github.alexthe666.rats.registry.RatsArmorMaterialRegistry;
@@ -161,43 +164,40 @@ public class HatItem extends ArmorItem {
 
 	@Override
 	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-		consumer.accept(new IClientItemExtensions() {
-			@Override
-			public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack, EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
-				return switch (BuiltInRegistries.ITEM.getKey(HatItem.this).getPath()) {
-					case "chef_toque" ->
-							new ChefToqueModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.CHEF_TOQUE));
-					case "piper_hat" ->
-							new PiperHatModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.PIPER_HAT));
-					case "archeologist_hat" ->
-							new ArcheologistHatModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.ARCHEOLOGIST_HAT));
-					case "farmer_hat", "fisherman_hat" ->
-							new FarmerHatModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.FARMER_HAT));
-					case "rat_fez" ->
-							new RatFezModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.FEZ));
-					case "top_hat" ->
-							new TopHatModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.TOP_HAT));
-					case "santa_hat" ->
-							new SantaHatModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.SANTA_HAT));
-					case "halo_hat" ->
-							new HaloHatModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.HALO));
-					case "pirat_hat" ->
-							new PiratHatModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.PIRATE_HAT));
-					case "rat_king_crown" ->
-							new CrownModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.CROWN));
-					case "plague_doctor_mask", "black_death_mask" ->
-							new PlagueDoctorMaskModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.PLAGUE_DOCTOR_MASK));
-					case "exterminator_hat" ->
-							new ExterminatorHatModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.EXTERMINATOR_HAT));
-					case "aviator_hat" ->
-							new AviatorHatModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.AVIATOR_HAT));
-					case "ghost_pirat_hat" ->
-							new GhostPiratHatModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.PIRATE_HAT));
-					case "military_hat" ->
-							new MilitaryHatModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.OFFICER_HAT));
-					default -> original;
-				};
-			}
-		});
+		// A separate @OnlyIn class (not an anonymous one) keeps client-only types out of this
+		// class's constant pool so it stays loadable on a dedicated server.
+		consumer.accept(new ClientExtensions(this));
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	private static final class ClientExtensions implements IClientItemExtensions {
+		private final HatItem hat;
+
+		ClientExtensions(HatItem hat) {
+			this.hat = hat;
+		}
+
+		@Override
+		public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack, EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
+			EntityModelSet models = Minecraft.getInstance().getEntityModels();
+			return switch (BuiltInRegistries.ITEM.getKey(this.hat).getPath()) {
+				case "chef_toque" -> new ChefToqueModel(models.bakeLayer(RatsModelLayers.CHEF_TOQUE));
+				case "piper_hat" -> new PiperHatModel(models.bakeLayer(RatsModelLayers.PIPER_HAT));
+				case "archeologist_hat" -> new ArcheologistHatModel(models.bakeLayer(RatsModelLayers.ARCHEOLOGIST_HAT));
+				case "farmer_hat", "fisherman_hat" -> new FarmerHatModel(models.bakeLayer(RatsModelLayers.FARMER_HAT));
+				case "rat_fez" -> new RatFezModel(models.bakeLayer(RatsModelLayers.FEZ));
+				case "top_hat" -> new TopHatModel(models.bakeLayer(RatsModelLayers.TOP_HAT));
+				case "santa_hat" -> new SantaHatModel(models.bakeLayer(RatsModelLayers.SANTA_HAT));
+				case "halo_hat" -> new HaloHatModel(models.bakeLayer(RatsModelLayers.HALO));
+				case "pirat_hat" -> new PiratHatModel(models.bakeLayer(RatsModelLayers.PIRATE_HAT));
+				case "rat_king_crown" -> new CrownModel(models.bakeLayer(RatsModelLayers.CROWN));
+				case "plague_doctor_mask", "black_death_mask" -> new PlagueDoctorMaskModel(models.bakeLayer(RatsModelLayers.PLAGUE_DOCTOR_MASK));
+				case "exterminator_hat" -> new ExterminatorHatModel(models.bakeLayer(RatsModelLayers.EXTERMINATOR_HAT));
+				case "aviator_hat" -> new AviatorHatModel(models.bakeLayer(RatsModelLayers.AVIATOR_HAT));
+				case "ghost_pirat_hat" -> new GhostPiratHatModel(models.bakeLayer(RatsModelLayers.PIRATE_HAT));
+				case "military_hat" -> new MilitaryHatModel(models.bakeLayer(RatsModelLayers.OFFICER_HAT));
+				default -> original;
+			};
+		}
 	}
 }

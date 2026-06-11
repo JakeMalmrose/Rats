@@ -4,9 +4,9 @@ import com.github.alexthe666.rats.registry.RatsBlockRegistry;
 import com.github.alexthe666.rats.registry.RatsMenuRegistry;
 import com.github.alexthe666.rats.server.block.entity.RatCraftingTableBlockEntity;
 import com.github.alexthe666.rats.server.inventory.container.TableItemHandlers;
+import com.github.alexthe666.rats.client.inventory.RatCraftingTableMenuHelper;
 import com.github.alexthe666.rats.server.inventory.slot.ImprovedSlotItemHandler;
 import com.github.alexthe666.rats.server.inventory.slot.RatCraftingResultSlot;
-import net.minecraft.client.Minecraft;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
@@ -55,20 +55,12 @@ public class RatCraftingTableMenu extends AbstractContainerMenu {
 		this.addDataSlots(data);
 	}
 
+	// This constructor only runs on the client (menu factory from the open-screen packet), but the
+	// resolve logic lives in a client-only helper so this class stays loadable on a dedicated server.
+	// The helper returns a throwaway placeholder BE if the chunk unloaded; the next stillValid()
+	// check will close the menu cleanly.
 	public RatCraftingTableMenu(int i, Inventory playerInventory, FriendlyByteBuf buf) {
-		this(i, playerInventory, resolveBlockEntity(buf.readBlockPos()), new SimpleContainerData(2));
-	}
-
-	// Client-side menu factory: the chunk holding the rat crafting table may have unloaded between
-	// the server emitting the open-screen packet and the client constructing the menu. Returning a
-	// throwaway placeholder BE keeps the menu construction from NPE-crashing the client; the next
-	// stillValid() check will close the menu cleanly.
-	private static RatCraftingTableBlockEntity resolveBlockEntity(net.minecraft.core.BlockPos pos) {
-		net.minecraft.client.multiplayer.ClientLevel level = Minecraft.getInstance().level;
-		if (level != null && level.getBlockEntity(pos) instanceof RatCraftingTableBlockEntity table) {
-			return table;
-		}
-		return new RatCraftingTableBlockEntity(pos, com.github.alexthe666.rats.registry.RatsBlockRegistry.RAT_CRAFTING_TABLE.get().defaultBlockState());
+		this(i, playerInventory, RatCraftingTableMenuHelper.resolveBlockEntity(buf.readBlockPos()), new SimpleContainerData(2));
 	}
 
 	public boolean stillValid(Player player) {

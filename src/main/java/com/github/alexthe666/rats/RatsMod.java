@@ -101,7 +101,6 @@ public class RatsMod {
 		RatVariantRegistry.RAT_VARIANTS.register(bus);
 
 		RatsArmorMaterialRegistry.ARMOR_MATERIALS.register(bus);
-		RatsBannerPatternRegistry.PATTERNS.register(bus);
 		RatsBlockRegistry.BLOCKS.register(bus);
 		RatsBlockEntityRegistry.BLOCK_ENTITIES.register(bus);
 		RatsEntityRegistry.ENTITIES.register(bus);

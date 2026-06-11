@@ -4,6 +4,8 @@ import com.github.alexthe666.citadel.client.model.basic.BasicModelPart;
 import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 @SuppressWarnings("unused")
 public class PlaneRotationUtil {
@@ -209,16 +211,24 @@ public class PlaneRotationUtil {
 		this.calculateChainFlapBuffer(maxAngle, bufferTime, angleDecrement, 1.0F, entity);
 	}
 
+	// The (float partialTick, ...) overloads below are dist-safe; the no-arg convenience overloads
+	// query Minecraft for the partial tick and are therefore @OnlyIn(Dist.CLIENT).
+
 	/**
 	 * Applies this buffer on the Y axis to the given array of model boxes.
 	 *
 	 * @param boxes the box array
 	 */
-	public void applyChainSwingBuffer(BasicModelPart... boxes) {
-		float rotateAmount = 0.01745329251F * Mth.lerp(this.prevYawVariation, this.yawVariation, Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true)) / boxes.length;
+	public void applyChainSwingBuffer(float partialTick, BasicModelPart... boxes) {
+		float rotateAmount = 0.01745329251F * Mth.lerp(this.prevYawVariation, this.yawVariation, partialTick) / boxes.length;
 		for (BasicModelPart box : boxes) {
 			box.rotateAngleY += rotateAmount;
 		}
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public void applyChainSwingBuffer(BasicModelPart... boxes) {
+		this.applyChainSwingBuffer(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), boxes);
 	}
 
 	/**
@@ -226,11 +236,16 @@ public class PlaneRotationUtil {
 	 *
 	 * @param boxes the box array
 	 */
-	public void applyChainWaveBuffer(BasicModelPart... boxes) {
-		float rotateAmount = 0.01745329251F * Mth.lerp(this.prevPitchVariation, this.pitchVariation, Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true)) / boxes.length;
+	public void applyChainWaveBuffer(float partialTick, BasicModelPart... boxes) {
+		float rotateAmount = 0.01745329251F * Mth.lerp(this.prevPitchVariation, this.pitchVariation, partialTick) / boxes.length;
 		for (BasicModelPart box : boxes) {
 			box.rotateAngleX += rotateAmount;
 		}
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public void applyChainWaveBuffer(BasicModelPart... boxes) {
+		this.applyChainWaveBuffer(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), boxes);
 	}
 
 	/**
@@ -238,11 +253,16 @@ public class PlaneRotationUtil {
 	 *
 	 * @param boxes the box array
 	 */
-	public void applyChainFlapBuffer(BasicModelPart... boxes) {
-		float rotateAmount = 0.01745329251F * Mth.lerp(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), this.prevYawVariation, this.yawVariation) / boxes.length;
+	public void applyChainFlapBuffer(float partialTick, BasicModelPart... boxes) {
+		float rotateAmount = 0.01745329251F * Mth.lerp(partialTick, this.prevYawVariation, this.yawVariation) / boxes.length;
 		for (BasicModelPart box : boxes) {
 			box.rotateAngleZ += rotateAmount;
 		}
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public void applyChainFlapBuffer(BasicModelPart... boxes) {
+		this.applyChainFlapBuffer(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), boxes);
 	}
 
 	/**
@@ -250,25 +270,40 @@ public class PlaneRotationUtil {
 	 *
 	 * @param boxes the box array
 	 */
-	public void applyChainFlapBufferReverse(BasicModelPart... boxes) {
-		float rotateAmount = 0.01745329251F * Mth.lerp(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), this.prevYawVariation, this.yawVariation) / boxes.length;
+	public void applyChainFlapBufferReverse(float partialTick, BasicModelPart... boxes) {
+		float rotateAmount = 0.01745329251F * Mth.lerp(partialTick, this.prevYawVariation, this.yawVariation) / boxes.length;
 		for (BasicModelPart box : boxes) {
 			box.rotateAngleZ -= rotateAmount * 0.5F;
 		}
 	}
 
-	public void applyChainSwingBufferReverse(BasicModelPart... boxes) {
-		float rotateAmount = 0.01745329251F * Mth.lerp(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), this.prevYawVariation, this.yawVariation) / boxes.length;
+	@OnlyIn(Dist.CLIENT)
+	public void applyChainFlapBufferReverse(BasicModelPart... boxes) {
+		this.applyChainFlapBufferReverse(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), boxes);
+	}
+
+	public void applyChainSwingBufferReverse(float partialTick, BasicModelPart... boxes) {
+		float rotateAmount = 0.01745329251F * Mth.lerp(partialTick, this.prevYawVariation, this.yawVariation) / boxes.length;
 		for (BasicModelPart box : boxes) {
 			box.rotateAngleY -= rotateAmount;
 		}
 	}
 
-	public void applyChainWaveBufferReverse(BasicModelPart... boxes) {
-		float rotateAmount = 0.01745329251F * Mth.lerp(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), this.prevPitchVariation, this.pitchVariation) / boxes.length;
+	@OnlyIn(Dist.CLIENT)
+	public void applyChainSwingBufferReverse(BasicModelPart... boxes) {
+		this.applyChainSwingBufferReverse(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), boxes);
+	}
+
+	public void applyChainWaveBufferReverse(float partialTick, BasicModelPart... boxes) {
+		float rotateAmount = 0.01745329251F * Mth.lerp(partialTick, this.prevPitchVariation, this.pitchVariation) / boxes.length;
 		for (BasicModelPart box : boxes) {
 			box.rotateAngleX -= rotateAmount;
 		}
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	public void applyChainWaveBufferReverse(BasicModelPart... boxes) {
+		this.applyChainWaveBufferReverse(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), boxes);
 	}
 
 }

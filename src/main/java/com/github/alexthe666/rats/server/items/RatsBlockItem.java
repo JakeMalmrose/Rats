@@ -13,6 +13,8 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 import java.util.function.Consumer;
@@ -54,11 +56,16 @@ public class RatsBlockItem extends BlockItem {
 
 	@Override
 	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-		consumer.accept(new IClientItemExtensions() {
-			@Override
-			public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-				return new RatsBEWLR();
-			}
-		});
+		// A separate @OnlyIn class (not an anonymous one) keeps client-only types out of this
+		// class's constant pool so it stays loadable on a dedicated server.
+		consumer.accept(new ClientExtensions());
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	private static final class ClientExtensions implements IClientItemExtensions {
+		@Override
+		public BlockEntityWithoutLevelRenderer getCustomRenderer() {
+			return new RatsBEWLR();
+		}
 	}
 }

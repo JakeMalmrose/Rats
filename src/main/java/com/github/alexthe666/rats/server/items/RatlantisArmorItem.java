@@ -15,6 +15,8 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -47,13 +49,18 @@ public class RatlantisArmorItem extends ArmorItem {
 
 	@Override
 	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-		consumer.accept(new IClientItemExtensions() {
-			@Override
-			public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack stack, EquipmentSlot slot, HumanoidModel<?> original) {
-				EntityModelSet models = Minecraft.getInstance().getEntityModels();
-				ModelPart root = models.bakeLayer(slot == EquipmentSlot.LEGS ? RatsModelLayers.RATLANTIS_ARMOR_INNER : RatsModelLayers.RATLANTIS_ARMOR_OUTER);
-				return new RatlantisArmorModel(root);
-			}
-		});
+		// A separate @OnlyIn class (not an anonymous one) keeps client-only types out of this
+		// class's constant pool so it stays loadable on a dedicated server.
+		consumer.accept(new ClientExtensions());
+	}
+
+	@OnlyIn(Dist.CLIENT)
+	private static final class ClientExtensions implements IClientItemExtensions {
+		@Override
+		public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack stack, EquipmentSlot slot, HumanoidModel<?> original) {
+			EntityModelSet models = Minecraft.getInstance().getEntityModels();
+			ModelPart root = models.bakeLayer(slot == EquipmentSlot.LEGS ? RatsModelLayers.RATLANTIS_ARMOR_INNER : RatsModelLayers.RATLANTIS_ARMOR_OUTER);
+			return new RatlantisArmorModel(root);
+		}
 	}
 }

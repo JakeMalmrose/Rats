@@ -1024,5 +1024,6 @@
   "subtitles.rats.item.ratbow_essence.used": "Rat gets dyed",
   "subtitles.rats.item.ratlantean_flame.shoot": "Ratlantean Flame shoots",
   "trim_material.rats.gem_of_ratlantis": "Gem of Ratlantis Material",
-  "trim_material.rats.oratchalcum": "Oratchalcum Material"
+  "trim_material.rats.oratchalcum": "Oratchalcum Material",
+  "config.jade.plugin_rats.tamed_rat_info": "Tamed Rat Info"
 }

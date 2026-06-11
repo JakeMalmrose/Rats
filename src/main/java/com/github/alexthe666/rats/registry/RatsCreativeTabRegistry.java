@@ -2,7 +2,7 @@ package com.github.alexthe666.rats.registry;
 
 import net.minecraft.core.registries.BuiltInRegistries;
 import com.github.alexthe666.rats.RatsMod;
-import com.github.alexthe666.rats.client.events.ModClientEvents;
+import com.github.alexthe666.rats.client.registry.CreativeTabClientHelper;
 import com.github.alexthe666.rats.server.items.OreRatNuggetItem;
 import com.github.alexthe666.rats.server.misc.RatsLangConstants;
 import net.minecraft.core.registries.Registries;
@@ -21,8 +21,6 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -372,24 +370,16 @@ public class RatsCreativeTabRegistry {
 
 	private static void registerOreNuggets(CreativeModeTab.Output output) {
 		output.accept(RatsItemRegistry.RAT_NUGGET.get());
-		List<ItemStack> uniqueOres = new ArrayList<>();
 		Level level = null;
 		if (EffectiveSide.get().isServer()) {
 			if (ServerLifecycleHooks.getCurrentServer() != null) {
 				level = ServerLifecycleHooks.getCurrentServer().getLevel(Level.OVERWORLD);
 			}
 		} else {
-			level = ModClientEvents.getClientLevel();
+			level = CreativeTabClientHelper.getClientLevel();
 		}
 		if (level != null) {
-			for (Item item : BuiltInRegistries.ITEM.holders().filter(h -> h.is(Tags.Items.ORES)).map(net.minecraft.core.Holder::value).toList()) {
-				ItemStack oreDrop = OreRatNuggetItem.getIngot(level, new ItemStack(item));
-				if (!uniqueOres.contains(oreDrop) && !oreDrop.isEmpty()) {
-					uniqueOres.add(oreDrop);
-				}
-			}
-			uniqueOres.sort(Comparator.comparing(o -> o.getDisplayName().getString()));
-			for (ItemStack ore : uniqueOres) {
+			for (ItemStack ore : CreativeTabClientHelper.getOreNuggets(level)) {
 				output.accept(OreRatNuggetItem.saveResourceToNugget(ore));
 			}
 		}
