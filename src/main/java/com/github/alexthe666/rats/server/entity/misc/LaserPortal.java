@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.misc;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatlantisEntityRegistry;
 import com.github.alexthe666.rats.registry.RatsParticleRegistry;
 import com.github.alexthe666.rats.registry.RatsSoundRegistry;
@@ -140,14 +142,14 @@ public class LaserPortal extends Entity {
 		this.ownerUniqueId = entity == null ? null : entity.getUUID();
 	}
 
-	protected void readAdditionalSaveData(CompoundTag compound) {
-		this.tickCount = compound.getInt("Age");
+	protected void readAdditionalSaveData(ValueInput compound) {
+		this.tickCount = compound.getIntOr("Age", 0);
 		if (compound.hasUUID("OwnerUUID")) {
 			this.ownerUniqueId = compound.getUUID("OwnerUUID");
 		}
 	}
 
-	protected void addAdditionalSaveData(CompoundTag compound) {
+	protected void addAdditionalSaveData(ValueOutput compound) {
 		compound.putInt("Age", this.tickCount);
 
 		if (this.ownerUniqueId != null) {

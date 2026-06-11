@@ -10,12 +10,12 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class BlackDeathRenderer extends MobRenderer<BlackDeath, BlackDeathModel<BlackDeath>> {
 
-	private static final ResourceLocation BLACK_DEATH_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/black_death/black_death.png");
-	private static final ResourceLocation GLOW_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/black_death/black_death_overlay.png");
+	private static final Identifier BLACK_DEATH_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/black_death/black_death.png");
+	private static final Identifier GLOW_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/black_death/black_death_overlay.png");
 
 	public BlackDeathRenderer(EntityRendererProvider.Context context) {
 		super(context, new BlackDeathModel<>(context.bakeLayer(RatsModelLayers.BLACK_DEATH)), 0.5F);
@@ -29,7 +29,7 @@ public class BlackDeathRenderer extends MobRenderer<BlackDeath, BlackDeathModel<
 		});
 	}
 
-	public ResourceLocation getTextureLocation(BlackDeath entity) {
+	public Identifier getTextureLocation(BlackDeath entity) {
 		return BLACK_DEATH_TEXTURE;
 	}
 }

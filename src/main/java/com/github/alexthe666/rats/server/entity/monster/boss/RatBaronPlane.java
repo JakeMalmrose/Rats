@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.monster.boss;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.citadel.client.model.AdvancedModelBox;
 import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.registry.RatlantisEntityRegistry;
@@ -188,7 +190,7 @@ public class RatBaronPlane extends Mob implements Plane, AdjustsRatTail {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag tag) {
+	public void addAdditionalSaveData(ValueOutput tag) {
 		super.addAdditionalSaveData(tag);
 		if (this.getRestrictCenter() != BlockPos.ZERO) {
 			BlockPos home = this.getRestrictCenter();
@@ -197,13 +199,13 @@ public class RatBaronPlane extends Mob implements Plane, AdjustsRatTail {
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag tag) {
+	public void readAdditionalSaveData(ValueInput tag) {
 		super.readAdditionalSaveData(tag);
-		if (tag.contains("Home", 9)) {
-			ListTag nbttaglist = tag.getList("Home", 6);
-			int hx = (int) nbttaglist.getDouble(0);
-			int hy = (int) nbttaglist.getDouble(1);
-			int hz = (int) nbttaglist.getDouble(2);
+		if (tag.contains("Home")) {
+			ListTag nbttaglist = tag.getListOrEmpty("Home");
+			int hx = (int) nbttaglist.getDoubleOr(0, 0.0D);
+			int hy = (int) nbttaglist.getDoubleOr(1, 0.0D);
+			int hz = (int) nbttaglist.getDoubleOr(2, 0.0D);
 			this.restrictTo(new BlockPos(hx, hy, hz), 16);
 		}
 	}

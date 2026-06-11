@@ -12,7 +12,7 @@ public class ConfitByaldiMobEffect extends MobEffect {
 
 	public ConfitByaldiMobEffect() {
 		super(MobEffectCategory.BENEFICIAL, 0XFFDD59);
-		this.addAttributeModifier(Attributes.ATTACK_SPEED, net.minecraft.resources.ResourceLocation.fromNamespaceAndPath("rats", "confit_byaldi_attack_speed"), 1.0D, AttributeModifier.Operation.ADD_VALUE);
+		this.addAttributeModifier(Attributes.ATTACK_SPEED, net.minecraft.resources.Identifier.fromNamespaceAndPath("rats", "confit_byaldi_attack_speed"), 1.0D, AttributeModifier.Operation.ADD_VALUE);
 	}
 
 	@Override

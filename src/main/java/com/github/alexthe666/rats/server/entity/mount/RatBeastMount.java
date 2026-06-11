@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.mount;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.citadel.animation.Animation;
 import com.github.alexthe666.citadel.animation.AnimationHandler;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
@@ -47,7 +49,8 @@ public class RatBeastMount extends RatMountBase implements IAnimatedEntity {
 	}
 
 
-	public boolean doHurtTarget(Entity entity) {
+	@Override
+	public boolean doHurtTarget(net.minecraft.server.level.ServerLevel level, Entity entity) {
 		if (this.getAnimation() == NO_ANIMATION) {
 			this.setAnimation(this.getRandom().nextBoolean() ? ANIMATION_SLASH : ANIMATION_BITE);
 		}
@@ -116,23 +119,23 @@ public class RatBeastMount extends RatMountBase implements IAnimatedEntity {
 		this.getEntityData().set(COLOR_VARIANT, color);
 	}
 
-	public void addAdditionalSaveData(CompoundTag compound) {
+	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
 		compound.putInt("ColorVariant", this.getColorVariant());
 	}
 
-	public void readAdditionalSaveData(CompoundTag compound) {
+	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
-		this.setColorVariant(compound.getInt("ColorVariant"));
+		this.setColorVariant(compound.getIntOr("ColorVariant", 0));
 	}
 
 	@Override
-	protected int calculateFallDamage(float dist, float multiplier) {
+	protected int calculateFallDamage(double dist, float multiplier) {
 		return super.calculateFallDamage(dist, multiplier) - 5;
 	}
 
 	@Nullable
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType reason, @Nullable SpawnGroupData spawnData) {
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData spawnData) {
 		spawnData = super.finalizeSpawn(level, difficulty, reason, spawnData);
 		this.setColorVariant(this.getRandom().nextInt(4));
 		return spawnData;

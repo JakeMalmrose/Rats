@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.monster.boss;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.registry.RatsEntityRegistry;
 import com.github.alexthe666.rats.registry.RatsSoundRegistry;
@@ -188,7 +190,7 @@ public class RatKing extends Monster implements RatSummoner {
 
 	@Override
 	@Nullable
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType reason, @Nullable SpawnGroupData spawnData) {
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData spawnData) {
 		spawnData = super.finalizeSpawn(level, difficulty, reason, spawnData);
 		for (int i = 0; i < RAT_COUNT; i++) {
 			int color = this.getRandom().nextInt(4);
@@ -203,17 +205,17 @@ public class RatKing extends Monster implements RatSummoner {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag compound) {
+	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
 		compound.putString("RatColors", this.getRatColorsString());
 		compound.putInt("RatsSummoned", this.getRatsSummoned());
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag compound) {
+	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
-		this.setRatsSummoned(compound.getInt("RatsSummoned"));
-		this.setRatColorsString(compound.getString("RatColors"));
+		this.setRatsSummoned(compound.getIntOr("RatsSummoned", 0));
+		this.setRatColorsString(compound.getStringOr("RatColors", ""));
 	}
 
 	private void setRatColorsString(String str) {

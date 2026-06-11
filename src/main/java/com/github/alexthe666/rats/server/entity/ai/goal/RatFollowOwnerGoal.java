@@ -74,7 +74,7 @@ public class RatFollowOwnerGoal extends FollowOwnerGoal {
 	private boolean attemptTeleportEntity(Entity mount, int x, int y, int z) {
 		BlockPos pos = new BlockPos(x, y, z);
 		if (!this.canTeleportTo(pos)) return false;
-		mount.moveTo(x + 0.5D, y, z + 0.5D, mount.getYRot(), mount.getXRot());
+		mount.moveTo(x + 0.5D, (double) y, z + 0.5D, mount.getYRot(), mount.getXRot());
 		this.rat.getNavigation().stop();
 		return true;
 	}

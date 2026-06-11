@@ -8,19 +8,20 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 import java.util.Objects;
 
 public class PiratBoatRenderer<T extends PiratBoat, M extends PiratBoatModel<T>> extends MobRenderer<T, M> {
 
-	private static final ResourceLocation TEXTURE = ResourceLocation.parse("textures/entity/boat/spruce.png");
+	private static final Identifier TEXTURE = Identifier.parse("textures/entity/boat/spruce.png");
 
 	public PiratBoatRenderer(EntityRendererProvider.Context context, M model) {
 		super(context, model, 0.0F);
@@ -57,7 +58,7 @@ public class PiratBoatRenderer<T extends PiratBoat, M extends PiratBoatModel<T>>
 			VertexConsumer vertexconsumer = buffer.getBuffer(rendertype);
 			this.getModel().renderToBuffer(stack, vertexconsumer, light, OverlayTexture.pack(entity.deathTime > 0 ? entity.deathTime + 1 : 0, false), net.minecraft.util.FastColor.ARGB32.colorFromFloat(flag1 ? 0.15F : 1.0F, 1.0F, 1.0F, 1.0F));
 		}
-		VertexConsumer vertexconsumer1 = buffer.getBuffer(RenderType.waterMask());
+		VertexConsumer vertexconsumer1 = buffer.getBuffer(RenderTypes.waterMask());
 		this.getModel().getWaterPatch().render(stack, vertexconsumer1, light, OverlayTexture.NO_OVERLAY);
 
 		if (!entity.isSpectator()) {
@@ -68,7 +69,7 @@ public class PiratBoatRenderer<T extends PiratBoat, M extends PiratBoatModel<T>>
 		stack.popPose();
 	}
 
-	public ResourceLocation getTextureLocation(PiratBoat entity) {
+	public Identifier getTextureLocation(PiratBoat entity) {
 		return TEXTURE;
 	}
 }

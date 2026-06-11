@@ -7,12 +7,13 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ArmorItem;
@@ -41,8 +42,8 @@ public class DutchratHelmetLayer<T extends Dutchrat, M extends FlyingDutchratMod
 			ItemStack itemstack = rat.getItemBySlot(EquipmentSlot.HEAD);
 			if (itemstack.getItem() instanceof ArmorItem) {
 				Model model = ClientHooks.getArmorModel(rat, itemstack, EquipmentSlot.HEAD, this.backup);
-				ResourceLocation tex = getArmorResource(rat, itemstack, EquipmentSlot.HEAD);
-				VertexConsumer consumer = ItemRenderer.getFoilBuffer(buffer, RenderType.entityCutoutNoCull(tex), false, false);
+				Identifier tex = getArmorResource(rat, itemstack, EquipmentSlot.HEAD);
+				VertexConsumer consumer = ItemRenderer.getFoilBuffer(buffer, RenderTypes.entityCutoutNoCull(tex), false, false);
 				model.renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 			}
 			stack.popPose();
@@ -52,12 +53,12 @@ public class DutchratHelmetLayer<T extends Dutchrat, M extends FlyingDutchratMod
 	// 1.21: route through ClientHooks.getArmorTexture so per-stack IItemExtension.getArmorTexture overrides
 	// (e.g. HatItem returning rats:textures/model/hat/<id>.png) are honored. Falls back to the ArmorMaterial
 	// layer's default texture path when no override is registered.
-	public ResourceLocation getArmorResource(Entity entity, ItemStack stack, EquipmentSlot slot) {
+	public Identifier getArmorResource(Entity entity, ItemStack stack, EquipmentSlot slot) {
 		ArmorItem item = (ArmorItem) stack.getItem();
 		ArmorMaterial material = item.getMaterial().value();
 		List<ArmorMaterial.Layer> layers = material.layers();
 		ArmorMaterial.Layer layer = layers.isEmpty()
-				? new ArmorMaterial.Layer(ResourceLocation.withDefaultNamespace("iron"))
+				? new ArmorMaterial.Layer(Identifier.withDefaultNamespace("iron"))
 				: layers.get(0);
 		return ClientHooks.getArmorTexture(entity, stack, layer, false, slot);
 	}

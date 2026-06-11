@@ -2,7 +2,7 @@ package com.github.alexthe666.rats.client.model;
 
 import com.github.alexthe666.rats.RatsMod;
 import net.minecraft.client.model.geom.ModelLayerLocation;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class RatsModelLayers {
 
@@ -38,11 +38,11 @@ public class RatsModelLayers {
 	public static final ModelLayerLocation RATLANTIS_ARMOR_OUTER = register("ratlantis_armor", "outer");
 
 	private static ModelLayerLocation register(String name, String type) {
-		return new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, name), type);
+		return new ModelLayerLocation(Identifier.fromNamespaceAndPath(RatsMod.MODID, name), type);
 	}
 
 	private static ModelLayerLocation register(String name) {
-		return new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, name), "main");
+		return new ModelLayerLocation(Identifier.fromNamespaceAndPath(RatsMod.MODID, name), "main");
 	}
 
 }

@@ -20,7 +20,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -92,7 +92,7 @@ public abstract class AbstractRatRenderer<T extends AbstractRat, M extends Abstr
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(T rat) {
+	public Identifier getTextureLocation(T rat) {
 		return rat.getColorVariant().getTexture();
 	}
 }

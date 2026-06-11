@@ -10,7 +10,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.placement.*;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -30,7 +30,7 @@ public class RatlantisBiomeRegistry {
 	public static final ResourceKey<Biome> RATLANTIS = makeKey("ratlantis");
 
 	private static ResourceKey<Biome> makeKey(String name) {
-		return ResourceKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, name));
+		return ResourceKey.create(Registries.BIOME, Identifier.fromNamespaceAndPath(RatsMod.MODID, name));
 	}
 
 	public static void bootstrap(BootstrapContext<Biome> context) {
@@ -43,16 +43,16 @@ public class RatlantisBiomeRegistry {
 				.temperature(0.55F)
 				.mobSpawnSettings(new MobSpawnSettings.Builder()
 						.creatureGenerationProbability(0.4F)
-						.addSpawn(MobCategory.MONSTER, new MobSpawnSettings.SpawnerData(RatlantisEntityRegistry.FERAL_RATLANTEAN.get(), 20, 1, 3))
-						.addSpawn(MobCategory.MONSTER, new MobSpawnSettings.SpawnerData(RatlantisEntityRegistry.PIRAT.get(), 50, 1, 2))
-						.addSpawn(MobCategory.MONSTER, new MobSpawnSettings.SpawnerData(RatlantisEntityRegistry.RATLANTEAN_SPIRIT.get(), 15, 1, 1))
-						.addSpawn(MobCategory.MONSTER, new MobSpawnSettings.SpawnerData(RatlantisEntityRegistry.RATLANTEAN_RATBOT.get(), 5, 1, 1))
-						.addSpawn(MobCategory.CREATURE, new MobSpawnSettings.SpawnerData(EntityType.PARROT, 40, 1, 2))
-						.addSpawn(MobCategory.CREATURE, new MobSpawnSettings.SpawnerData(EntityType.PANDA, 14, 1, 2))
-						.addSpawn(MobCategory.WATER_AMBIENT, new MobSpawnSettings.SpawnerData(EntityType.PUFFERFISH, 15, 1, 3))
-						.addSpawn(MobCategory.WATER_AMBIENT, new MobSpawnSettings.SpawnerData(RatlantisEntityRegistry.RATFISH.get(), 45, 8, 8))
-						.addSpawn(MobCategory.WATER_CREATURE, new MobSpawnSettings.SpawnerData(EntityType.DOLPHIN, 2, 1, 2))
-						.addSpawn(RatsMod.RATS, new MobSpawnSettings.SpawnerData(RatsEntityRegistry.RAT.get(), 10, 2, 4))
+						.addSpawn(MobCategory.MONSTER, 20, new MobSpawnSettings.SpawnerData(RatlantisEntityRegistry.FERAL_RATLANTEAN.get(), 1, 3))
+						.addSpawn(MobCategory.MONSTER, 50, new MobSpawnSettings.SpawnerData(RatlantisEntityRegistry.PIRAT.get(), 1, 2))
+						.addSpawn(MobCategory.MONSTER, 15, new MobSpawnSettings.SpawnerData(RatlantisEntityRegistry.RATLANTEAN_SPIRIT.get(), 1, 1))
+						.addSpawn(MobCategory.MONSTER, 5, new MobSpawnSettings.SpawnerData(RatlantisEntityRegistry.RATLANTEAN_RATBOT.get(), 1, 1))
+						.addSpawn(MobCategory.CREATURE, 40, new MobSpawnSettings.SpawnerData(EntityType.PARROT, 1, 2))
+						.addSpawn(MobCategory.CREATURE, 14, new MobSpawnSettings.SpawnerData(EntityType.PANDA, 1, 2))
+						.addSpawn(MobCategory.WATER_AMBIENT, 15, new MobSpawnSettings.SpawnerData(EntityType.PUFFERFISH, 1, 3))
+						.addSpawn(MobCategory.WATER_AMBIENT, 45, new MobSpawnSettings.SpawnerData(RatlantisEntityRegistry.RATFISH.get(), 8, 8))
+						.addSpawn(MobCategory.WATER_CREATURE, 2, new MobSpawnSettings.SpawnerData(EntityType.DOLPHIN, 1, 2))
+						.addSpawn(RatsMod.RATS, 10, new MobSpawnSettings.SpawnerData(RatsEntityRegistry.RAT.get(), 2, 4))
 						.build())
 				.generationSettings(new BiomeGenerationSettings.Builder(features, carvers)
 						.addCarver(GenerationStep.Carving.AIR, RatlantisDimensionRegistry.RATLANTIS_CAVES)

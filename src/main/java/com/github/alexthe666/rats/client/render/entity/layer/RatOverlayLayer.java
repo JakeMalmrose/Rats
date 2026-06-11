@@ -6,16 +6,17 @@ import com.github.alexthe666.rats.server.entity.rat.Rat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class RatOverlayLayer extends RenderLayer<Rat, RatModel<Rat>> {
 
-	private static final RenderType PLAGUE_TEX = RenderType.entityNoOutline(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/plague_overlay.png"));
-	private static final RenderType TOGA_TEX = RenderType.entitySmoothCutout(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/toga.png"));
+	private static final RenderType PLAGUE_TEX = RenderTypes.entityNoOutline(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/plague_overlay.png"));
+	private static final RenderType TOGA_TEX = RenderTypes.entitySmoothCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/toga.png"));
 
 	public RatOverlayLayer(RenderLayerParent<Rat, RatModel<Rat>> parent) {
 		super(parent);

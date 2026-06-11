@@ -5,7 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import com.github.alexthe666.rats.server.entity.projectile.ThrownBlock;
 import net.minecraft.core.BlockPos;
@@ -14,7 +14,7 @@ import net.minecraft.world.entity.player.Player;
 
 public record SyncThrownBlockPacket(int blockEntityId, long blockPos) implements CustomPacketPayload {
 
-    public static final Type<SyncThrownBlockPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "sync_thrown_block"));
+    public static final Type<SyncThrownBlockPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(RatsMod.MODID, "sync_thrown_block"));
 
     public static final StreamCodec<FriendlyByteBuf, SyncThrownBlockPacket> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, SyncThrownBlockPacket::blockEntityId,

@@ -13,9 +13,10 @@ import com.github.alexthe666.rats.server.items.upgrades.interfaces.StatBoostingU
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.TickRatUpgrade;
 import com.github.alexthe666.rats.server.misc.RatsLangConstants;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
@@ -52,8 +53,8 @@ public class DragonRatUpgradeItem extends BaseFlightRatUpgradeItem implements St
 	}
 
 	@Override
-	public ResourceLocation getTexture() {
-		return ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/dragon.png");
+	public Identifier getTexture() {
+		return Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/dragon.png");
 	}
 
 	@Override
@@ -93,6 +94,6 @@ public class DragonRatUpgradeItem extends BaseFlightRatUpgradeItem implements St
 
 	@Override
 	public RenderType getEyeTexture(ItemStack stack) {
-		return RenderType.eyes(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/eyes/dragon.png"));
+		return RenderTypes.eyes(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/eyes/dragon.png"));
 	}
 }

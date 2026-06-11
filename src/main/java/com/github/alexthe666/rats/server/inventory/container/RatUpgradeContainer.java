@@ -25,7 +25,7 @@ public class RatUpgradeContainer implements WorldlyContainer {
 	private void readFromNBT(CompoundTag tagCompound) {
 		this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
 		// Fresh upgrade items have no "Items" list yet; loadAllItems would log decode errors for it.
-		if (tagCompound.contains("Items", 9)) {
+		if (tagCompound.contains("Items")) {
 			ContainerHelper.loadAllItems(tagCompound, this.items, net.minecraft.core.RegistryAccess.EMPTY);
 		}
 	}

@@ -17,10 +17,10 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -63,13 +63,13 @@ public class RatArrow extends AbstractArrow {
 		if (this.pickup == Pickup.ALLOWED) {
 			TamedRat rat = new TamedRat(RatsEntityRegistry.TAMED_RAT.get(), this.level());
 			CompoundTag stored = this.stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
-			CompoundTag ratTag = stored.contains("Rat") ? stored.getCompound("Rat") : new CompoundTag();
+			CompoundTag ratTag = stored.contains("Rat") ? stored.getCompoundOrEmpty("Rat") : new CompoundTag();
 			rat.readAdditionalSaveData(ratTag);
-			if (!ratTag.getString("CustomName").isEmpty()) {
-				rat.setCustomName(Component.Serializer.fromJson(ratTag.getString("CustomName"), net.minecraft.core.RegistryAccess.EMPTY));
+			if (!ratTag.getStringOr("CustomName", "").isEmpty()) {
+				rat.setCustomName(Component.Serializer.fromJson(ratTag.getStringOr("CustomName", ""), net.minecraft.core.RegistryAccess.EMPTY));
 			}
 			if (ratTag.isEmpty()) {
-				EventHooks.finalizeMobSpawn(rat, (ServerLevelAccessor) this.level(), this.level().getCurrentDifficultyAt(rat.blockPosition()), MobSpawnType.EVENT, null);
+				EventHooks.finalizeMobSpawn(rat, (ServerLevelAccessor) this.level(), this.level().getCurrentDifficultyAt(rat.blockPosition()), EntitySpawnReason.EVENT, null);
 				if (this.getOwner() instanceof Player player) {
 					rat.tame(player);
 				}

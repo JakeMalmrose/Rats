@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
@@ -17,7 +17,7 @@ import net.minecraft.world.entity.ai.village.poi.PoiTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.CustomSpawner;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.NaturalSpawner;
 import net.minecraft.world.level.levelgen.Heightmap;
 import org.jetbrains.annotations.Nullable;
@@ -45,7 +45,7 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 
 	@Override
 	public int tick(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies) {
-		if (level.getGameRules().getBoolean(RatsMod.SPAWN_PLAGUE_DOCTORS) && this.tickDelay-- <= 0) {
+		if (level.getGameRules().getBooleanOr(RatsMod.SPAWN_PLAGUE_DOCTORS, false) && this.tickDelay-- <= 0) {
 			this.tickDelay = 1200;
 			PlagueDoctorWorldData data = PlagueDoctorWorldData.get(level);
 			if (data != null) {
@@ -53,7 +53,7 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 				data.setDoctorSpawnDelay(this.spawnDelay);
 				if (this.spawnDelay <= 0) {
 					this.spawnDelay = 24000;
-					if (level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
+					if (level.getGameRules().getBooleanOr(GameRules.RULE_DOMOBSPAWNING, false)) {
 						int i = this.spawnChance;
 						this.spawnChance = Mth.clamp(this.spawnChance + 25, 25, 75);
 						data.setDoctorSpawnChance(this.spawnChance);
@@ -86,7 +86,7 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 					return false;
 				}
 
-				PlagueDoctor plagueDoctor = RatsEntityRegistry.PLAGUE_DOCTOR.get().spawn(level, blockpos2, MobSpawnType.EVENT);
+				PlagueDoctor plagueDoctor = RatsEntityRegistry.PLAGUE_DOCTOR.get().spawn(level, blockpos2, EntitySpawnReason.EVENT);
 				if (plagueDoctor != null) {
 					for (int j = 0; j < 2; ++j) {
 						this.spawnARat(level, plagueDoctor);
@@ -111,7 +111,7 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 	private void spawnARat(ServerLevel level, PlagueDoctor doctor) {
 		BlockPos blockpos = this.findNearbySpawnPos(level, doctor.blockPosition(), 4);
 		if (blockpos != null) {
-			Rat rat = RatsEntityRegistry.RAT.get().spawn(level, blockpos, MobSpawnType.EVENT);
+			Rat rat = RatsEntityRegistry.RAT.get().spawn(level, blockpos, EntitySpawnReason.EVENT);
 			if (rat != null) {
 				rat.setLeashedTo(doctor, true);
 				rat.setPlagued(false);
@@ -129,7 +129,7 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 			int k = pos.getZ() + level.getRandom().nextInt(distance * 2) - distance;
 			int l = level.getHeight(Heightmap.Types.WORLD_SURFACE, j, k);
 			BlockPos blockpos1 = new BlockPos(j, l, k);
-			if (net.minecraft.world.entity.SpawnPlacements.checkSpawnRules(EntityType.WANDERING_TRADER, level, MobSpawnType.NATURAL, blockpos1, level.getRandom())) {
+			if (net.minecraft.world.entity.SpawnPlacements.checkSpawnRules(EntityType.WANDERING_TRADER, level, EntitySpawnReason.NATURAL, blockpos1, level.getRandom())) {
 				blockpos = blockpos1;
 				break;
 			}

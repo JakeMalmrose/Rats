@@ -8,17 +8,17 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.layers.CrossedArmsItemLayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class PlagueDoctorRenderer extends MobRenderer<PlagueDoctor, PlagueDoctorModel<PlagueDoctor>> {
-	private static final ResourceLocation DOCTOR = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/plague_doctor.png");
+	private static final Identifier DOCTOR = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/plague_doctor.png");
 
 	public PlagueDoctorRenderer(EntityRendererProvider.Context context) {
 		super(context, new PlagueDoctorModel<>(context.bakeLayer(RatsModelLayers.PLAGUE_DOCTOR)), 0.5F);
 		this.addLayer(new CrossedArmsItemLayer<>(this, context.getItemInHandRenderer()));
 	}
 
-	public ResourceLocation getTextureLocation(PlagueDoctor entity) {
+	public Identifier getTextureLocation(PlagueDoctor entity) {
 		return DOCTOR;
 	}
 

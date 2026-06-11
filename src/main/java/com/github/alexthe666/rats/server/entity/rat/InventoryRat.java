@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.rat;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.registry.RatsDataSerializerRegistry;
@@ -70,7 +72,7 @@ public abstract class InventoryRat extends DiggingRat implements ContainerListen
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag tag) {
+	public void addAdditionalSaveData(ValueOutput tag) {
 		super.addAdditionalSaveData(tag);
 		ListTag listtag = new ListTag();
 		for (int i = 0; i < this.getInventory().getContainerSize(); ++i) {
@@ -100,27 +102,27 @@ public abstract class InventoryRat extends DiggingRat implements ContainerListen
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag tag) {
+	public void readAdditionalSaveData(ValueInput tag) {
 		super.readAdditionalSaveData(tag);
-		ListTag listtag = tag.getList("Items", 10);
+		ListTag listtag = tag.getListOrEmpty("Items");
 
 		for (int i = 0; i < listtag.size(); ++i) {
-			CompoundTag compoundtag = listtag.getCompound(i);
-			int j = compoundtag.getByte("Slot") & 255;
+			CompoundTag compoundtag = listtag.getCompoundOrEmpty(i);
+			int j = compoundtag.getByteOr("Slot", (byte) 0) & 255;
 			if (j < this.getInventory().getContainerSize()) {
 				// 1.21: ItemStack.of(CompoundTag) replaced with parse-with-registries.
 				this.getInventory().setItem(j, ItemStack.parseOptional(this.level().registryAccess(), compoundtag));
 			}
 		}
 
-		this.getEntityData().set(VISIBILITY_FLAGS, tag.getByte("InvisibleSlots"));
+		this.getEntityData().set(VISIBILITY_FLAGS, tag.getByteOr("InvisibleSlots", (byte) 0));
 		if (tag.contains("HomePos")) {
 			this.setHomePoint(GlobalPos.CODEC.parse(NbtOps.INSTANCE, tag.get("HomePos")).resultOrPartial(RatsMod.LOGGER::error).orElse(null));
 		}
 		if (tag.contains("RadiusPos")) {
 			this.setRadiusCenter(GlobalPos.CODEC.parse(NbtOps.INSTANCE, tag.get("RadiusPos")).resultOrPartial(RatsMod.LOGGER::error).orElse(null));
 		}
-		this.setRadius(tag.getInt("SearchRadius"));
+		this.setRadius(tag.getIntOr("SearchRadius", 0));
 
 		if (tag.contains("PatrolNodesTag")) {
 			ListTag listTag = tag.getList("PatrolNodesTag", Tag.TAG_COMPOUND);

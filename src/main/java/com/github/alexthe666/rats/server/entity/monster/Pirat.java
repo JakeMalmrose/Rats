@@ -1,5 +1,6 @@
 package com.github.alexthe666.rats.server.entity.monster;
 
+import net.minecraft.world.level.storage.ValueInput;
 import com.github.alexthe666.rats.registry.RatlantisEntityRegistry;
 import com.github.alexthe666.rats.registry.RatlantisItemRegistry;
 import com.github.alexthe666.rats.registry.RatsItemRegistry;
@@ -107,13 +108,13 @@ public class Pirat extends AbstractRat implements RangedAttackMob, Enemy {
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag compound) {
+	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
 		this.setCombatTask();
 	}
 
 	@Nullable
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, MobSpawnType type, @Nullable SpawnGroupData data) {
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, EntitySpawnReason type, @Nullable SpawnGroupData data) {
 		data = super.finalizeSpawn(accessor, difficulty, type, data);
 		this.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RatlantisItemRegistry.PIRAT_CUTLASS.get()));
 		this.setItemSlot(EquipmentSlot.HEAD, new ItemStack(RatsItemRegistry.PIRAT_HAT.get()));
@@ -130,7 +131,7 @@ public class Pirat extends AbstractRat implements RangedAttackMob, Enemy {
 	}
 
 	@Override
-	public boolean checkSpawnRules(LevelAccessor level, MobSpawnType reason) {
+	public boolean checkSpawnRules(LevelAccessor level, EntitySpawnReason reason) {
 		return true;
 	}
 
@@ -139,7 +140,7 @@ public class Pirat extends AbstractRat implements RangedAttackMob, Enemy {
 		return reader.isUnobstructed(this);
 	}
 
-	public static boolean checkPiratSpawnRules(EntityType<Pirat> type, ServerLevelAccessor accessor, MobSpawnType reason, BlockPos pos, RandomSource random) {
+	public static boolean checkPiratSpawnRules(EntityType<Pirat> type, ServerLevelAccessor accessor, EntitySpawnReason reason, BlockPos pos, RandomSource random) {
 		boolean flag = accessor.getDifficulty() != Difficulty.PEACEFUL;
 		boolean blockIsWater = accessor.getBlockState(pos).is(Blocks.WATER);
 		boolean blockAboveIsAir = accessor.getBlockState(pos.above()).isAir();

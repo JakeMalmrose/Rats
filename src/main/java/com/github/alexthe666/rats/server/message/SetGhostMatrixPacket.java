@@ -7,7 +7,7 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -18,7 +18,7 @@ import java.util.List;
 // Sent when the user clicks the JEI "+" transfer button on a recipe.
 public record SetGhostMatrixPacket(long blockPos, List<ItemStack> stacks) implements CustomPacketPayload {
 
-    public static final Type<SetGhostMatrixPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "set_ghost_matrix"));
+    public static final Type<SetGhostMatrixPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(RatsMod.MODID, "set_ghost_matrix"));
 
     public static final StreamCodec<RegistryFriendlyByteBuf, SetGhostMatrixPacket> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_LONG, SetGhostMatrixPacket::blockPos,

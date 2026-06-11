@@ -6,7 +6,7 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleItemRecipe;
 
-// 1.21: SingleItemRecipe constructor no longer takes ResourceLocation id (recipe identity moved to RecipeHolder).
+// 1.21: SingleItemRecipe constructor no longer takes Identifier id (recipe identity moved to RecipeHolder).
 public abstract class BaseRatRecipe extends SingleItemRecipe {
 	public BaseRatRecipe(RecipeType<?> type, RecipeSerializer<?> serializer, String group, Ingredient input, ItemStack output) {
 		super(type, serializer, group, input, output);

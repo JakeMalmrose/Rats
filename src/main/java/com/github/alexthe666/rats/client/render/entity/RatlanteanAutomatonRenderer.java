@@ -7,13 +7,13 @@ import com.github.alexthe666.rats.server.entity.monster.boss.RatlanteanAutomaton
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 
 public class RatlanteanAutomatonRenderer extends MobRenderer<RatlanteanAutomaton, RatlanteanAutomatonModel<RatlanteanAutomaton>> {
 
-	private static final ResourceLocation MARBLED_CHEESE_GOLEM_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_automaton/ratlantean_automaton.png");
-	private static final ResourceLocation GLOW_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_automaton/ratlantean_automaton_glow.png");
+	private static final Identifier MARBLED_CHEESE_GOLEM_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_automaton/ratlantean_automaton.png");
+	private static final Identifier GLOW_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_automaton/ratlantean_automaton_glow.png");
 
 	public RatlanteanAutomatonRenderer(EntityRendererProvider.Context context) {
 		super(context, new RatlanteanAutomatonModel<>(false), 0.95F);
@@ -31,7 +31,7 @@ public class RatlanteanAutomatonRenderer extends MobRenderer<RatlanteanAutomaton
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(RatlanteanAutomaton entity) {
+	public Identifier getTextureLocation(RatlanteanAutomaton entity) {
 		return MARBLED_CHEESE_GOLEM_TEXTURE;
 	}
 }

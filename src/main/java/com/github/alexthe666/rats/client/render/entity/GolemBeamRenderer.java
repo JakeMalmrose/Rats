@@ -6,18 +6,19 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class GolemBeamRenderer extends EntityRenderer<GolemBeam> {
 
-	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_automaton/automaton_beam.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_automaton/automaton_beam.png");
 
 	public GolemBeamRenderer(EntityRendererProvider.Context context) {
 		super(context);
@@ -36,7 +37,7 @@ public class GolemBeamRenderer extends EntityRenderer<GolemBeam> {
 		stack.mulPose(Axis.XP.rotationDegrees(45.0F));
 		stack.scale(0.05625F, 0.05625F, 0.05625F);
 		stack.translate(-4.0D, 0.0D, 0.0D);
-		VertexConsumer consumer = buffer.getBuffer(RenderType.eyes(TEXTURE));
+		VertexConsumer consumer = buffer.getBuffer(RenderTypes.eyes(TEXTURE));
 		PoseStack.Pose pose = stack.last();
 		Matrix4f matrix4f = pose.pose();
 		Matrix3f matrix3f = pose.normal();
@@ -66,7 +67,7 @@ public class GolemBeamRenderer extends EntityRenderer<GolemBeam> {
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(GolemBeam entity) {
+	public Identifier getTextureLocation(GolemBeam entity) {
 		return TEXTURE;
 	}
 }

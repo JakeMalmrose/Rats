@@ -15,7 +15,8 @@ public class WildRatAvoidPlayerGoal extends AvoidEntityGoal<Player> {
 	public WildRatAvoidPlayerGoal(Rat rat, Predicate<LivingEntity> predicate) {
 		super(rat, Player.class, 10.0F, 1.225D, 1.5D, predicate);
 		this.rat = rat;
-		this.avoidEntityTargeting = TargetingConditions.forNonCombat().range(10.0F).selector(predicate);
+		// 26.1: TargetingConditions selector is now (LivingEntity, ServerLevel)
+		this.avoidEntityTargeting = TargetingConditions.forNonCombat().range(10.0F).selector((entity, level) -> predicate.test(entity));
 	}
 
 	@Override

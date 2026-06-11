@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.block.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatlantisBlockEntityRegistry;
 import com.github.alexthe666.rats.registry.RatlantisBlockRegistry;
 import com.github.alexthe666.rats.registry.RatsBlockRegistry;
@@ -24,14 +26,14 @@ public class RatlantisTokenBlockEntity extends BlockEntity {
 		super(RatlantisBlockEntityRegistry.TOKEN.get(), pos, state);
 	}
 
-	public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	public void saveAdditional(ValueOutput compound) {
 		compound.putInt("TicksExisted", tickCount);
 		super.saveAdditional(compound, registries);
 	}
 
-	protected void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	protected void loadAdditional(ValueInput compound) {
 		super.loadAdditional(compound, registries);
-		tickCount = compound.getInt("TicksExisted");
+		tickCount = compound.getIntOr("TicksExisted", 0);
 	}
 
 	public AABB getRenderBoundingBox() {

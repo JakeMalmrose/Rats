@@ -2,8 +2,8 @@ package com.github.alexthe666.rats.client.model.hats;
 
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.decoration.ArmorStand;
 
@@ -15,7 +15,7 @@ public class AbstractHatModel extends HumanoidModel<LivingEntity> {
 		super(root);
 	}
 
-	public AbstractHatModel(ModelPart root, Function<ResourceLocation, RenderType> function) {
+	public AbstractHatModel(ModelPart root, Function<Identifier, RenderType> function) {
 		super(root, function);
 	}
 

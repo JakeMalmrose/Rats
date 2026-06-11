@@ -8,16 +8,16 @@ import com.github.alexthe666.rats.server.entity.monster.PlagueBeast;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class PlagueBeastRenderer extends MobRenderer<PlagueBeast, FeralRatlanteanModel<PlagueBeast>> {
 
-	private static final ResourceLocation BLUE_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/beasts/feral_ratlantean_blue.png");
-	private static final ResourceLocation BLACK_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/beasts/feral_ratlantean_black.png");
-	private static final ResourceLocation BROWN_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/beasts/feral_ratlantean_brown.png");
-	private static final ResourceLocation GREEN_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/beasts/feral_ratlantean_green.png");
-	private static final ResourceLocation PLAGUE_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/beasts/plague_beast_overlay.png");
-	private static final ResourceLocation EYE_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/beasts/plague_beast_eyes.png");
+	private static final Identifier BLUE_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/beasts/feral_ratlantean_blue.png");
+	private static final Identifier BLACK_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/beasts/feral_ratlantean_black.png");
+	private static final Identifier BROWN_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/beasts/feral_ratlantean_brown.png");
+	private static final Identifier GREEN_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/beasts/feral_ratlantean_green.png");
+	private static final Identifier PLAGUE_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/beasts/plague_beast_overlay.png");
+	private static final Identifier EYE_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/beasts/plague_beast_eyes.png");
 
 	public PlagueBeastRenderer(EntityRendererProvider.Context context) {
 		super(context, new FeralRatlanteanModel<>(), 0.5F);
@@ -30,7 +30,7 @@ public class PlagueBeastRenderer extends MobRenderer<PlagueBeast, FeralRatlantea
 		stack.scale(1.2F, 1.2F, 1.2F);
 	}
 
-	public ResourceLocation getTextureLocation(PlagueBeast entity) {
+	public Identifier getTextureLocation(PlagueBeast entity) {
 		return switch (entity.getColorVariant()) {
 			case 1 -> BLACK_TEXTURE;
 			case 2 -> BROWN_TEXTURE;

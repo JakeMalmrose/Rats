@@ -9,17 +9,18 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.block.state.BlockState;
 
 public class ThrownBlockRenderer extends EntityRenderer<ThrownBlock> {
-	private static final ResourceLocation LIGHTNING_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/psychic.png");
+	private static final Identifier LIGHTNING_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/psychic.png");
 	private final CubeModel<ThrownBlock> cube;
 
 	public ThrownBlockRenderer(EntityRendererProvider.Context context) {
@@ -47,14 +48,14 @@ public class ThrownBlockRenderer extends EntityRenderer<ThrownBlock> {
 		stack.scale(1F, -1F, 1F);
 		stack.translate(0F, -0.5F, 0F);
 		stack.mulPose(Axis.YP.rotationDegrees(yaw - 180));
-		VertexConsumer consumer = buffer.getBuffer(RenderType.energySwirl(LIGHTNING_TEXTURE, f * 0.01F, f * 0.01F));
+		VertexConsumer consumer = buffer.getBuffer(RenderTypes.energySwirl(LIGHTNING_TEXTURE, f * 0.01F, f * 0.01F));
 		this.cube.renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 		stack.popPose();
 		super.render(entity, entityYaw, partialTicks, stack, buffer, light);
 
 	}
 
-	public ResourceLocation getTextureLocation(ThrownBlock entity) {
+	public Identifier getTextureLocation(ThrownBlock entity) {
 		return InventoryMenu.BLOCK_ATLAS;
 	}
 }

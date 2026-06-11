@@ -36,7 +36,7 @@ public class CombinedRatUpgradeItem extends BaseRatUpgradeItem implements Combin
 	public static boolean canCombineWithUpgrade(ItemStack combiner, ItemStack stack) {
 		if (stack.getItem() instanceof CombinedUpgrade) return false;
 		CompoundTag tag = combiner.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-		if (tag.contains("Items", 9)) {
+		if (tag.contains("Items")) {
 			NonNullList<ItemStack> nonnulllist = NonNullList.withSize(27, ItemStack.EMPTY);
 			ContainerHelper.loadAllItems(tag, nonnulllist, net.minecraft.core.RegistryAccess.EMPTY);
 			for (ItemStack contained : nonnulllist) {
@@ -64,7 +64,7 @@ public class CombinedRatUpgradeItem extends BaseRatUpgradeItem implements Combin
 		}
 		CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 		boolean flag = false;
-		if (tag.contains("Items", 9)) {
+		if (tag.contains("Items")) {
 			NonNullList<ItemStack> nonnulllist = NonNullList.withSize(this.getUpgradeSlots(), ItemStack.EMPTY);
 			ContainerHelper.loadAllItems(tag, nonnulllist, net.minecraft.core.RegistryAccess.EMPTY);
 			flag = !nonnulllist.isEmpty();

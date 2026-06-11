@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.monster.boss;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.data.ratlantis.tags.RatlantisEntityTags;
 import com.github.alexthe666.rats.registry.RatlantisEntityRegistry;
@@ -111,17 +113,17 @@ public class NeoRatlantean extends Monster {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag compound) {
+	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
 		compound.putInt("ColorVariant", this.getColorVariant());
 		compound.putInt("AttackSelection", attackSelection);
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag compound) {
+	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
-		this.setColorVariant(compound.getInt("ColorVariant"));
-		attackSelection = compound.getInt("AttackSelection");
+		this.setColorVariant(compound.getIntOr("ColorVariant", 0));
+		attackSelection = compound.getIntOr("AttackSelection", 0);
 		if (this.hasCustomName()) {
 			this.bossInfo.setName(this.getDisplayName());
 		}
@@ -146,7 +148,7 @@ public class NeoRatlantean extends Monster {
 	}
 
 	@Nullable
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, MobSpawnType type, @Nullable SpawnGroupData data) {
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, EntitySpawnReason type, @Nullable SpawnGroupData data) {
 		data = super.finalizeSpawn(accessor, difficulty, type, data);
 		this.setColorVariant(this.getRandom().nextInt(4));
 		return data;

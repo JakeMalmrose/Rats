@@ -12,7 +12,10 @@ import com.github.alexthe666.rats.client.model.entity.*;
 import com.github.alexthe666.rats.client.model.hats.*;
 import com.github.alexthe666.rats.client.particle.*;
 import com.github.alexthe666.rats.client.render.NuggetColorRegister;
+import com.github.alexthe666.rats.client.render.RatsClientKeys;
+import com.github.alexthe666.rats.client.render.RatsItemProperties;
 import com.github.alexthe666.rats.client.render.RatsRenderType;
+import com.github.alexthe666.rats.client.render.RatsSpawnEggTintSource;
 import com.github.alexthe666.rats.client.render.block.*;
 import com.github.alexthe666.rats.client.render.entity.*;
 import com.github.alexthe666.rats.client.render.entity.layer.PartyHatLayer;
@@ -30,14 +33,14 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.LayerDefinitions;
 import net.minecraft.client.model.geom.ModelLayers;
+import com.google.common.reflect.TypeToken;
 import net.minecraft.client.renderer.BiomeColors;
-import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.ThrownItemRenderer;
-import net.minecraft.client.renderer.item.ItemProperties;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.packs.resources.ResourceProvider;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -49,8 +52,10 @@ import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterColorHandlersEvent;
+import net.neoforged.neoforge.client.event.RegisterConditionalItemModelPropertyEvent;
 import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
-import net.neoforged.neoforge.client.event.RegisterShadersEvent;
+import net.neoforged.neoforge.client.event.RegisterRangeSelectItemModelPropertyEvent;
+import net.neoforged.neoforge.client.event.RegisterRenderStateModifiersEvent;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -68,8 +73,6 @@ import java.util.Objects;
 @EventBusSubscriber(modid = RatsMod.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
 public class ModClientEvents {
 
-	private static ShaderInstance rendertypeRatlantisPortalShader;
-
 	public static boolean shouldRenderNameplates() {
 		return Minecraft.getInstance().screen == null || !(Minecraft.getInstance().screen instanceof RatScreen) && !(Minecraft.getInstance().screen instanceof CheeseStaffScreen);
 	}
@@ -83,42 +86,33 @@ public class ModClientEvents {
 		Minecraft.getInstance().setScreen(new MobFilterScreen(hand));
 	}
 
+	// 26.1: ItemProperties was replaced by data-driven item model properties (assets/rats/items/*.json);
+	// the code-side predicates live in RatsItemProperties and are registered below.
 	@SubscribeEvent
-	public static void setupShaders(RegisterShadersEvent event) throws IOException {
-		ResourceProvider provider = event.getResourceProvider();
-		event.registerShader(new ShaderInstance(provider, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "rendertype_ratlantis_portal"), DefaultVertexFormat.POSITION_COLOR), instance -> rendertypeRatlantisPortalShader = instance);
-	}
-
-	public static ShaderInstance getRendertypeRatlantisPortalShader() {
-		return rendertypeRatlantisPortalShader;
+	public static void registerRangeProperties(RegisterRangeSelectItemModelPropertyEvent event) {
+		event.register(Identifier.fromNamespaceAndPath(RatsMod.MODID, "rat_count"), RatsItemProperties.RatCount.MAP_CODEC);
+		event.register(Identifier.fromNamespaceAndPath(RatsMod.MODID, "glint_type"), RatsItemProperties.GlintType.MAP_CODEC);
 	}
 
 	@SubscribeEvent
-	public static void clientSetup(FMLClientSetupEvent event) {
-		event.enqueueWork(() -> {
-			ItemProperties.register(RatsItemRegistry.RAT_SACK.get(), ResourceLocation.parse("rat_count"), (stack, level, entity, i) -> Math.min(3, RatSackItem.getRatsInSack(stack)));
+	public static void registerConditionalProperties(RegisterConditionalItemModelPropertyEvent event) {
+		event.register(Identifier.fromNamespaceAndPath(RatsMod.MODID, "soul"), RatsItemProperties.DemonSoul.MAP_CODEC);
+	}
 
-			ItemProperties.register(RatlantisItemRegistry.RATLANTIS_BOW.get(), ResourceLocation.parse("pull"), (stack, level, living, i) -> {
-				if (living == null) {
-					return 0.0F;
-				} else {
-					// 1.21: ItemStack.getUseDuration now requires the LivingEntity context.
-					return living.getUseItem() != stack ? 0.0F : (float) (stack.getUseDuration(living) - living.getUseItemRemainingTicks()) / 10.0F;
-				}
-			});
+	@SubscribeEvent
+	public static void registerItemTintSources(RegisterColorHandlersEvent.ItemTintSources event) {
+		event.register(Identifier.fromNamespaceAndPath(RatsMod.MODID, "spawn_egg_layer"), RatsSpawnEggTintSource.MAP_CODEC);
+	}
 
-			ItemProperties.register(RatlantisItemRegistry.RATLANTIS_BOW.get(), ResourceLocation.parse("pulling"), (stack, level, living, i) -> living != null && living.isUsingItem() && living.getUseItem() == stack ? 1.0F : 0.0F);
-
-			ItemProperties.register(RatsItemRegistry.RATBOW_ESSENCE.get(), ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "special"), (stack, level, entity, i) -> {
-				if (stack.has(net.minecraft.core.component.DataComponents.CUSTOM_NAME)) {
-					RatsRenderType.GlintType type = RatsRenderType.GlintType.getGlintBasedOnKeyword(stack.getHoverName().getString());
-					return type != null && type.changesItemTexture() ? type.ordinal() + 1 : 0;
-				}
-				return 0;
-			});
-
-			ItemProperties.register(RatsItemRegistry.RAT_UPGRADE_DEMON.get(), ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "soul"), (stack, level, living, i) -> DemonRatUpgradeItem.isSoulVersion(stack) ? 1 : 0);
-		});
+	// Citadel-driven models need the live entity during setupAnim; stash it into every render state.
+	@SubscribeEvent
+	public static void registerRenderStateModifiers(RegisterRenderStateModifiersEvent event) {
+		event.registerEntityModifier(
+				new TypeToken<LivingEntityRenderer<? extends LivingEntity, LivingEntityRenderState, ?>>() {},
+				(entity, renderState) -> renderState.setRenderData(RatsClientKeys.RENDER_STATE_LIVING_ENTITY, entity));
+		event.registerEntityModifier(
+				new TypeToken<EntityRenderer<? extends net.minecraft.world.entity.Entity, ? extends EntityRenderState>>() {},
+				(entity, renderState) -> renderState.setRenderData(RatsClientKeys.RENDER_STATE_ENTITY, entity));
 	}
 
 	@SubscribeEvent

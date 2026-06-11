@@ -30,7 +30,7 @@ public class RatUpgradeUtils {
 				}
 				if (stack.getItem() instanceof CombinedUpgrade combined) {
 					CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-					if (tag.contains("Items", 9)) {
+					if (tag.contains("Items")) {
 						NonNullList<ItemStack> upgradeList = NonNullList.withSize(combined.getUpgradeSlots(), ItemStack.EMPTY);
 						ContainerHelper.loadAllItems(tag, upgradeList, rat.level().registryAccess());
 						for (ItemStack selectedUpgrade : upgradeList) {
@@ -62,7 +62,7 @@ public class RatUpgradeUtils {
 				}
 				if (stack.getItem() instanceof CombinedUpgrade combined) {
 					CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-					if (tag.contains("Items", 9)) {
+					if (tag.contains("Items")) {
 						NonNullList<ItemStack> upgradeList = NonNullList.withSize(combined.getUpgradeSlots(), ItemStack.EMPTY);
 						ContainerHelper.loadAllItems(tag, upgradeList, rat.level().registryAccess());
 						for (ItemStack selectedUpgrade : upgradeList) {
@@ -82,7 +82,7 @@ public class RatUpgradeUtils {
 			if (!stack.isEmpty()) {
 				if (stack.getItem() instanceof CombinedUpgrade combined) {
 					CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-					if (tag.contains("Items", 9)) {
+					if (tag.contains("Items")) {
 						NonNullList<ItemStack> upgradeList = NonNullList.withSize(combined.getUpgradeSlots(), ItemStack.EMPTY);
 						ContainerHelper.loadAllItems(tag, upgradeList, rat.level().registryAccess());
 						for (ItemStack selectedUpgrade : upgradeList) {

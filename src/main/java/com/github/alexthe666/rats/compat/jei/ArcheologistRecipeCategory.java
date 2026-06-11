@@ -15,11 +15,11 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class ArcheologistRecipeCategory implements IRecipeCategory<ArcheologistRecipe> {
 
-	protected static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/jei/archeologist_rat_jei.png");
+	protected static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/jei/archeologist_rat_jei.png");
 	private final IDrawable background;
 	private final IDrawable icon;
 	private final IDrawable arrow;

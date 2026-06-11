@@ -10,9 +10,10 @@ import com.github.alexthe666.rats.server.items.upgrades.interfaces.ChangesOverla
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.TickRatUpgrade;
 import com.github.alexthe666.rats.server.misc.RatsLangConstants;
 import net.minecraft.ChatFormatting;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -53,7 +54,7 @@ public class EnergyRatUpgradeItem extends BaseRatUpgradeItem implements ChangesO
 	@Override
 	public @Nullable RenderType getOverlayTexture(ItemStack stack, TamedRat rat, float partialTicks) {
 		float f = (float) rat.tickCount + partialTicks;
-		return rat.getHeldRF() > 0 ? RenderType.energySwirl(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/psychic.png"), f * 0.01F, f * 0.01F) : null;
+		return rat.getHeldRF() > 0 ? RenderTypes.energySwirl(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/psychic.png"), f * 0.01F, f * 0.01F) : null;
 	}
 
 	@Override

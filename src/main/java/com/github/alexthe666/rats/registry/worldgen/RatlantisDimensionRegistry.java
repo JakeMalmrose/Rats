@@ -6,7 +6,7 @@ import net.minecraft.core.HolderGetter;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.valueproviders.UniformFloat;
 import net.minecraft.util.valueproviders.UniformInt;
@@ -27,12 +27,12 @@ import java.util.List;
 import java.util.OptionalLong;
 
 public class RatlantisDimensionRegistry {
-	public static final ResourceLocation DIMENSION = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "ratlantis");
+	public static final Identifier DIMENSION = Identifier.fromNamespaceAndPath(RatsMod.MODID, "ratlantis");
 	public static final ResourceKey<Level> DIMENSION_KEY = ResourceKey.create(Registries.DIMENSION, DIMENSION);
 
-	public static final ResourceKey<ConfiguredWorldCarver<?>> RATLANTIS_CAVES = ResourceKey.create(Registries.CONFIGURED_CARVER, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "ratlantis_caves"));
-	public static final ResourceKey<NoiseGeneratorSettings> RATLANTIS_NOISE_GEN = ResourceKey.create(Registries.NOISE_SETTINGS, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "ratlantis_noise_gen"));
-	public static final ResourceKey<DimensionType> RATLANTIS_DIM_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "ratlantis_type"));
+	public static final ResourceKey<ConfiguredWorldCarver<?>> RATLANTIS_CAVES = ResourceKey.create(Registries.CONFIGURED_CARVER, Identifier.fromNamespaceAndPath(RatsMod.MODID, "ratlantis_caves"));
+	public static final ResourceKey<NoiseGeneratorSettings> RATLANTIS_NOISE_GEN = ResourceKey.create(Registries.NOISE_SETTINGS, Identifier.fromNamespaceAndPath(RatsMod.MODID, "ratlantis_noise_gen"));
+	public static final ResourceKey<DimensionType> RATLANTIS_DIM_TYPE = ResourceKey.create(Registries.DIMENSION_TYPE, Identifier.fromNamespaceAndPath(RatsMod.MODID, "ratlantis_type"));
 	public static final ResourceKey<LevelStem> RATLANTIS_LEVEL_STEM = ResourceKey.create(Registries.LEVEL_STEM, DIMENSION);
 
 	private static DimensionType ratlantisType() {
@@ -49,9 +49,9 @@ public class RatlantisDimensionRegistry {
 				256,
 				256,
 				BlockTags.INFINIBURN_OVERWORLD,
-				ResourceLocation.parse("overworld"),
+				Identifier.parse("overworld"),
 				0.0F,
-				new DimensionType.MonsterSettings(false, false, UniformInt.of(0, 7), 7)
+				new DimensionType.MonsterSettings(UniformInt.of(0, 7), 7)
 		);
 	}
 

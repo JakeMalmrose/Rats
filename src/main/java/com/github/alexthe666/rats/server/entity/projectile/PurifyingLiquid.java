@@ -11,9 +11,9 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.monster.ZombieVillager;
-import net.minecraft.world.entity.projectile.ThrowableItemProjectile;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.entity.monster.zombie.ZombieVillager;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableItemProjectile;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -64,7 +64,7 @@ public class PurifyingLiquid extends ThrowableItemProjectile {
 									Rat rat = new Rat(RatsEntityRegistry.RAT.get(), this.level());
 									rat.copyPosition(living);
 									if (!this.level().isClientSide()) {
-										EventHooks.finalizeMobSpawn(rat, (ServerLevelAccessor) this.level(), this.level().getCurrentDifficultyAt(this.blockPosition()), MobSpawnType.CONVERSION, null);
+										EventHooks.finalizeMobSpawn(rat, (ServerLevelAccessor) this.level(), this.level().getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.CONVERSION, null);
 									}
 									rat.setTame(false, true);
 									rat.setOwnerUUID(null);

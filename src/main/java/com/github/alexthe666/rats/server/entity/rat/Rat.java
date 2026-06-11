@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.rat;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.registry.*;
@@ -100,7 +102,7 @@ public class Rat extends DiggingRat {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag compound) {
+	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
 		if (this.getRestrictCenter() != BlockPos.ZERO) {
 			BlockPos home = this.getRestrictCenter();
@@ -115,19 +117,19 @@ public class Rat extends DiggingRat {
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag compound) {
+	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
-		if (compound.contains("Home", 9)) {
-			ListTag nbttaglist = compound.getList("Home", 6);
-			int hx = (int) nbttaglist.getDouble(0);
-			int hy = (int) nbttaglist.getDouble(1);
-			int hz = (int) nbttaglist.getDouble(2);
-			this.restrictTo(new BlockPos(hx, hy, hz), (int) compound.getFloat("HomeDistance"));
+		if (compound.contains("Home")) {
+			ListTag nbttaglist = compound.getListOrEmpty("Home");
+			int hx = (int) nbttaglist.getDoubleOr(0, 0.0D);
+			int hy = (int) nbttaglist.getDoubleOr(1, 0.0D);
+			int hz = (int) nbttaglist.getDoubleOr(2, 0.0D);
+			this.restrictTo(new BlockPos(hx, hy, hz), (int) compound.getFloatOr("HomeDistance", 0.0F));
 		}
-		this.wildTrust = compound.getInt("WildTrust");
-		this.cheeseFeedings = compound.getInt("CheeseFeedings");
-		this.setPlagued(compound.getBoolean("Plague"));
-		this.setToga(compound.getBoolean("Toga"));
+		this.wildTrust = compound.getIntOr("WildTrust", 0);
+		this.cheeseFeedings = compound.getIntOr("CheeseFeedings", 0);
+		this.setPlagued(compound.getBooleanOr("Plague", false));
+		this.setToga(compound.getBooleanOr("Toga", false));
 	}
 
 	@Override
@@ -212,7 +214,7 @@ public class Rat extends DiggingRat {
 		if (this.ratKingTransformTicks == 200 && !this.level().isClientSide()) {
 			RatKing king = new RatKing(RatsEntityRegistry.RAT_KING.get(), this.level());
 			king.copyPosition(this);
-			EventHooks.finalizeMobSpawn(king, (ServerLevelAccessor) this.level(), this.level().getCurrentDifficultyAt(this.blockPosition()), MobSpawnType.CONVERSION, null);
+			EventHooks.finalizeMobSpawn(king, (ServerLevelAccessor) this.level(), this.level().getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.CONVERSION, null);
 			this.level().addFreshEntity(king);
 			this.discard();
 		}
@@ -237,9 +239,9 @@ public class Rat extends DiggingRat {
 	}
 
 	@Override
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, MobSpawnType type, @Nullable SpawnGroupData data) {
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, EntitySpawnReason type, @Nullable SpawnGroupData data) {
 		data = super.finalizeSpawn(accessor, difficulty, type, data);
-		if (this.getRandom().nextInt(15) == 0 && this.level().getDifficulty() != Difficulty.PEACEFUL && type != MobSpawnType.CONVERSION) {
+		if (this.getRandom().nextInt(15) == 0 && this.level().getDifficulty() != Difficulty.PEACEFUL && type != EntitySpawnReason.CONVERSION) {
 			this.setPlagued(true);
 		}
 		if (accessor.getLevel().dimension().equals(RatlantisDimensionRegistry.DIMENSION_KEY)) {
@@ -334,16 +336,16 @@ public class Rat extends DiggingRat {
 		return super.isInvulnerable() || this.isBecomingRatKing();
 	}
 
-	public static boolean checkRatSpawnRules(EntityType<? extends Mob> entityType, LevelAccessor accessor, MobSpawnType type, BlockPos pos, RandomSource random) {
+	public static boolean checkRatSpawnRules(EntityType<? extends Mob> entityType, LevelAccessor accessor, EntitySpawnReason type, BlockPos pos, RandomSource random) {
 		if (random.nextInt(16) == 0) {
-			return type == MobSpawnType.SPAWNER || spawnCheck(accessor, pos, random, type);
+			return type == EntitySpawnReason.SPAWNER || spawnCheck(accessor, pos, random, type);
 		}
 		return false;
 	}
 
-	private static boolean spawnCheck(LevelAccessor accessor, BlockPos pos, RandomSource random, MobSpawnType type) {
-		if (!accessor.getLevelData().getGameRules().getBoolean(RatsMod.SPAWN_RATS)) return false;
-		if (type != MobSpawnType.NATURAL) return true;
+	private static boolean spawnCheck(LevelAccessor accessor, BlockPos pos, RandomSource random, EntitySpawnReason type) {
+		if (!accessor.getLevelData().getGameRules().getBooleanOr(RatsMod.SPAWN_RATS, false)) return false;
+		if (type != EntitySpawnReason.NATURAL) return true;
 		int spawnRoll = RatConfig.ratSpawnDecrease;
 		if (accessor instanceof ServerLevelAccessor server && server.getLevel().dimension().equals(RatlantisDimensionRegistry.DIMENSION_KEY))
 			return spawnRoll <= 0 || random.nextInt(spawnRoll) == 0;
@@ -364,7 +366,7 @@ public class Rat extends DiggingRat {
 	}
 
 	@Override
-	public boolean checkSpawnRules(LevelAccessor accessor, MobSpawnType type) {
+	public boolean checkSpawnRules(LevelAccessor accessor, EntitySpawnReason type) {
 		return spawnCheck(accessor, this.blockPosition(), accessor.getRandom(), type);
 	}
 

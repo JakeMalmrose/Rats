@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.monster;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.registry.RatsEntityRegistry;
@@ -31,8 +33,8 @@ import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
-import net.minecraft.world.entity.animal.IronGolem;
-import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.animal.golem.IronGolem;
+import net.minecraft.world.entity.npc.villager.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.raid.Raider;
 import net.minecraft.world.item.ItemStack;
@@ -94,9 +96,9 @@ public class PiedPiper extends Raider implements RatSummoner {
 	}
 
 	@Override
-	public boolean checkSpawnRules(LevelAccessor accessor, MobSpawnType type) {
-		if (!accessor.getLevelData().getGameRules().getBoolean(RatsMod.SPAWN_PIPERS)) return false;
-		if (type == MobSpawnType.EVENT || type == MobSpawnType.SPAWNER) return super.checkSpawnRules(accessor, type);
+	public boolean checkSpawnRules(LevelAccessor accessor, EntitySpawnReason type) {
+		if (!accessor.getLevelData().getGameRules().getBooleanOr(RatsMod.SPAWN_PIPERS, false)) return false;
+		if (type == EntitySpawnReason.EVENT || type == EntitySpawnReason.SPAWNER) return super.checkSpawnRules(accessor, type);
 		int spawnRoll = RatConfig.piperSpawnDecrease;
 		if (spawnRoll == 0 || accessor.getRandom().nextInt(spawnRoll) == 0) {
 			return super.checkSpawnRules(accessor, type);
@@ -122,15 +124,15 @@ public class PiedPiper extends Raider implements RatSummoner {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag compound) {
+	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
 		compound.putInt("RatsSummoned", this.getRatsSummoned());
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag compound) {
+	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
-		this.setRatsSummoned(compound.getInt("RatsSummoned"));
+		this.setRatsSummoned(compound.getIntOr("RatsSummoned", 0));
 	}
 
 	@Override
@@ -161,7 +163,7 @@ public class PiedPiper extends Raider implements RatSummoner {
 
 	@Nullable
 	@Override
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType reason, @Nullable SpawnGroupData spawnData) {
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData spawnData) {
 		spawnData = super.finalizeSpawn(level, difficulty, reason, spawnData);
 		this.populateDefaultEquipmentSlots(level.getRandom(), difficulty);
 		this.populateDefaultEquipmentEnchantments(level, level.getRandom(), difficulty);
@@ -183,7 +185,7 @@ public class PiedPiper extends Raider implements RatSummoner {
 			if (this.getRatsSummoned() < 6 && this.ratCooldown == 0) {
 				this.level().broadcastEntityEvent(this, (byte) 82);
 				Rat rat = new Rat(RatsEntityRegistry.RAT.get(), this.level());
-				EventHooks.finalizeMobSpawn(rat, (ServerLevel) this.level(), this.level().getCurrentDifficultyAt(this.blockPosition()), MobSpawnType.MOB_SUMMONED, null);
+				EventHooks.finalizeMobSpawn(rat, (ServerLevel) this.level(), this.level().getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.MOB_SUMMONED, null);
 				rat.copyPosition(this);
 				this.level().addFreshEntity(rat);
 				rat.setPlagued(false);
@@ -224,10 +226,10 @@ public class PiedPiper extends Raider implements RatSummoner {
 		return level.getDifficulty() != Difficulty.PEACEFUL && isDarkEnoughToSpawn((ServerLevelAccessor) level, pos, randomIn);
 	}
 
-	public static boolean checkPiperSpawnRules(EntityType<? extends Mob> type, ServerLevelAccessor level, MobSpawnType reason, BlockPos pos, RandomSource random) {
+	public static boolean checkPiperSpawnRules(EntityType<? extends Mob> type, ServerLevelAccessor level, EntitySpawnReason reason, BlockPos pos, RandomSource random) {
 		BlockPos blockpos = pos.below();
 		boolean light = canPiperSpawnInLight(level, pos, random);
-		return reason == MobSpawnType.SPAWNER || light && level.getBlockState(blockpos).isValidSpawn(level, blockpos, type) && random.nextFloat() < 0.25F;
+		return reason == EntitySpawnReason.SPAWNER || light && level.getBlockState(blockpos).isValidSpawn(level, blockpos, type) && random.nextFloat() < 0.25F;
 	}
 
 	@Override

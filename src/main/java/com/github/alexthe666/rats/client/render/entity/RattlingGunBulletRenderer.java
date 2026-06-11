@@ -6,18 +6,19 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class RattlingGunBulletRenderer extends EntityRenderer<RattlingGunBullet> {
 
-	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rattling_gun/rattling_gun_bullet.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rattling_gun/rattling_gun_bullet.png");
 
 	public RattlingGunBulletRenderer(EntityRendererProvider.Context context) {
 		super(context);
@@ -37,7 +38,7 @@ public class RattlingGunBulletRenderer extends EntityRenderer<RattlingGunBullet>
 		stack.mulPose(Axis.XP.rotationDegrees(45.0F));
 		stack.scale(0.05625F, 0.05625F, 0.05625F);
 		stack.translate(-4.0F, 0.0F, 0.0F);
-		VertexConsumer vertexconsumer = buffer.getBuffer(RenderType.entityCutout(this.getTextureLocation(bullet)));
+		VertexConsumer vertexconsumer = buffer.getBuffer(RenderTypes.entityCutout(this.getTextureLocation(bullet)));
 		PoseStack.Pose pose = stack.last();
 		Matrix4f matrix4f = pose.pose();
 		this.vertex(matrix4f, pose, vertexconsumer, -7, -2, -2, 0.0F, 0.15625F, -1, 0, 0, light);
@@ -66,7 +67,7 @@ public class RattlingGunBulletRenderer extends EntityRenderer<RattlingGunBullet>
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(RattlingGunBullet entity) {
+	public Identifier getTextureLocation(RattlingGunBullet entity) {
 		return TEXTURE;
 	}
 }

@@ -6,13 +6,13 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import com.github.alexthe666.rats.client.ClientPacketHandlers;
 
 public record ManageRatStaffPacket(int entityId, BlockPos pos, int dirOrd, boolean clear, boolean openGUI, int staffToOpen) implements CustomPacketPayload {
 
-    public static final Type<ManageRatStaffPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "manage_rat_staff"));
+    public static final Type<ManageRatStaffPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(RatsMod.MODID, "manage_rat_staff"));
 
     public static final StreamCodec<FriendlyByteBuf, ManageRatStaffPacket> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, ManageRatStaffPacket::entityId,

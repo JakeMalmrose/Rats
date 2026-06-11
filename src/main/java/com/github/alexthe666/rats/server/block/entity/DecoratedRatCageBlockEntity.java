@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.block.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatsBlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -38,12 +40,12 @@ public class DecoratedRatCageBlockEntity extends BlockEntity {
 		return this.saveWithId(registries);
 	}
 
-	public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	public void saveAdditional(ValueOutput compound) {
 		ContainerHelper.saveAllItems(compound, this.containedDeco, registries);
 		super.saveAdditional(compound, registries);
 	}
 
-	protected void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	protected void loadAdditional(ValueInput compound) {
 		super.loadAdditional(compound, registries);
 		containedDeco = NonNullList.withSize(1, ItemStack.EMPTY);
 		ContainerHelper.loadAllItems(compound, containedDeco, registries);

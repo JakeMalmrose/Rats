@@ -9,12 +9,12 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.joml.Matrix4f;
 
 public class RatlantisPortalRenderer implements BlockEntityRenderer<RatlantisPortalBlockEntity> {
-	public static final ResourceLocation PORTAL_BG = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/environment/ratlantis_sky_portal.png");
-	public static final ResourceLocation PORTAL_FG = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/environment/ratlantis_portal.png");
+	public static final Identifier PORTAL_BG = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/environment/ratlantis_sky_portal.png");
+	public static final Identifier PORTAL_FG = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/environment/ratlantis_portal.png");
 
 	public RatlantisPortalRenderer(BlockEntityRendererProvider.Context context) {
 	}

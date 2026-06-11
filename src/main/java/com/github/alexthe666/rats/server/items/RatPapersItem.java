@@ -49,7 +49,7 @@ public class RatPapersItem extends Item {
 		CompoundTag nbt = readTag(stack);
 		if (!nbt.isEmpty()) {
 			String ratName = I18n.get("entity.rats.tamed_rat");
-			String entity = nbt.getString("RatName");
+			String entity = nbt.getStringOr("RatName", "");
 			Component rat = Component.empty();
 			if (nbt.hasUUID("RatUUID")) {
 				if (entity.isEmpty()) {

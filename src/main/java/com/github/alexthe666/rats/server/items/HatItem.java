@@ -16,7 +16,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.EntityModelSet;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -154,12 +154,12 @@ public class HatItem extends ArmorItem {
 	// we use it to point each hat at its real texture under model/hat/, regardless of which shared
 	// ArmorMaterial (e.g. GENERIC_HAT) the hat was registered with.
 	@Override
-	public ResourceLocation getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, ArmorMaterial.Layer layer, boolean innerModel) {
+	public Identifier getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, ArmorMaterial.Layer layer, boolean innerModel) {
 		String item = BuiltInRegistries.ITEM.getKey(this).getPath();
 		if (!item.equals("air")) {
-			return ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/model/hat/" + item + ".png");
+			return Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/model/hat/" + item + ".png");
 		}
-		return ResourceLocation.withDefaultNamespace("textures/particle/flea_0.png");
+		return Identifier.withDefaultNamespace("textures/particle/flea_0.png");
 	}
 
 	@Override

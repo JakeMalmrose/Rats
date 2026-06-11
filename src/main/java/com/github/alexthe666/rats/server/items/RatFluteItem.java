@@ -43,7 +43,7 @@ public class RatFluteItem extends Item {
 		ItemStack stack = player.getItemInHand(hand);
 
 		CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-		int commandInt = tag.getInt("Command");
+		int commandInt = tag.getIntOr("Command", 0);
 		RatCommand ratCommand = RatCommand.values()[Mth.clamp(commandInt, 0, RatCommand.values().length - 1)];
 		if (player.isShiftKeyDown()) {
 			commandInt++;
@@ -83,7 +83,7 @@ public class RatFluteItem extends Item {
 		tooltip.add(Component.translatable("item.rats.rat_flute.desc1").withStyle(ChatFormatting.GRAY));
 		CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 		if (!tag.isEmpty()) {
-			RatCommand ratCommand = RatCommand.values()[Mth.clamp(tag.getInt("Command"), 0, RatCommand.values().length - 1)];
+			RatCommand ratCommand = RatCommand.values()[Mth.clamp(tag.getIntOr("Command", 0), 0, RatCommand.values().length - 1)];
 			tooltip.add(Component.translatable(RatsLangConstants.RAT_CURRENT_COMMAND, Component.translatable(ratCommand.getTranslateName())).withStyle(ChatFormatting.GRAY));
 		}
 	}

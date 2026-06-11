@@ -31,7 +31,7 @@ import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
@@ -66,14 +66,14 @@ import java.util.Objects;
 @EventBusSubscriber(modid = RatsMod.MODID, value = Dist.CLIENT)
 public class ForgeClientEvents {
 
-	public static final ResourceLocation PLAGUE_HEART_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/plague_hearts.png");
-	private static final ResourceLocation RADIUS_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/rat_radius.png");
-	private static final ResourceLocation QUARRY_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/quarry_radius.png");
-	private static final ResourceLocation HOME_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/rat_home.png");
-	private static final ResourceLocation RAT_DEPOSIT_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/rat_deposit.png");
-	private static final ResourceLocation RAT_PICKUP_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/rat_pickup.png");
-	private static final ResourceLocation RAT_PATROL_NODE_TEXTURE = ResourceLocation.parse("rats:textures/misc/rat_patrol.png");
-	private static final ResourceLocation SYNESTHESIA = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "shaders/post/synesthesia.json");
+	public static final Identifier PLAGUE_HEART_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/plague_hearts.png");
+	private static final Identifier RADIUS_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/rat_radius.png");
+	private static final Identifier QUARRY_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/quarry_radius.png");
+	private static final Identifier HOME_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/rat_home.png");
+	private static final Identifier RAT_DEPOSIT_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/rat_deposit.png");
+	private static final Identifier RAT_PICKUP_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/rat_pickup.png");
+	private static final Identifier RAT_PATROL_NODE_TEXTURE = Identifier.parse("rats:textures/misc/rat_patrol.png");
+	private static final Identifier SYNESTHESIA = Identifier.fromNamespaceAndPath(RatsMod.MODID, "shaders/post/synesthesia.json");
 	private static float synesthesiaProgress = 0;
 	private static float prevSynesthesiaProgress = 0;
 	private static final float MAX_SYNESTESIA = 40;

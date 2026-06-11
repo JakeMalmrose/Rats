@@ -7,16 +7,17 @@ import com.github.alexthe666.rats.server.entity.rat.AbstractRat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class GhostPiratRenderer extends AbstractRatRenderer<GhostPirat, RatModel<GhostPirat>> {
 
-	private static final ResourceLocation BASE_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ghost_pirat/ghost_pirat.png");
+	private static final Identifier BASE_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ghost_pirat/ghost_pirat.png");
 
 	public GhostPiratRenderer(EntityRendererProvider.Context context) {
 		super(context, new RatModel<>());
@@ -30,12 +31,12 @@ public class GhostPiratRenderer extends AbstractRatRenderer<GhostPirat, RatModel
 		stack.scale(2.0F, 2.0F, 2.0F);
 	}
 
-	public ResourceLocation getTextureLocation(GhostPirat entity) {
+	public Identifier getTextureLocation(GhostPirat entity) {
 		return BASE_TEXTURE;
 	}
 
 	private static class GhostPiratLayer<T extends AbstractRat> extends RenderLayer<T, RatModel<T>> {
-		private static final ResourceLocation GHOST_OVERLAY = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ghost_pirat/ghost_pirat_overlay.png");
+		private static final Identifier GHOST_OVERLAY = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ghost_pirat/ghost_pirat_overlay.png");
 
 		public GhostPiratLayer(RenderLayerParent<T, RatModel<T>> parent) {
 			super(parent);
@@ -44,7 +45,7 @@ public class GhostPiratRenderer extends AbstractRatRenderer<GhostPirat, RatModel
 		@Override
 		public void render(PoseStack stack, MultiBufferSource buffer, int light, T rat, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
 			float f = (float) rat.tickCount + partialTicks;
-			VertexConsumer consumer = buffer.getBuffer(RenderType.energySwirl(GHOST_OVERLAY, f * 0.01F, f * 0.01F));
+			VertexConsumer consumer = buffer.getBuffer(RenderTypes.energySwirl(GHOST_OVERLAY, f * 0.01F, f * 0.01F));
 			this.getParentModel().renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFF808080);
 		}
 	}

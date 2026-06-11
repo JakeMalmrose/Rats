@@ -4,6 +4,7 @@ import com.github.alexthe666.citadel.client.model.AdvancedModelBox;
 import com.github.alexthe666.rats.registry.RatsItemRegistry;
 import com.github.alexthe666.rats.server.entity.rat.AbstractRat;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
@@ -11,6 +12,8 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.animal.chicken.ChickenSoundVariant;
+import net.minecraft.world.entity.animal.chicken.ChickenSoundVariants;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -37,8 +40,9 @@ public class RatChickenMount extends RatMountBase {
 				.add(Attributes.STEP_HEIGHT, 1.0D);
 	}
 
-	public boolean doHurtTarget(Entity entity) {
-		return entity.hurt(this.damageSources().mobAttack(this), (float) (1 + this.getRandom().nextInt(2)));
+	@Override
+	public boolean doHurtTarget(ServerLevel level, Entity entity) {
+		return entity.hurtServer(level, this.damageSources().mobAttack(this), (float) (1 + this.getRandom().nextInt(2)));
 	}
 
 	public void aiStep() {
@@ -60,20 +64,25 @@ public class RatChickenMount extends RatMountBase {
 		this.wingRotation += this.wingRotDelta * 2.0F;
 	}
 
+	// 26.1: chicken sounds moved into ChickenSoundVariant sets; use the classic adult set.
+	private static ChickenSoundVariant.ChickenSoundSet chickenSounds() {
+		return SoundEvents.CHICKEN_SOUNDS.get(ChickenSoundVariants.SoundSet.CLASSIC).adultSounds();
+	}
+
 	protected SoundEvent getAmbientSound() {
-		return SoundEvents.CHICKEN_AMBIENT;
+		return chickenSounds().ambientSound().value();
 	}
 
 	protected SoundEvent getHurtSound(DamageSource damageSourceIn) {
-		return SoundEvents.CHICKEN_HURT;
+		return chickenSounds().hurtSound().value();
 	}
 
 	protected SoundEvent getDeathSound() {
-		return SoundEvents.CHICKEN_DEATH;
+		return chickenSounds().deathSound().value();
 	}
 
 	protected void playStepSound(BlockPos pos, BlockState state) {
-		this.playSound(SoundEvents.CHICKEN_STEP, 0.15F, 1.0F);
+		this.playSound(SoundEvents.CHICKEN_STEP.value(), 0.15F, 1.0F);
 	}
 
 	@Override

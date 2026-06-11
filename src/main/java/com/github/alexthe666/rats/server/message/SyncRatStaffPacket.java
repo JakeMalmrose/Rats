@@ -10,14 +10,14 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record SyncRatStaffPacket(int entityId, BlockPos pos, Direction facing, int control, int extraData) implements CustomPacketPayload {
 
-    public static final Type<SyncRatStaffPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "sync_rat_staff"));
+    public static final Type<SyncRatStaffPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(RatsMod.MODID, "sync_rat_staff"));
 
     public static final StreamCodec<FriendlyByteBuf, SyncRatStaffPacket> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, SyncRatStaffPacket::entityId,

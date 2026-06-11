@@ -5,12 +5,12 @@ import com.github.alexthe666.rats.server.inventory.JuryRiggedRatUpgradeMenu;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 public class JuryRiggedRatUpgradeScreen extends AbstractContainerScreen<JuryRiggedRatUpgradeMenu> {
 
-	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/rat_upgrade_jury_rigged.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/rat_upgrade_jury_rigged.png");
 
 	public JuryRiggedRatUpgradeScreen(JuryRiggedRatUpgradeMenu container, Inventory playerInventory, Component name) {
 		super(container, playerInventory, name);

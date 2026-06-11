@@ -11,10 +11,11 @@ import com.github.alexthe666.rats.server.items.upgrades.interfaces.HoldsItemUpgr
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -31,7 +32,7 @@ public class LumberjackRatUpgradeItem extends BaseRatUpgradeItem implements Dama
 
 	@Override
 	public RenderType getOverlayTexture(ItemStack stack, TamedRat rat, float partialTicks) {
-		return RenderType.entitySmoothCutout(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/lumberjack.png"));
+		return RenderTypes.entitySmoothCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/lumberjack.png"));
 	}
 
 	@Override

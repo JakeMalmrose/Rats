@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.misc;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatlantisBlockRegistry;
 import com.github.alexthe666.rats.registry.RatlantisEntityRegistry;
 import com.github.alexthe666.rats.registry.RatlantisItemRegistry;
@@ -10,7 +12,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
@@ -56,14 +58,14 @@ public class PiratWoodBoat extends Boat {
 	}
 
 	@Override
-	protected void addAdditionalSaveData(CompoundTag tag) {
+	protected void addAdditionalSaveData(ValueOutput tag) {
 		tag.putString("Type", this.getRatsBoatType().getName());
 	}
 
 	@Override
-	protected void readAdditionalSaveData(CompoundTag tag) {
-		if (tag.contains("Type", 8)) {
-			this.setTwilightBoatType(Type.getTypeFromString(tag.getString("Type")));
+	protected void readAdditionalSaveData(ValueInput tag) {
+		if (tag.contains("Type")) {
+			this.setTwilightBoatType(Type.getTypeFromString(tag.getStringOr("Type", "")));
 		}
 	}
 

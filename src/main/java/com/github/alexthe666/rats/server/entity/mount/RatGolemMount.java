@@ -66,9 +66,10 @@ public class RatGolemMount extends RatMountBase {
 		}
 	}
 
-	public boolean hurt(DamageSource source, float amount) {
+	@Override
+	public boolean hurtServer(net.minecraft.server.level.ServerLevel level, DamageSource source, float amount) {
 		Cracks irongolementity$cracks = this.getCracks();
-		boolean flag = super.hurt(source, amount);
+		boolean flag = super.hurtServer(level, source, amount);
 		if (flag && this.getCracks() != irongolementity$cracks) {
 			this.playSound(SoundEvents.IRON_GOLEM_DAMAGE, 1.0F, 1.0F);
 		}
@@ -99,17 +100,16 @@ public class RatGolemMount extends RatMountBase {
 		return RatGolemMount.Cracks.byFraction(this.getHealth() / this.getMaxHealth());
 	}
 
-	public boolean doHurtTarget(Entity entity) {
+	@Override
+	public boolean doHurtTarget(net.minecraft.server.level.ServerLevel level, Entity entity) {
 		this.attackTimer = 10;
 		this.level().broadcastEntityEvent(this, (byte) 4);
 		net.minecraft.world.damagesource.DamageSource source = this.damageSources().mobAttack(this);
-		boolean flag = entity.hurt(source, (float) (7 + this.getRandom().nextInt(15)));
+		boolean flag = entity.hurtServer(level, source, (float) (7 + this.getRandom().nextInt(15)));
 		if (flag) {
 			entity.setDeltaMovement(entity.getDeltaMovement().add(0.0D, 0.4F, 0.0D));
 			// 1.21: doEnchantDamageEffects → EnchantmentHelper.doPostAttackEffects(ServerLevel, Entity, DamageSource).
-			if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-				net.minecraft.world.item.enchantment.EnchantmentHelper.doPostAttackEffects(serverLevel, entity, source);
-			}
+			net.minecraft.world.item.enchantment.EnchantmentHelper.doPostAttackEffects(level, entity, source);
 		}
 
 		this.playSound(SoundEvents.IRON_GOLEM_ATTACK, 1.0F, 1.0F);

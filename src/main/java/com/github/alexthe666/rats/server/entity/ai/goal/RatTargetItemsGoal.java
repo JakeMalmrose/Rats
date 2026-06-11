@@ -111,7 +111,7 @@ public class RatTargetItemsGoal extends Goal {
 					duplicate.setCount(1);
 					this.targetItem.getItem().shrink(1);
 					if (!this.rat.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
-						this.rat.spawnAtLocation(this.rat.getItemInHand(InteractionHand.MAIN_HAND), 0.0F);
+						this.rat.spawnAtLocation(getServerLevel(this.rat), this.rat.getItemInHand(InteractionHand.MAIN_HAND), 0.0F);
 					}
 					this.rat.setItemInHand(InteractionHand.MAIN_HAND, duplicate);
 				}

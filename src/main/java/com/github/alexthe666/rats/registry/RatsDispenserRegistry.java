@@ -20,7 +20,7 @@ import net.minecraft.core.dispenser.OptionalDispenseItemBehavior;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.npc.Villager;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -152,7 +152,7 @@ public class RatsDispenserRegistry {
 					doctor.copyPosition(villager);
 					villager.discard();
 					doctor.setWillDespawn(false);
-					EventHooks.finalizeMobSpawn(doctor, source.level(), source.level().getCurrentDifficultyAt(source.pos()), MobSpawnType.CONVERSION, null);
+					EventHooks.finalizeMobSpawn(doctor, source.level(), source.level().getCurrentDifficultyAt(source.pos()), EntitySpawnReason.CONVERSION, null);
 					source.level().addFreshEntity(doctor);
 					doctor.setNoAi(villager.isNoAi());
 					if (villager.hasCustomName()) {
@@ -182,7 +182,7 @@ public class RatsDispenserRegistry {
 					BlackDeath death = new BlackDeath(RatsEntityRegistry.BLACK_DEATH.get(), source.level());
 					death.copyPosition(doctor);
 					doctor.discard();
-					EventHooks.finalizeMobSpawn(death, source.level(), source.level().getCurrentDifficultyAt(source.pos()), MobSpawnType.CONVERSION, null);
+					EventHooks.finalizeMobSpawn(death, source.level(), source.level().getCurrentDifficultyAt(source.pos()), EntitySpawnReason.CONVERSION, null);
 					source.level().addFreshEntity(death);
 					death.setNoAi(doctor.isNoAi());
 					if (doctor.hasCustomName()) {

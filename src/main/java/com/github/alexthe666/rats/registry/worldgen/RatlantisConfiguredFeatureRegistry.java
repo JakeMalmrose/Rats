@@ -9,7 +9,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.placement.PlacementUtils;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.util.valueproviders.ConstantInt;
 import net.minecraft.world.level.levelgen.blockpredicates.BlockPredicate;
@@ -36,7 +36,7 @@ public class RatlantisConfiguredFeatureRegistry {
 	public static final ResourceKey<ConfiguredFeature<?, ?>> ORATCHALCUM_ORE = registerKey("oratchalcum_ore");
 
 	public static ResourceKey<ConfiguredFeature<?, ?>> registerKey(String name) {
-		return ResourceKey.create(Registries.CONFIGURED_FEATURE, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, name));
+		return ResourceKey.create(Registries.CONFIGURED_FEATURE, Identifier.fromNamespaceAndPath(RatsMod.MODID, name));
 	}
 
 	// PORT-NOTE: 1.21 forbids touching DeferredHolder.get() at class-load time. PiratTreeGrower.INSTANCE
@@ -70,7 +70,7 @@ public class RatlantisConfiguredFeatureRegistry {
 		context.register(ORATCHALCUM_ORE, new ConfiguredFeature<>(Feature.ORE, new OreConfiguration(new TagMatchTest(BlockTags.STONE_ORE_REPLACEABLES), RatlantisBlockRegistry.ORATCHALCUM_ORE.get().defaultBlockState(), 3)));
 	}
 
-	private static ResourceLocation ruinLocation(String name) {
-		return ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, name);
+	private static Identifier ruinLocation(String name) {
+		return Identifier.fromNamespaceAndPath(RatsMod.MODID, name);
 	}
 }

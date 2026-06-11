@@ -7,13 +7,13 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 public record SyncPlaguePacket(int entityId, int effectId, byte amplifier, int duration, byte flags) implements CustomPacketPayload {
 
-    public static final Type<SyncPlaguePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "sync_plague"));
+    public static final Type<SyncPlaguePacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(RatsMod.MODID, "sync_plague"));
 
     public static final StreamCodec<FriendlyByteBuf, SyncPlaguePacket> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.VAR_INT, SyncPlaguePacket::entityId,

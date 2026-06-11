@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.block.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.registry.RatlantisItemRegistry;
 import com.github.alexthe666.rats.registry.RatsBlockEntityRegistry;
@@ -170,18 +172,18 @@ public class UpgradeCombinerBlockEntity extends BaseContainerBlockEntity impleme
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	protected void loadAdditional(ValueInput compound) {
 		super.loadAdditional(compound, registries);
 		this.combinerStacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
 		ContainerHelper.loadAllItems(compound, this.combinerStacks, registries);
-		this.burnTime = compound.getInt("BurnTime");
-		this.cookTime = compound.getInt("CookTime");
-		this.totalCookTime = compound.getInt("CookTimeTotal");
+		this.burnTime = compound.getIntOr("BurnTime", 0);
+		this.cookTime = compound.getIntOr("CookTime", 0);
+		this.totalCookTime = compound.getIntOr("CookTimeTotal", 0);
 		this.burnDuration = getItemBurnTime(this.combinerStacks.get(1));
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	public void saveAdditional(ValueOutput compound) {
 		super.saveAdditional(compound, registries);
 		compound.putInt("BurnTime", (short) this.burnTime);
 		compound.putInt("CookTime", (short) this.cookTime);

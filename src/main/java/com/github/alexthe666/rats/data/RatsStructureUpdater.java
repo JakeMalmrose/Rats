@@ -10,7 +10,7 @@ import net.minecraft.data.DataProvider;
 import net.minecraft.data.PackOutput;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.MultiPackResourceManager;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.util.datafix.DataFixTypes;
@@ -55,7 +55,7 @@ public class RatsStructureUpdater implements DataProvider {
 		}
 	}
 
-	private void process(ResourceLocation loc, Resource resource, CachedOutput cache) throws IOException {
+	private void process(Identifier loc, Resource resource, CachedOutput cache) throws IOException {
 		// 1.21: NbtIo.readCompressed(InputStream) replaced by readCompressed(InputStream, NbtAccounter).
 		CompoundTag inputNBT = NbtIo.readCompressed(resource.open(), net.minecraft.nbt.NbtAccounter.unlimitedHeap());
 		CompoundTag converted = updateNBT(inputNBT);
@@ -67,7 +67,7 @@ public class RatsStructureUpdater implements DataProvider {
 		}
 	}
 
-	private void writeNBTTo(ResourceLocation loc, CompoundTag data, CachedOutput cache) throws IOException {
+	private void writeNBTTo(Identifier loc, CompoundTag data, CachedOutput cache) throws IOException {
 		ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
 		NbtIo.writeCompressed(data, bytearrayoutputstream);
 		byte[] bytes = bytearrayoutputstream.toByteArray();
@@ -77,7 +77,7 @@ public class RatsStructureUpdater implements DataProvider {
 
 	private static CompoundTag updateNBT(CompoundTag nbt) {
 		final CompoundTag updatedNBT = DataFixTypes.STRUCTURE.updateToCurrentVersion(
-				DataFixers.getDataFixer(), nbt, nbt.getInt("DataVersion")
+				DataFixers.getDataFixer(), nbt, nbt.getIntOr("DataVersion", 0)
 		);
 		StructureTemplate template = new StructureTemplate();
 		template.load(BuiltInRegistries.BLOCK.asLookup(), updatedNBT);

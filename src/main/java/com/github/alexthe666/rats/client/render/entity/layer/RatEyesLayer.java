@@ -7,17 +7,18 @@ import com.github.alexthe666.rats.server.entity.rat.Rat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.LightLayer;
 
 public class RatEyesLayer<T extends AbstractRat, M extends AbstractRatModel<T>> extends RenderLayer<T, M> {
-	protected static final RenderType EYES = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/eyes/glow.png"));
-	protected static final RenderType PLAGUE_EYES = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/eyes/plague.png"));
+	protected static final RenderType EYES = RenderTypes.eyes(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/eyes/glow.png"));
+	protected static final RenderType PLAGUE_EYES = RenderTypes.eyes(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/eyes/plague.png"));
 
 	public RatEyesLayer(RenderLayerParent<T, M> parent) {
 		super(parent);

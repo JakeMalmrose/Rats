@@ -19,7 +19,7 @@ public interface CombinedUpgrade {
 	default void addTooltip(ItemStack stack, List<Component> tooltip) {
 		CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 
-		if (tag.contains("Items", 9)) {
+		if (tag.contains("Items")) {
 			NonNullList<ItemStack> nonnulllist = NonNullList.withSize(this.getUpgradeSlots(), ItemStack.EMPTY);
 			ContainerHelper.loadAllItems(tag, nonnulllist, net.minecraft.core.RegistryAccess.EMPTY);
 			int i = 0;

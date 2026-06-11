@@ -1,7 +1,7 @@
 package com.github.alexthe666.rats.server.inventory.container;
 
 import com.github.alexthe666.rats.server.block.entity.RatCraftingTableBlockEntity;
-import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.StackedContentsCompatible;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.ItemStackHandler;
@@ -30,7 +30,7 @@ public class TableItemHandlers {
 		}
 
 		@Override
-		public void fillStackedContents(StackedContents contents) {
+		public void fillStackedContents(StackedItemContents contents) {
 			contents.clear();
 			for (ItemStack itemstack : this.stacks) {
 				contents.accountSimpleStack(itemstack);

@@ -6,17 +6,18 @@ import com.github.alexthe666.rats.server.entity.monster.RatlanteanRatbot;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class RatbotEyesLayer extends RenderLayer<RatlanteanRatbot, RatlanteanRatbotModel<RatlanteanRatbot>> {
-	private static final RenderType TEXTURE_EYES_0 = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_ratbot/ratlantean_ratbot_eyes_0.png"));
-	private static final RenderType TEXTURE_EYES_1 = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_ratbot/ratlantean_ratbot_eyes_1.png"));
-	private static final RenderType TEXTURE_EYES_2 = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_ratbot/ratlantean_ratbot_eyes_2.png"));
-	private static final RenderType TEXTURE_EYES_3 = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_ratbot/ratlantean_ratbot_eyes_3.png"));
+	private static final RenderType TEXTURE_EYES_0 = RenderTypes.eyes(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_ratbot/ratlantean_ratbot_eyes_0.png"));
+	private static final RenderType TEXTURE_EYES_1 = RenderTypes.eyes(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_ratbot/ratlantean_ratbot_eyes_1.png"));
+	private static final RenderType TEXTURE_EYES_2 = RenderTypes.eyes(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_ratbot/ratlantean_ratbot_eyes_2.png"));
+	private static final RenderType TEXTURE_EYES_3 = RenderTypes.eyes(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_ratbot/ratlantean_ratbot_eyes_3.png"));
 
 	public RatbotEyesLayer(RenderLayerParent<RatlanteanRatbot, RatlanteanRatbotModel<RatlanteanRatbot>> parent) {
 		super(parent);

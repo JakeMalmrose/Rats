@@ -42,7 +42,7 @@ public class RatMineGoal {
 		if (RatUpgradeUtils.hasUpgrade(this.rat, RatsItemRegistry.RAT_UPGRADE_MINER.get())) {
 			CompoundTag tag = RatUpgradeUtils.getUpgrade(this.rat, RatsItemRegistry.RAT_UPGRADE_MINER.get()).getTag();
 			NonNullList<ItemStack> nonnulllist = NonNullList.withSize(27, ItemStack.EMPTY);
-			if (tag != null && tag.contains("Items", 9)) {
+			if (tag != null && tag.contains("Items")) {
 				ContainerHelper.loadAllItems(tag, nonnulllist, this.rat.level().registryAccess());
 			}
 			return nonnulllist;

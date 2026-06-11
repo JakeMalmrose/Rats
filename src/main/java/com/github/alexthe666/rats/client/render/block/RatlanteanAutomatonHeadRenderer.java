@@ -9,15 +9,16 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class RatlanteanAutomatonHeadRenderer implements BlockEntityRenderer<RatlanteanAutomatonHeadBlockEntity> {
 	private static final RatlanteanAutomatonModel<?> AUTOMATON_MODEL = new RatlanteanAutomatonModel<>(false);
-	private static final RenderType GOLEM_TEXTURE = RenderType.entityCutout(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_automaton/ratlantean_automaton.png"));
-	private static final RenderType GLOW_TEXTURE = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_automaton/ratlantean_automaton_glow.png"));
+	private static final RenderType GOLEM_TEXTURE = RenderTypes.entityCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_automaton/ratlantean_automaton.png"));
+	private static final RenderType GLOW_TEXTURE = RenderTypes.eyes(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_automaton/ratlantean_automaton_glow.png"));
 
 	public RatlanteanAutomatonHeadRenderer(BlockEntityRendererProvider.Context context) {
 	}

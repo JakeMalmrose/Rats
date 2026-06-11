@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.block.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.data.tags.RatsBlockTags;
 import com.github.alexthe666.rats.registry.RatsBlockEntityRegistry;
 import com.github.alexthe666.rats.registry.RatsBlockRegistry;
@@ -134,13 +136,13 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 		}
 	}
 
-	protected void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	protected void loadAdditional(ValueInput compound) {
 		super.loadAdditional(compound, registries);
 		this.inventory = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
 		ContainerHelper.loadAllItems(compound, this.inventory, registries);
 	}
 
-	public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	public void saveAdditional(ValueOutput compound) {
 		super.saveAdditional(compound, registries);
 		ContainerHelper.saveAllItems(compound, this.inventory, registries);
 	}

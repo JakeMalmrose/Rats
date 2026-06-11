@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.block.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatsBlockEntityRegistry;
 import com.github.alexthe666.rats.registry.RatsItemRegistry;
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
@@ -27,7 +29,7 @@ import net.minecraft.world.inventory.CraftingContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 import net.minecraft.world.item.crafting.RecipeHolder;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
@@ -226,7 +228,7 @@ public class RatCraftingTableBlockEntity extends BlockEntity implements MenuProv
 	}
 
 	public boolean setRecipeUsed(Level level, @Nullable ServerPlayer player, RecipeHolder<CraftingRecipe> recipe) {
-		return !level.getGameRules().getBoolean(GameRules.RULE_LIMITED_CRAFTING) || recipe.value().isSpecial();
+		return !level.getGameRules().getBooleanOr(GameRules.RULE_LIMITED_CRAFTING, false) || recipe.value().isSpecial();
 	}
 
 	@Nullable
@@ -249,20 +251,20 @@ public class RatCraftingTableBlockEntity extends BlockEntity implements MenuProv
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+	protected void loadAdditional(ValueInput tag) {
 		super.loadAdditional(tag, registries);
-		((INBTSerializable<CompoundTag>) this.bufferHandler).deserializeNBT(registries, tag.getCompound("Buffer"));
-		((INBTSerializable<CompoundTag>) this.matrixHandler).deserializeNBT(registries, tag.getCompound("Matrix"));
-		((INBTSerializable<CompoundTag>) this.resultHandler).deserializeNBT(registries, tag.getCompound("Result"));
-		if (tag.contains("CustomName", 8)) {
-			this.customName = Component.Serializer.fromJson(tag.getString("CustomName"), registries);
+		((INBTSerializable<CompoundTag>) this.bufferHandler).deserializeNBT(registries, tag.getCompoundOrEmpty("Buffer"));
+		((INBTSerializable<CompoundTag>) this.matrixHandler).deserializeNBT(registries, tag.getCompoundOrEmpty("Matrix"));
+		((INBTSerializable<CompoundTag>) this.resultHandler).deserializeNBT(registries, tag.getCompoundOrEmpty("Result"));
+		if (tag.contains("CustomName")) {
+			this.customName = Component.Serializer.fromJson(tag.getStringOr("CustomName", ""), registries);
 		}
-		this.cookTime = tag.getInt("CookTime");
-		this.selectedRecipeIndex = tag.getInt("SelectedRecipe");
+		this.cookTime = tag.getIntOr("CookTime", 0);
+		this.selectedRecipeIndex = tag.getIntOr("SelectedRecipe", 0);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+	public void saveAdditional(ValueOutput tag) {
 		super.saveAdditional(tag, registries);
 		tag.put("Buffer", ((INBTSerializable<CompoundTag>) this.bufferHandler).serializeNBT(registries));
 		tag.put("Matrix", ((INBTSerializable<CompoundTag>) this.matrixHandler).serializeNBT(registries));

@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.rat;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.data.tags.RatsBlockTags;
 import com.github.alexthe666.rats.registry.RatsBlockRegistry;
@@ -57,15 +59,15 @@ public abstract class DiggingRat extends AbstractRat {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag tag) {
+	public void addAdditionalSaveData(ValueOutput tag) {
 		super.addAdditionalSaveData(tag);
 		tag.putInt("DigCooldown", this.digCooldown);
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag tag) {
+	public void readAdditionalSaveData(ValueInput tag) {
 		super.readAdditionalSaveData(tag);
-		this.digCooldown = tag.getInt("DigCooldown");
+		this.digCooldown = tag.getIntOr("DigCooldown", 0);
 	}
 
 	public boolean isOnDiggingCooldown() {

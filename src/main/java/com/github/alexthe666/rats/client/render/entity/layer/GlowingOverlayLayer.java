@@ -8,11 +8,12 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -20,9 +21,9 @@ import net.minecraft.world.item.ItemStack;
 public class GlowingOverlayLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
 	private final RenderType renderType;
 
-	public GlowingOverlayLayer(RenderLayerParent<T, M> parent, ResourceLocation texture) {
+	public GlowingOverlayLayer(RenderLayerParent<T, M> parent, Identifier texture) {
 		super(parent);
-		this.renderType = RenderType.eyes(texture);
+		this.renderType = RenderTypes.eyes(texture);
 	}
 
 	@Override

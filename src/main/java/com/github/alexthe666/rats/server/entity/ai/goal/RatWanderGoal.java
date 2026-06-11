@@ -6,6 +6,7 @@ import net.minecraft.world.entity.ai.goal.WaterAvoidingRandomStrollGoal;
 import net.minecraft.world.entity.ai.util.AirAndWaterRandomPos;
 import net.minecraft.world.entity.ai.util.HoverRandomPos;
 import net.minecraft.world.entity.ai.util.LandRandomPos;
+import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,7 +43,8 @@ public class RatWanderGoal extends WaterAvoidingRandomStrollGoal {
 //		if (this.rat.blockPosition().getY() + 20 > this.rat.level().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, this.rat.blockPosition()).getY()) {
 //			return Vec3.atCenterOf(this.rat.level().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, this.rat.blockPosition()).above(3 + this.rat.getRandom().nextInt(5)));
 //		}
-		if (this.mob.isInWaterOrBubble()) {
+		// 26.1: Entity#isInWaterOrBubble() removed; replicate water-or-bubble-column check
+		if (this.mob.isInWater() || this.mob.level().getBlockState(this.mob.blockPosition()).is(Blocks.BUBBLE_COLUMN)) {
 			vec31 = LandRandomPos.getPos(this.mob, 15, 15);
 		}
 		if (this.rat.hasFlightUpgrade()) {

@@ -7,26 +7,27 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 
 public class RatStriderMountRenderer extends MobRenderer<RatStriderMount, RatStriderMountModel<RatStriderMount>> {
 
-	private static final ResourceLocation STRIDER_LOCATION = ResourceLocation.parse("textures/entity/strider/strider.png");
-	private static final ResourceLocation COLD_LOCATION = ResourceLocation.parse("textures/entity/strider/strider_cold.png");
+	private static final Identifier STRIDER_LOCATION = Identifier.parse("textures/entity/strider/strider.png");
+	private static final Identifier COLD_LOCATION = Identifier.parse("textures/entity/strider/strider_cold.png");
 
 	public RatStriderMountRenderer(EntityRendererProvider.Context context) {
 		super(context, new RatStriderMountModel<>(context.bakeLayer(RatsModelLayers.RAT_STRIDER_MOUNT)), 0.5F);
-		this.addLayer(new AlwaysSaddledLayer<>(this, new RatStriderMountModel<>(context.bakeLayer(RatsModelLayers.RAT_STRIDER_MOUNT)), ResourceLocation.parse("textures/entity/strider/strider_saddle.png")));
+		this.addLayer(new AlwaysSaddledLayer<>(this, new RatStriderMountModel<>(context.bakeLayer(RatsModelLayers.RAT_STRIDER_MOUNT)), Identifier.parse("textures/entity/strider/strider_saddle.png")));
 	}
 
-	public ResourceLocation getTextureLocation(RatStriderMount mount) {
+	public Identifier getTextureLocation(RatStriderMount mount) {
 		return mount.isSuffocating() ? COLD_LOCATION : STRIDER_LOCATION;
 	}
 
@@ -35,10 +36,10 @@ public class RatStriderMountRenderer extends MobRenderer<RatStriderMount, RatStr
 	}
 
 	public static class AlwaysSaddledLayer<T extends Entity, M extends EntityModel<T>> extends RenderLayer<T, M> {
-		private final ResourceLocation textureLocation;
+		private final Identifier textureLocation;
 		private final M model;
 
-		public AlwaysSaddledLayer(RenderLayerParent<T, M> parent, M model, ResourceLocation texture) {
+		public AlwaysSaddledLayer(RenderLayerParent<T, M> parent, M model, Identifier texture) {
 			super(parent);
 			this.model = model;
 			this.textureLocation = texture;
@@ -48,7 +49,7 @@ public class RatStriderMountRenderer extends MobRenderer<RatStriderMount, RatStr
 			this.getParentModel().copyPropertiesTo(this.model);
 			this.model.prepareMobModel(entity, limbSwing, limbSwingAmount, partialTicks);
 			this.model.setupAnim(entity, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-			VertexConsumer vertexconsumer = source.getBuffer(RenderType.entityCutoutNoCull(this.textureLocation));
+			VertexConsumer vertexconsumer = source.getBuffer(RenderTypes.entityCutoutNoCull(this.textureLocation));
 			this.model.renderToBuffer(stack, vertexconsumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 		}
 	}

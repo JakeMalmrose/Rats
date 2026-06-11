@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.projectile;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
@@ -15,7 +17,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -157,7 +159,7 @@ public class ThrownBlock extends Entity {
 				}
 				this.discard();
 
-				if (this.level().getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
+				if (this.level().getGameRules().getBooleanOr(GameRules.RULE_DOMOBLOOT, false)) {
 					if (!level().isClientSide() && this.dropBlock) {
 						this.spawnAtLocation(new ItemStack(block, 1), 0.0F);
 					}
@@ -170,7 +172,7 @@ public class ThrownBlock extends Entity {
 	/**
 	 * (abstract) Protected helper method to write subclass entity data to NBT.
 	 */
-	public void addAdditionalSaveData(CompoundTag compound) {
+	public void addAdditionalSaveData(ValueOutput compound) {
 		compound.put("direction", this.newDoubleList(this.getDeltaMovement().x, this.getDeltaMovement().y, this.getDeltaMovement().z));
 		compound.putInt("life", this.ticksAlive);
 		BlockState blockstate = this.getHeldBlockState();
@@ -185,19 +187,19 @@ public class ThrownBlock extends Entity {
 	/**
 	 * (abstract) Protected helper method to read subclass entity data from NBT.
 	 */
-	public void readAdditionalSaveData(CompoundTag compound) {
-		this.ticksAlive = compound.getInt("life");
+	public void readAdditionalSaveData(ValueInput compound) {
+		this.ticksAlive = compound.getIntOr("life", 0);
 
-		if (compound.contains("direction", 9) && compound.getList("direction", 6).size() == 3) {
-			ListTag nbttaglist1 = compound.getList("direction", 6);
-			this.setDeltaMovement(nbttaglist1.getDouble(0), nbttaglist1.getDouble(1), nbttaglist1.getDouble(2));
+		if (compound.contains("direction") && compound.getListOrEmpty("direction").size() == 3) {
+			ListTag nbttaglist1 = compound.getListOrEmpty("direction");
+			this.setDeltaMovement(nbttaglist1.getDoubleOr(0, 0.0D), nbttaglist1.getDoubleOr(1, 0.0D), nbttaglist1.getDoubleOr(2, 0.0D));
 		} else {
 			this.discard();
 		}
 
 		BlockState blockstate = null;
-		if (compound.contains("carriedBlockState", 10)) {
-			blockstate = NbtUtils.readBlockState(this.level().registryAccess().lookupOrThrow(Registries.BLOCK), compound.getCompound("carriedBlockState"));
+		if (compound.contains("carriedBlockState")) {
+			blockstate = NbtUtils.readBlockState(this.level().registryAccess().lookupOrThrow(Registries.BLOCK), compound.getCompoundOrEmpty("carriedBlockState"));
 			if (blockstate.isAir()) {
 				blockstate = null;
 			}
@@ -205,8 +207,8 @@ public class ThrownBlock extends Entity {
 		if (blockstate != null) {
 			this.setHeldBlockState(blockstate);
 		}
-		if (compound.contains("TileEntityData", 10)) {
-			this.tileEntityData = compound.getCompound("TileEntityData");
+		if (compound.contains("TileEntityData")) {
+			this.tileEntityData = compound.getCompoundOrEmpty("TileEntityData");
 		}
 	}
 

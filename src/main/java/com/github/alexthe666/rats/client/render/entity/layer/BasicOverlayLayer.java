@@ -4,19 +4,20 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 
 public class BasicOverlayLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
 	private final RenderType renderType;
 
-	public BasicOverlayLayer(RenderLayerParent<T, M> parent, ResourceLocation texture) {
+	public BasicOverlayLayer(RenderLayerParent<T, M> parent, Identifier texture) {
 		super(parent);
-		this.renderType = RenderType.entityNoOutline(texture);
+		this.renderType = RenderTypes.entityNoOutline(texture);
 	}
 
 	@Override

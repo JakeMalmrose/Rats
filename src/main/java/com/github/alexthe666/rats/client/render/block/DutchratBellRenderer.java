@@ -8,17 +8,17 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 public class DutchratBellRenderer implements BlockEntityRenderer<DutchratBellBlockEntity> {
 
 	private final ModelPart bellBody;
-	private static final RenderType TEXTURE = RatsRenderType.getGlowingTranslucent(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/block/dutchrat_bell.png"));
+	private static final RenderType TEXTURE = RatsRenderType.getGlowingTranslucent(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/block/dutchrat_bell.png"));
 
 	public DutchratBellRenderer(BlockEntityRendererProvider.Context context) {
 		this.bellBody = context.bakeLayer(ModelLayers.BELL).getChild("bell_body");

@@ -8,8 +8,9 @@ import com.github.alexthe666.rats.server.items.upgrades.interfaces.ChangesOverla
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.DamageImmunityUpgrade;
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.GlowingEyesUpgrade;
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.PostAttackUpgrade;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
@@ -25,7 +26,7 @@ public class DemonRatUpgradeItem extends StatBoostingRatUpgradeItem implements G
 	}
 
 	public static boolean isSoulVersion(ItemStack stack) {
-		return stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY).copyTag().getBoolean("Soul");
+		return stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY).copyTag().getBooleanOr("Soul", false);
 	}
 
 	public static ItemStack getDemonUpgrade(boolean soul) {
@@ -39,9 +40,9 @@ public class DemonRatUpgradeItem extends StatBoostingRatUpgradeItem implements G
 	@Override
 	public RenderType getEyeTexture(ItemStack stack) {
 		if (isSoulVersion(stack)) {
-			return RenderType.eyes(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/demon_rat/soul_demon_rat_eye.png"));
+			return RenderTypes.eyes(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/demon_rat/soul_demon_rat_eye.png"));
 		}
-		return RenderType.eyes(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/demon_rat/demon_rat_eye.png"));
+		return RenderTypes.eyes(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/demon_rat/demon_rat_eye.png"));
 	}
 
 	@Override
@@ -57,8 +58,8 @@ public class DemonRatUpgradeItem extends StatBoostingRatUpgradeItem implements G
 	@Override
 	public @Nullable RenderType getOverlayTexture(ItemStack stack, TamedRat rat, float partialTicks) {
 		if (isSoulVersion(stack)) {
-			return RenderType.entitySmoothCutout(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/demon_rat/soul_demon_rat.png"));
+			return RenderTypes.entitySmoothCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/demon_rat/soul_demon_rat.png"));
 		}
-		return RenderType.entitySmoothCutout(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/demon_rat/demon_rat.png"));
+		return RenderTypes.entitySmoothCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/demon_rat/demon_rat.png"));
 	}
 }

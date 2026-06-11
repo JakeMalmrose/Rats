@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.block.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatsBlockEntityRegistry;
 import com.github.alexthe666.rats.registry.RatsBlockRegistry;
 import com.github.alexthe666.rats.registry.RatsItemRegistry;
@@ -46,7 +48,7 @@ public class RatCageWheelBlockEntity extends DecoratedRatCageBlockEntity {
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	public void saveAdditional(ValueOutput compound) {
 		compound.putInt("UseTicks", this.useTicks);
 		// 1.21: EnergyStorage.serializeNBT now requires HolderLookup.Provider.
 		compound.put("Energy", this.energyStorage.serializeNBT(registries));
@@ -56,10 +58,10 @@ public class RatCageWheelBlockEntity extends DecoratedRatCageBlockEntity {
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	protected void loadAdditional(ValueInput compound) {
 		super.loadAdditional(compound, registries);
-		this.useTicks = compound.getInt("UseTicks");
-		this.dismountCooldown = compound.getInt("DismountCooldown");
+		this.useTicks = compound.getIntOr("UseTicks", 0);
+		this.dismountCooldown = compound.getIntOr("DismountCooldown", 0);
 		if (compound.contains("Energy")) {
 			this.energyStorage.deserializeNBT(registries, compound.get("Energy"));
 		}

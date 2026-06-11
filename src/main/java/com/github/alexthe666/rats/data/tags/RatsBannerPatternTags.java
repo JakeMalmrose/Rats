@@ -2,38 +2,24 @@ package com.github.alexthe666.rats.data.tags;
 
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.registry.RatsBannerPatternRegistry;
-import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.BannerPatternTagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.block.entity.BannerPattern;
-import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.concurrent.CompletableFuture;
 
-public class RatsBannerPatternTags extends BannerPatternTagsProvider {
+// 26.1: stripped to a TagKey constant holder; the datagen provider half targeted the
+// removed 1.21 datagen API and the shipped JSON under src/generated/resources is canonical.
+public class RatsBannerPatternTags {
 
 	public static final TagKey<BannerPattern> RAT_BANNER_PATTERN = create("pattern_item/rat");
 	public static final TagKey<BannerPattern> CHEESE_BANNER_PATTERN = create("pattern_item/cheese");
 	public static final TagKey<BannerPattern> RAC_BANNER_PATTERN = create("pattern_item/rat_and_crossbones");
 	public static final TagKey<BannerPattern> RAS_BANNER_PATTERN = create("pattern_item/rat_and_sickle");
 
-	public RatsBannerPatternTags(PackOutput output, CompletableFuture<HolderLookup.Provider> provider, @Nullable ExistingFileHelper helper) {
-		super(output, provider, RatsMod.MODID, helper);
-	}
-
-	@Override
-	protected void addTags(HolderLookup.Provider provider) {
-		this.tag(RAT_BANNER_PATTERN).add(RatsBannerPatternRegistry.RAT_PATTERN);
-		this.tag(CHEESE_BANNER_PATTERN).add(RatsBannerPatternRegistry.CHEESE_PATTERN);
-		this.tag(RAC_BANNER_PATTERN).add(RatsBannerPatternRegistry.RAT_AND_CROSSBONES_BANNER);
-		this.tag(RAS_BANNER_PATTERN).add(RatsBannerPatternRegistry.RAT_AND_SICKLE_BANNER);
-	}
 
 	private static TagKey<BannerPattern> create(String name) {
-		return TagKey.create(Registries.BANNER_PATTERN, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, name));
+		return TagKey.create(Registries.BANNER_PATTERN, Identifier.fromNamespaceAndPath(RatsMod.MODID, name));
 	}
 }

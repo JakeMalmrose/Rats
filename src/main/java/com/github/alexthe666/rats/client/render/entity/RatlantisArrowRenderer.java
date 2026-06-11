@@ -9,14 +9,14 @@ import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.ArrowRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class RatlantisArrowRenderer extends ArrowRenderer<RatlantisArrow> {
 
-	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantis_arrow.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantis_arrow.png");
 
 	public RatlantisArrowRenderer(EntityRendererProvider.Context context) {
 		super(context);
@@ -62,7 +62,7 @@ public class RatlantisArrowRenderer extends ArrowRenderer<RatlantisArrow> {
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(RatlantisArrow entity) {
+	public Identifier getTextureLocation(RatlantisArrow entity) {
 		return TEXTURE;
 	}
 }

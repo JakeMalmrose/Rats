@@ -29,7 +29,7 @@ public class RatsLootModifierGenerator extends GlobalLootModifierProvider {
 
 	@Override
 	protected void start() {
-		// 1.21: BuiltInLootTables / EntityType.getDefaultLootTable now return ResourceKey<LootTable>; LootTableIdCondition.builder needs ResourceLocation, so unwrap via .location().
+		// 1.21: BuiltInLootTables / EntityType.getDefaultLootTable now return ResourceKey<LootTable>; LootTableIdCondition.builder needs Identifier, so unwrap via .location().
 		this.add("add_cat_gifts", new GenericAddItemLootModifier(new LootItemCondition[]{LootTableIdCondition.builder(BuiltInLootTables.CAT_MORNING_GIFT.location()).build(), LootItemRandomChanceCondition.randomChance(0.3F).build()}, true, new ItemStack(RatsItemRegistry.RAW_RAT.get()), new ItemStack(RatsItemRegistry.TINY_COIN.get())));
 		this.add("add_creeper_chunks", new GenericAddItemLootModifier(new LootItemCondition[]{LootItemEntityPropertyCondition.hasProperties(LootContext.EntityTarget.THIS, EntityPredicate.Builder.entity().nbt(new NbtPredicate(this.createCreeperTag()))).build(), LootTableIdCondition.builder(EntityType.CREEPER.getDefaultLootTable().location()).build()}, false, new ItemStack(RatsItemRegistry.CHARGED_CREEPER_CHUNK.get())));
 		this.add("add_tiny_coins", new GenericAddItemLootModifier(new LootItemCondition[]{RatKilledAndHasUpgradeCondition.hasUpgrade(RatsItemRegistry.RAT_UPGRADE_ARISTOCRAT.get()).build()}, false, new ItemStack(RatsItemRegistry.TINY_COIN.get())));

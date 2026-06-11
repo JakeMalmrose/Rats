@@ -26,21 +26,18 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.shapes.CollisionContext;
-import net.neoforged.neoforge.common.NeoForgeMod;
-
-import java.util.UUID;
-import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.phys.shapes.VoxelShape;
 
 public class RatStriderMount extends RatMountBase {
 
-	// 1.21: AttributeModifier ctor takes (ResourceLocation id, double, Operation); UUID-keyed lookup removed.
-	private static final net.minecraft.resources.ResourceLocation SUFFOCATING_MODIFIER_ID = net.minecraft.resources.ResourceLocation.fromNamespaceAndPath(com.github.alexthe666.rats.RatsMod.MODID, "strider_suffocating");
+	// 1.21: AttributeModifier ctor takes (Identifier id, double, Operation); UUID-keyed lookup removed.
+	private static final net.minecraft.resources.Identifier SUFFOCATING_MODIFIER_ID = net.minecraft.resources.Identifier.fromNamespaceAndPath(com.github.alexthe666.rats.RatsMod.MODID, "strider_suffocating");
 	private static final AttributeModifier SUFFOCATING_MODIFIER = new AttributeModifier(SUFFOCATING_MODIFIER_ID, -0.34F, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
 	private static final EntityDataAccessor<Boolean> DATA_SUFFOCATING = SynchedEntityData.defineId(RatStriderMount.class, EntityDataSerializers.BOOLEAN);
 
@@ -48,8 +45,9 @@ public class RatStriderMount extends RatMountBase {
 		super(type, level);
 		this.setPathfindingMalus(PathType.WATER, -1.0F);
 		this.setPathfindingMalus(PathType.LAVA, 0.0F);
-		this.setPathfindingMalus(PathType.DANGER_FIRE, 0.0F);
-		this.setPathfindingMalus(PathType.DAMAGE_FIRE, 0.0F);
+		// 26.1: DANGER_FIRE/DAMAGE_FIRE renamed to FIRE_IN_NEIGHBOR/FIRE.
+		this.setPathfindingMalus(PathType.FIRE_IN_NEIGHBOR, 0.0F);
+		this.setPathfindingMalus(PathType.FIRE, 0.0F);
 	}
 
 	public static AttributeSupplier.Builder createAttributes() {
@@ -107,7 +105,7 @@ public class RatStriderMount extends RatMountBase {
 
 	@Override
 	protected void checkFallDamage(double yDistance, boolean onGround, BlockState state, BlockPos pos) {
-		this.checkInsideBlocks();
+		// 26.1: checkInsideBlocks() is handled internally by Entity movement now.
 		if (this.isInLava()) {
 			this.resetFallDistance();
 		} else {
@@ -120,20 +118,25 @@ public class RatStriderMount extends RatMountBase {
 		if (!this.isNoAi()) {
 			BlockState blockstate = this.level().getBlockState(this.blockPosition());
 			BlockState blockstate1 = this.getBlockStateOn();
-			boolean flag = blockstate.is(BlockTags.STRIDER_WARM_BLOCKS) || blockstate1.is(BlockTags.STRIDER_WARM_BLOCKS) || this.getFluidTypeHeight(NeoForgeMod.LAVA_TYPE.value()) > 0.0D;
+			boolean flag = blockstate.is(BlockTags.STRIDER_WARM_BLOCKS) || blockstate1.is(BlockTags.STRIDER_WARM_BLOCKS) || this.getFluidHeight(FluidTags.LAVA) > 0.0D;
 
 			this.setSuffocating(!flag);
 		}
 
 		super.tick();
 		this.floatStrider();
-		this.checkInsideBlocks();
+	}
+
+	@Override
+	public VoxelShape getLiquidCollisionShape() {
+		// 26.1: LiquidBlock.STABLE_SHAPE removed; mirrors vanilla Strider.
+		return Block.column(16.0D, 0.0D, 8.0D);
 	}
 
 	private void floatStrider() {
 		if (this.isInLava()) {
 			CollisionContext collisioncontext = CollisionContext.of(this);
-			if (collisioncontext.isAbove(LiquidBlock.STABLE_SHAPE, this.blockPosition(), true) && !this.level().getFluidState(this.blockPosition().above()).is(FluidTags.LAVA)) {
+			if (collisioncontext.isAbove(this.getLiquidCollisionShape(), this.blockPosition(), true) && !this.level().getFluidState(this.blockPosition().above()).is(FluidTags.LAVA)) {
 				this.setOnGround(true);
 			} else {
 				this.setDeltaMovement(this.getDeltaMovement().scale(0.5D).add(0.0D, 0.05D, 0.0D));
@@ -198,7 +201,7 @@ public class RatStriderMount extends RatMountBase {
 		}
 
 		protected boolean hasValidPathType(PathType types) {
-			return types == PathType.LAVA || types == PathType.DAMAGE_FIRE || types == PathType.DANGER_FIRE || super.hasValidPathType(types);
+			return types == PathType.LAVA || types == PathType.FIRE || types == PathType.FIRE_IN_NEIGHBOR || super.hasValidPathType(types);
 		}
 
 		public boolean isStableDestination(BlockPos pos) {

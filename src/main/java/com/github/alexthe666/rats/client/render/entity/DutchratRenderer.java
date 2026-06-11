@@ -16,11 +16,11 @@ import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class DutchratRenderer extends MobRenderer<Dutchrat, FlyingDutchratModel<Dutchrat>> {
 
-	private static final ResourceLocation DUTCHRAT_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/dutchrat/dutchrat.png");
+	private static final Identifier DUTCHRAT_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/dutchrat/dutchrat.png");
 
 	public DutchratRenderer(EntityRendererProvider.Context context) {
 		super(context, new FlyingDutchratModel<>(), 0.5F);
@@ -35,13 +35,13 @@ public class DutchratRenderer extends MobRenderer<Dutchrat, FlyingDutchratModel<
 		});
 	}
 
-	public ResourceLocation getTextureLocation(Dutchrat entity) {
+	public Identifier getTextureLocation(Dutchrat entity) {
 		return DUTCHRAT_TEXTURE;
 	}
 
 	public static class DutchratGlowLayer<T extends Dutchrat, M extends FlyingDutchratModel<T>> extends RenderLayer<T, M> {
-		private static final ResourceLocation GLOW_1 = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/dutchrat/dutchrat_glow_1.png");
-		private static final ResourceLocation GLOW_2 = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/dutchrat/dutchrat_glow_2.png");
+		private static final Identifier GLOW_1 = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/dutchrat/dutchrat_glow_1.png");
+		private static final Identifier GLOW_2 = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/dutchrat/dutchrat_glow_2.png");
 
 		public DutchratGlowLayer(RenderLayerParent<T, M> parent) {
 			super(parent);

@@ -7,17 +7,18 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.LightLayer;
 
 public class RatShotRenderer extends EntityRenderer<RatShot> {
 
-	private static final RenderType TEXTURE_EYES = RenderType.eyes(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/eyes/glow.png"));
+	private static final RenderType TEXTURE_EYES = RenderTypes.eyes(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/eyes/glow.png"));
 	private static final StaticRatModel<RatShot> MODEL_STATIC_RAT = new StaticRatModel<>();
 
 	public RatShotRenderer(EntityRendererProvider.Context context) {
@@ -44,7 +45,7 @@ public class RatShotRenderer extends EntityRenderer<RatShot> {
 		stack.mulPose(Axis.YP.rotationDegrees(yaw - 180));
 		stack.mulPose(Axis.XN.rotationDegrees(pitch));
 
-		VertexConsumer consumer = buffer.getBuffer(RenderType.entityCutoutNoCull(entity.getColorVariant().getTexture()));
+		VertexConsumer consumer = buffer.getBuffer(RenderTypes.entityCutoutNoCull(entity.getColorVariant().getTexture()));
 		float f = (entity.tickCount + partialTicks) * 0.5F;
 		float f1 = 1;
 		MODEL_STATIC_RAT.setupAnim(entity, f, f1, entity.tickCount + partialTicks, 0, 0);
@@ -60,7 +61,7 @@ public class RatShotRenderer extends EntityRenderer<RatShot> {
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(RatShot entity) {
+	public Identifier getTextureLocation(RatShot entity) {
 		return null;
 	}
 }

@@ -5,7 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
@@ -16,7 +16,7 @@ import net.minecraft.world.item.ItemStack;
 
 public record UpdateMobFilterPacket(InteractionHand hand, boolean whitelist, List<String> mobs) implements CustomPacketPayload {
 
-    public static final Type<UpdateMobFilterPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "update_mob_filter"));
+    public static final Type<UpdateMobFilterPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(RatsMod.MODID, "update_mob_filter"));
 
     public static final StreamCodec<FriendlyByteBuf, UpdateMobFilterPacket> STREAM_CODEC = StreamCodec.composite(
                 NeoForgeStreamCodecs.enumCodec(InteractionHand.class), UpdateMobFilterPacket::hand,

@@ -3,6 +3,7 @@ package com.github.alexthe666.rats.server.entity.mount;
 import com.github.alexthe666.rats.server.entity.AdjustsRatTail;
 import com.github.alexthe666.rats.server.entity.RatMount;
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -15,10 +16,9 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -44,7 +44,7 @@ public abstract class RatMountBase extends PathfinderMob implements RatMount, Ad
 	@Override
 	protected void updateControlFlags() {
 		boolean flag = this.getRat() == null;
-		boolean flag1 = !(this.getVehicle() instanceof Boat);
+		boolean flag1 = !(this.getVehicle() instanceof AbstractBoat);
 		this.goalSelector.setControlFlag(Goal.Flag.MOVE, flag);
 		this.goalSelector.setControlFlag(Goal.Flag.JUMP, flag && flag1);
 		this.goalSelector.setControlFlag(Goal.Flag.LOOK, flag);
@@ -79,13 +79,14 @@ public abstract class RatMountBase extends PathfinderMob implements RatMount, Ad
 		return null;
 	}
 
-	public boolean isInvulnerableTo(DamageSource source) {
+	@Override
+	public boolean isInvulnerableTo(ServerLevel level, DamageSource source) {
 		if (source.is(DamageTypes.IN_WALL)) return true;
 		TamedRat rat = this.getRat();
 		if (rat != null) {
-			return rat.isInvulnerableTo(source);
+			return rat.isInvulnerableTo(level, source);
 		}
-		return super.isInvulnerableTo(source);
+		return super.isInvulnerableTo(level, source);
 	}
 
 	// 1.21: Entity.getPassengersRidingOffset was removed in favour of EntityAttachments.PASSENGER
@@ -168,12 +169,14 @@ public abstract class RatMountBase extends PathfinderMob implements RatMount, Ad
 		super.remove(reason);
 	}
 
-	public boolean isAlliedTo(Entity entity) {
-		return super.isAlliedTo(entity) || this.getRat() != null && this.getRat().isAlliedTo(entity);
+	@Override
+	protected boolean considersEntityAsAlly(Entity entity) {
+		return super.considersEntityAsAlly(entity) || this.getRat() != null && this.getRat().isAlliedTo(entity);
 	}
 
 	@Override
-	public ItemStack getPickedResult(HitResult target) {
-		return this.getRat() != null ? this.getRat().getPickedResult(target) : super.getPickedResult(target);
+	@Nullable
+	public ItemStack getPickResult() {
+		return this.getRat() != null ? this.getRat().getPickResult() : super.getPickResult();
 	}
 }

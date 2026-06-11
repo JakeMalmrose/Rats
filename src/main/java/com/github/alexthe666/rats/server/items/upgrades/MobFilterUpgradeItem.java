@@ -12,7 +12,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.player.Player;
@@ -48,7 +48,7 @@ public class MobFilterUpgradeItem extends BaseRatUpgradeItem {
 	}
 
 	public static boolean isWhitelist(ItemStack stack) {
-		return readTag(stack).getBoolean("Whitelist");
+		return readTag(stack).getBooleanOr("Whitelist", false);
 	}
 
 	public static void setWhitelist(ItemStack stack, boolean whitelist) {
@@ -61,7 +61,7 @@ public class MobFilterUpgradeItem extends BaseRatUpgradeItem {
 		List<String> mobs = new ArrayList<>();
 		ListTag tag = readTag(stack).getList("Mobs", Tag.TAG_STRING);
 		for (int i = 0; i < tag.size(); ++i) {
-			mobs.add(tag.getString(i));
+			mobs.add(tag.getStringOr(i, ""));
 		}
 		return mobs;
 	}
@@ -69,7 +69,7 @@ public class MobFilterUpgradeItem extends BaseRatUpgradeItem {
 	public static void setMobs(ItemStack stack, List<String> mobs) {
 		ListTag list = new ListTag();
 		for (String mob : mobs) {
-			if (BuiltInRegistries.ENTITY_TYPE.containsKey(ResourceLocation.parse(mob))) {
+			if (BuiltInRegistries.ENTITY_TYPE.containsKey(Identifier.parse(mob))) {
 				list.add(StringTag.valueOf(mob));
 			}
 		}

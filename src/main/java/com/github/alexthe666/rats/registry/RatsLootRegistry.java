@@ -5,7 +5,7 @@ import com.github.alexthe666.rats.server.loot.*;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
 import net.neoforged.neoforge.common.loot.IGlobalLootModifier;
@@ -16,7 +16,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 public class RatsLootRegistry {
 
 	private static ResourceKey<LootTable> lootKey(String path) {
-		return ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, path));
+		return ResourceKey.create(Registries.LOOT_TABLE, Identifier.fromNamespaceAndPath(RatsMod.MODID, path));
 	}
 
 	public static final ResourceKey<LootTable> CHRISTMAS_GIFTS = lootKey("christmas_rat_gifts");

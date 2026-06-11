@@ -11,18 +11,18 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class RatProtectorRenderer extends AbstractRatRenderer<RatProtector, RatModel<RatProtector>> {
 
-	public static final ResourceLocation BASE_TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat_protector.png");
+	public static final Identifier BASE_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat_protector.png");
 
 	public RatProtectorRenderer(EntityRendererProvider.Context context) {
 		super(context, new RatModel<>());
 		this.addLayer(new Overlay(this));
 	}
 
-	public ResourceLocation getTextureLocation(RatProtector entity) {
+	public Identifier getTextureLocation(RatProtector entity) {
 		return BASE_TEXTURE;
 	}
 

@@ -6,17 +6,17 @@ import net.minecraft.client.model.ChickenModel;
 import net.minecraft.client.model.geom.ModelLayers;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 public class RatChickenMountRenderer extends MobRenderer<RatChickenMount, ChickenModel<RatChickenMount>> {
-	private static final ResourceLocation CHICKEN_TEXTURES = ResourceLocation.parse("textures/entity/chicken.png");
+	private static final Identifier CHICKEN_TEXTURES = Identifier.parse("textures/entity/chicken.png");
 
 	public RatChickenMountRenderer(EntityRendererProvider.Context context) {
 		super(context, new ChickenModel<>(context.bakeLayer(ModelLayers.CHICKEN)), 0.3F);
 	}
 
-	public ResourceLocation getTextureLocation(RatChickenMount entity) {
+	public Identifier getTextureLocation(RatChickenMount entity) {
 		return CHICKEN_TEXTURES;
 	}
 

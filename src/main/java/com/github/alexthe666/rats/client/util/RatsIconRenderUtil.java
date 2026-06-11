@@ -5,7 +5,7 @@ import com.mojang.blaze3d.vertex.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +14,7 @@ import org.joml.Matrix4f;
 public class RatsIconRenderUtil {
 	// 1.21: BufferBuilder is now produced by tesselator.begin(...), not retrieved separately. The
 	// helper allocates its own buffer per call so callers don't need to (and shouldn't) supply one.
-	public static void renderPOIIcon(ResourceLocation icon, Vec3 viewVec, @Nullable BlockPos renderPos, float bob, PoseStack stack, Tesselator tesselator) {
+	public static void renderPOIIcon(Identifier icon, Vec3 viewVec, @Nullable BlockPos renderPos, float bob, PoseStack stack, Tesselator tesselator) {
 		if (renderPos != null && renderPos != BlockPos.ZERO) {
 			stack.pushPose();
 			RenderSystem.enableBlend();
@@ -38,7 +38,7 @@ public class RatsIconRenderUtil {
 		}
 	}
 
-	public static void renderBox(ResourceLocation texture, Vec3 viewPos, Vec3 centerPos, AABB boxSize, PoseStack stack) {
+	public static void renderBox(Identifier texture, Vec3 viewPos, Vec3 centerPos, AABB boxSize, PoseStack stack) {
 		RenderSystem.enableBlend();
 		RenderSystem.setShader(GameRenderer::getPositionTexShader);
 		RenderSystem.setShaderTexture(0, texture);

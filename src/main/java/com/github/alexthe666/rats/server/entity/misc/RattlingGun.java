@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.misc;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.citadel.client.model.AdvancedModelBox;
 import com.github.alexthe666.rats.registry.RatlantisEntityRegistry;
 import com.github.alexthe666.rats.registry.RatlantisItemRegistry;
@@ -36,12 +38,12 @@ public class RattlingGun extends Entity implements AdjustsRatTail {
 	}
 
 	@Override
-	protected void readAdditionalSaveData(CompoundTag tag) {
+	protected void readAdditionalSaveData(ValueInput tag) {
 
 	}
 
 	@Override
-	protected void addAdditionalSaveData(CompoundTag tag) {
+	protected void addAdditionalSaveData(ValueOutput tag) {
 
 	}
 

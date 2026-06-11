@@ -5,16 +5,16 @@ import com.github.alexthe666.rats.data.tags.RatsBiomeTags;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.biome.MobSpawnSettings;
 import net.neoforged.neoforge.common.world.BiomeModifier;
 import net.neoforged.neoforge.common.world.BiomeModifiers;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 
 public class RatsBiomeModifierRegistry {
-	private static final ResourceKey<BiomeModifier> ADD_RAT_SPAWNS = ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "add_rat_spawns"));
-	private static final ResourceKey<BiomeModifier> ADD_PIPER_SPAWNS = ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "add_piper_spawns"));
-	private static final ResourceKey<BiomeModifier> ADD_DEMON_RAT_SPAWNS = ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "add_demon_rat_spawns"));
+	private static final ResourceKey<BiomeModifier> ADD_RAT_SPAWNS = ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS, Identifier.fromNamespaceAndPath(RatsMod.MODID, "add_rat_spawns"));
+	private static final ResourceKey<BiomeModifier> ADD_PIPER_SPAWNS = ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS, Identifier.fromNamespaceAndPath(RatsMod.MODID, "add_piper_spawns"));
+	private static final ResourceKey<BiomeModifier> ADD_DEMON_RAT_SPAWNS = ResourceKey.create(NeoForgeRegistries.Keys.BIOME_MODIFIERS, Identifier.fromNamespaceAndPath(RatsMod.MODID, "add_demon_rat_spawns"));
 
 	public static void bootstrap(BootstrapContext<BiomeModifier> context) {
 		context.register(ADD_RAT_SPAWNS,

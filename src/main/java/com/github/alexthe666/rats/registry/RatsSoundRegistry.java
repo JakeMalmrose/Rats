@@ -3,7 +3,7 @@ package com.github.alexthe666.rats.registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.RatsMod;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
@@ -106,7 +106,7 @@ public class RatsSoundRegistry {
 	public static final DeferredHolder<SoundEvent, SoundEvent> TRASH_CAN_FILL = createSoundEvent("block.rats.trash_can.fill");
 
 	private static DeferredHolder<SoundEvent, SoundEvent> createSoundEvent(final String soundName) {
-		return SOUNDS.register(soundName, () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, soundName)));
+		return SOUNDS.register(soundName, () -> SoundEvent.createVariableRangeEvent(Identifier.fromNamespaceAndPath(RatsMod.MODID, soundName)));
 	}
 
 	public static SoundEvent getFluteSound() {

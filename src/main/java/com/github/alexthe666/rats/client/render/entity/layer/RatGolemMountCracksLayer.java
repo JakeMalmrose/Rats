@@ -7,12 +7,12 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.Map;
 
 public class RatGolemMountCracksLayer extends RenderLayer<RatGolemMount, RatGolemMountModel<RatGolemMount>> {
-	private static final Map<RatGolemMount.Cracks, ResourceLocation> CRACK_MAP = ImmutableMap.of(RatGolemMount.Cracks.LOW, ResourceLocation.parse("textures/entity/iron_golem/iron_golem_crackiness_low.png"), RatGolemMount.Cracks.MEDIUM, ResourceLocation.parse("textures/entity/iron_golem/iron_golem_crackiness_medium.png"), RatGolemMount.Cracks.HIGH, ResourceLocation.parse("textures/entity/iron_golem/iron_golem_crackiness_high.png"));
+	private static final Map<RatGolemMount.Cracks, Identifier> CRACK_MAP = ImmutableMap.of(RatGolemMount.Cracks.LOW, Identifier.parse("textures/entity/iron_golem/iron_golem_crackiness_low.png"), RatGolemMount.Cracks.MEDIUM, Identifier.parse("textures/entity/iron_golem/iron_golem_crackiness_medium.png"), RatGolemMount.Cracks.HIGH, Identifier.parse("textures/entity/iron_golem/iron_golem_crackiness_high.png"));
 
 	public RatGolemMountCracksLayer(RenderLayerParent<RatGolemMount, RatGolemMountModel<RatGolemMount>> parent) {
 		super(parent);
@@ -22,7 +22,7 @@ public class RatGolemMountCracksLayer extends RenderLayer<RatGolemMount, RatGole
 		if (!entity.isInvisible()) {
 			RatGolemMount.Cracks cracks = entity.getCracks();
 			if (cracks != RatGolemMount.Cracks.NONE) {
-				ResourceLocation resourcelocation = CRACK_MAP.get(cracks);
+				Identifier resourcelocation = CRACK_MAP.get(cracks);
 				// 1.21: renderColoredCutoutModel signature changed; takes packed ARGB int instead of (r,g,b) floats.
 				renderColoredCutoutModel(this.getParentModel(), resourcelocation, stack, buffer, light, entity, 0xFFFFFFFF);
 			}

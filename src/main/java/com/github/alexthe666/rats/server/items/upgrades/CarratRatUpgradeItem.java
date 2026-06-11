@@ -10,7 +10,7 @@ import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Blocks;
@@ -21,8 +21,8 @@ public class CarratRatUpgradeItem extends BaseRatUpgradeItem implements ChangesT
 	}
 
 	@Override
-	public ResourceLocation getTexture() {
-		return ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/carrat.png");
+	public Identifier getTexture() {
+		return Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/carrat.png");
 	}
 
 	@Override

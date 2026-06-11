@@ -57,16 +57,16 @@ public class PlagueDoctorWorldData extends SavedData {
 
 	public static PlagueDoctorWorldData read(CompoundTag tag) {
 		PlagueDoctorWorldData data = new PlagueDoctorWorldData();
-		if (tag.contains("PlagueDoctorSpawnDelay", 99)) {
-			data.doctorSpawnDelay = tag.getInt("PlagueDoctorSpawnDelay");
+		if (tag.contains("PlagueDoctorSpawnDelay")) {
+			data.doctorSpawnDelay = tag.getIntOr("PlagueDoctorSpawnDelay", 0);
 		}
 
-		if (tag.contains("PlagueDoctorSpawnChance", 99)) {
-			data.doctorSpawnChance = tag.getInt("PlagueDoctorSpawnChance");
+		if (tag.contains("PlagueDoctorSpawnChance")) {
+			data.doctorSpawnChance = tag.getIntOr("PlagueDoctorSpawnChance", 0);
 		}
 
-		if (tag.contains("PlagueDoctorId", 8)) {
-			data.doctorID = UUID.fromString(tag.getString("PlagueDoctorId"));
+		if (tag.contains("PlagueDoctorId")) {
+			data.doctorID = UUID.fromString(tag.getStringOr("PlagueDoctorId", ""));
 		}
 
 		return data;

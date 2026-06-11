@@ -7,7 +7,8 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
@@ -33,7 +34,7 @@ public class RatHoleRenderer implements BlockEntityRenderer<RatHoleBlockEntity> 
 	private static final AABB SOUTH_CORNER_AABB = new AABB(0.0F, 0.0F, 0.75F, 0.25F, 0.5F, 1.0F);
 	private static final AABB WEST_CORNER_AABB = new AABB(0.75F, 0.0F, 0.75F, 1.0F, 0.5F, 1.0F);
 
-	private static final RenderType TEXTURE = RenderType.entitySmoothCutout(InventoryMenu.BLOCK_ATLAS);
+	private static final RenderType TEXTURE = RenderTypes.entitySmoothCutout(InventoryMenu.BLOCK_ATLAS);
 
 	public RatHoleRenderer(BlockEntityRendererProvider.Context context) {
 	}
@@ -127,7 +128,7 @@ public class RatHoleRenderer implements BlockEntityRenderer<RatHoleBlockEntity> 
 			this.renderAABB(buffer, SOUTH_CONNECT_AABB, stack, model.getParticleIcon(ModelData.EMPTY), LevelRenderer.getLightColor(entity.getLevel(), entity.getBlockPos()), overlay);
 		}
 		if (entity.getLevel() != null) {
-			Minecraft.getInstance().getBlockRenderer().renderBreakingTexture(entity.getBlockState(), entity.getBlockPos(), entity.getLevel(), stack, buffer.getBuffer(RenderType.solid()), ModelData.EMPTY);
+			Minecraft.getInstance().getBlockRenderer().renderBreakingTexture(entity.getBlockState(), entity.getBlockPos(), entity.getLevel(), stack, buffer.getBuffer(RenderTypes.solid()), ModelData.EMPTY);
 		}
 		stack.popPose();
 	}

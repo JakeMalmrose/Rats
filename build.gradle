@@ -1,21 +1,8 @@
 plugins {
     id 'java-library'
-    id 'eclipse'
     id 'idea'
     id 'maven-publish'
     id 'net.neoforged.moddev' version '2.0.141'
-}
-
-def secrets = new Properties()
-def secretsFile = file('secrets.properties')
-if (secretsFile.exists()) {
-    secretsFile.withInputStream { stream -> secrets.load(stream) }
-
-    fileTree("secrets").matching {
-        include "**/*.properties"
-    }.each { File file ->
-        file.withInputStream { stream -> secrets.load(stream) }
-    }
 }
 
 version = "${project.minecraft_version}-${project.mod_version}"
@@ -25,54 +12,38 @@ base {
     archivesName = mod_name
 }
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+java.toolchain.languageVersion = JavaLanguageVersion.of(25)
 
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-    options.compilerArgs << '-Xlint:all,-classfile,-processing,-deprecation,-serial,-this-escape' << '-Xmaxerrs' << '5000'
-}
-
-repositories {
-    maven {
-        name = 'Curseforge Maven'
-        url = 'https://www.cursemaven.com'
-        content { includeGroup 'curse.maven' }
-    }
-    maven {
-        name = "Jared's Maven" // JEI
-        url = 'https://maven.blamejared.com/'
-    }
-}
+// JEI and Jade do not exist for 26.1 yet — exclude their plugins from compilation until they do.
+sourceSets.main.java.exclude 'com/github/alexthe666/rats/compat/jei/**'
+sourceSets.main.java.exclude 'com/github/alexthe666/rats/compat/jade/**'
+// Datagen providers target the old 1.21.1 datagen API; the shipped JSON under src/generated/resources
+// is the source of truth (it was extracted from the released jar), so skip compiling them.
+// The data/**/tags classes stay: they hold TagKey constants referenced by live code (stripped to
+// constants-only for 26.1).
+sourceSets.main.java.exclude 'com/github/alexthe666/rats/data/*.java'
+sourceSets.main.java.exclude 'com/github/alexthe666/rats/data/loot/**'
+sourceSets.main.java.exclude 'com/github/alexthe666/rats/data/ratlantis/*.java'
+sourceSets.main.java.exclude 'com/github/alexthe666/rats/data/ratlantis/loot/**'
 
 neoForge {
-    version = project.neoforge_version
+    version = project.neo_version
 
     accessTransformers = files('src/main/resources/META-INF/accesstransformer.cfg')
     validateAccessTransformers = true
 
     runs {
         configureEach {
-            systemProperty 'forge.logging.console.level', 'debug'
-            systemProperty 'fml.earlyprogresswindow', 'false'
-            logLevel = org.slf4j.event.Level.DEBUG
+            logLevel = org.slf4j.event.Level.INFO
         }
 
         client {
             client()
-            programArguments.addAll '--username', (secrets.getProperty('username') ?: 'Dev')
-            if (secrets.getProperty('uuid')) {
-                programArguments.addAll '--uuid', secrets.getProperty('uuid')
-            }
         }
 
         server {
             server()
             programArgument '--nogui'
-        }
-
-        gameTestServer {
-            type = 'gameTestServer'
-            systemProperty 'neoforge.enabledGameTestNamespaces', mod_id
         }
 
         data {
@@ -95,15 +66,21 @@ neoForge {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
-
 tasks.named('processResources', ProcessResources).configure {
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
+repositories {
+    mavenLocal()
+    mavenCentral()
+    maven {
+        name = 'NeoForge'
+        url = 'https://maven.neoforged.net/releases/'
+    }
+}
+
 dependencies {
-    implementation "mezz.jei:jei-${project.minecraft_version}-neoforge:${project.jei_version}"
-    implementation "curse.maven:citadel-331936:${project.citadel_file_id}"
-    implementation "curse.maven:jade-324717:${project.jade_file_id}"
+    implementation "com.github.alexthe666:citadelneoforge:${project.citadel_version}"
 }
 
 tasks.named('jar', Jar).configure {
@@ -114,8 +91,19 @@ tasks.named('jar', Jar).configure {
                 'Specification-Version'   : '1',
                 'Implementation-Title'    : project.name,
                 'Implementation-Version'  : project.jar.archiveVersion,
-                'Implementation-Vendor'   : 'AlexThe666',
-                'Implementation-Timestamp': new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+                'Implementation-Vendor'   : 'AlexThe666'
         ])
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.compilerArgs += ['-Xmaxerrs', '10000']
+}
+
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
     }
 }

@@ -5,16 +5,17 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.ArrowRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class SmallArrowRenderer extends ArrowRenderer<SmallArrow> {
-	public static final ResourceLocation ARROW = ResourceLocation.parse("textures/entity/projectiles/arrow.png");
+	public static final Identifier ARROW = Identifier.parse("textures/entity/projectiles/arrow.png");
 
 	public SmallArrowRenderer(EntityRendererProvider.Context context) {
 		super(context);
@@ -35,7 +36,7 @@ public class SmallArrowRenderer extends ArrowRenderer<SmallArrow> {
 		stack.mulPose(Axis.XP.rotationDegrees(45.0F));
 		stack.scale(scale * 0.05625F, scale * 0.05625F, scale * 0.05625F);
 		stack.translate(-4.0D, 0.0D, 0.0D);
-		VertexConsumer vertexBuilder = buffer.getBuffer(RenderType.entityCutout(ARROW));
+		VertexConsumer vertexBuilder = buffer.getBuffer(RenderTypes.entityCutout(ARROW));
 		PoseStack.Pose pose = stack.last();
 		this.vertex(pose, vertexBuilder, -7, -2, -2, 0.0F, 0.15625F, -1, 0, 0, light);
 		this.vertex(pose, vertexBuilder, -7, -2, 2, 0.15625F, 0.15625F, -1, 0, 0, light);
@@ -58,7 +59,7 @@ public class SmallArrowRenderer extends ArrowRenderer<SmallArrow> {
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(SmallArrow entity) {
+	public Identifier getTextureLocation(SmallArrow entity) {
 		return ARROW;
 	}
 }

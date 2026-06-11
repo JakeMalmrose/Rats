@@ -50,7 +50,7 @@ public class OreRatNuggetItem extends Item {
 		CustomData data = poopItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY);
 		CompoundTag tag = data.copyTag();
 		if (tag.contains("OreItem")) {
-			CompoundTag oreTag = tag.getCompound("OreItem");
+			CompoundTag oreTag = tag.getCompoundOrEmpty("OreItem");
 			ItemStack oreItem = ItemStack.parseOptional(RegistryAccess.EMPTY, oreTag);
 			return oreItem.isEmpty() ? fallback : oreItem;
 		}

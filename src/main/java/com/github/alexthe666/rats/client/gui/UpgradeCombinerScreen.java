@@ -8,13 +8,13 @@ import com.google.common.collect.Lists;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 
 import java.util.List;
 
 public class UpgradeCombinerScreen extends AbstractContainerScreen<UpgradeCombinerMenu> {
-	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/upgrade_combiner.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/upgrade_combiner.png");
 	private final Inventory playerInventory;
 	private final UpgradeCombinerMenu combiner;
 

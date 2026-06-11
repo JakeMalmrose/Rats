@@ -12,11 +12,12 @@ import net.minecraft.client.model.ChestBoatModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.joml.Quaternionf;
 
@@ -25,12 +26,12 @@ import java.util.stream.Stream;
 
 public class PiratWoodBoatRenderer extends EntityRenderer<PiratWoodBoat> {
 
-	private final Map<PiratWoodBoat.Type, Pair<ResourceLocation, BoatModel>> boatResources;
+	private final Map<PiratWoodBoat.Type, Pair<Identifier, BoatModel>> boatResources;
 
 	public PiratWoodBoatRenderer(EntityRendererProvider.Context context, boolean chest) {
 		super(context);
 		this.shadowRadius = 0.8F;
-		this.boatResources = Stream.of(PiratWoodBoat.Type.values()).collect(ImmutableMap.toImmutableMap(type -> type, type -> Pair.of(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, getTextureLocation(type, chest)), this.createBoatModel(context, type, chest))));
+		this.boatResources = Stream.of(PiratWoodBoat.Type.values()).collect(ImmutableMap.toImmutableMap(type -> type, type -> Pair.of(Identifier.fromNamespaceAndPath(RatsMod.MODID, getTextureLocation(type, chest)), this.createBoatModel(context, type, chest))));
 	}
 
 	private BoatModel createBoatModel(EntityRendererProvider.Context context, PiratWoodBoat.Type type, boolean chest) {
@@ -40,7 +41,7 @@ public class PiratWoodBoatRenderer extends EntityRenderer<PiratWoodBoat> {
 	}
 
 	private static ModelLayerLocation createLocation(String path) {
-		return new ModelLayerLocation(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, path), "main");
+		return new ModelLayerLocation(Identifier.fromNamespaceAndPath(RatsMod.MODID, path), "main");
 	}
 
 	public static ModelLayerLocation createBoatModelName(PiratWoodBoat.Type type) {
@@ -75,16 +76,16 @@ public class PiratWoodBoatRenderer extends EntityRenderer<PiratWoodBoat> {
 			stack.mulPose((new Quaternionf()).setAngleAxis(boat.getBubbleAngle(partialTicks) * ((float) Math.PI / 180F), 1.0F, 0.0F, 1.0F));
 		}
 
-		Pair<ResourceLocation, BoatModel> pair = this.getModelWithLocation(boat);
-		ResourceLocation resourcelocation = pair.getFirst();
+		Pair<Identifier, BoatModel> pair = this.getModelWithLocation(boat);
+		Identifier resourcelocation = pair.getFirst();
 		BoatModel model = pair.getSecond();
 		stack.scale(-1.0F, -1.0F, 1.0F);
 		stack.mulPose(Axis.YP.rotationDegrees(90.0F));
 		model.setupAnim(boat, partialTicks, 0.0F, -0.1F, 0.0F, 0.0F);
-		VertexConsumer vertexconsumer = buffer.getBuffer(RenderType.entityTranslucent(resourcelocation));
+		VertexConsumer vertexconsumer = buffer.getBuffer(RenderTypes.entityTranslucent(resourcelocation));
 		model.renderToBuffer(stack, vertexconsumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 		if (!boat.isUnderWater()) {
-			VertexConsumer vertexconsumer1 = buffer.getBuffer(RenderType.waterMask());
+			VertexConsumer vertexconsumer1 = buffer.getBuffer(RenderTypes.waterMask());
 			model.waterPatch().render(stack, vertexconsumer1, light, OverlayTexture.NO_OVERLAY);
 		}
 
@@ -93,11 +94,11 @@ public class PiratWoodBoatRenderer extends EntityRenderer<PiratWoodBoat> {
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(PiratWoodBoat boat) {
+	public Identifier getTextureLocation(PiratWoodBoat boat) {
 		return this.getModelWithLocation(boat).getFirst();
 	}
 
-	public Pair<ResourceLocation, BoatModel> getModelWithLocation(PiratWoodBoat boat) {
+	public Pair<Identifier, BoatModel> getModelWithLocation(PiratWoodBoat boat) {
 		return this.boatResources.get(boat.getRatsBoatType());
 	}
 }

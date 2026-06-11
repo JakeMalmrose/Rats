@@ -7,7 +7,7 @@ import com.github.alexthe666.rats.server.misc.RatUpgradeUtils;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -26,7 +26,7 @@ import snownee.jade.api.config.IPluginConfig;
 @WailaPlugin
 public class RatsJadePlugin implements IWailaPlugin {
 
-	private static final ResourceLocation TAMED_RAT_INFO = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "tamed_rat_info");
+	private static final Identifier TAMED_RAT_INFO = Identifier.fromNamespaceAndPath(RatsMod.MODID, "tamed_rat_info");
 
 	@Override
 	public void registerClient(IWailaClientRegistration registration) {
@@ -71,7 +71,7 @@ public class RatsJadePlugin implements IWailaPlugin {
 		}
 
 		@Override
-		public ResourceLocation getUid() {
+		public Identifier getUid() {
 			return TAMED_RAT_INFO;
 		}
 	}

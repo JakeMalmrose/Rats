@@ -14,7 +14,7 @@ import mezz.jei.api.registration.*;
 import mezz.jei.api.runtime.IJeiRuntime;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.RecipeManager;
@@ -25,7 +25,7 @@ import java.util.Objects;
 
 @JeiPlugin
 public class RatsJEIPlugin implements IModPlugin {
-	public static final ResourceLocation MOD = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "rats");
+	public static final Identifier MOD = Identifier.fromNamespaceAndPath(RatsMod.MODID, "rats");
 
 	private void addDescription(IRecipeRegistration registry, ItemStack itemStack) {
 		registry.addIngredientInfo(itemStack, VanillaTypes.ITEM_STACK, Component.translatable(itemStack.getDescriptionId() + ".jei_desc"));
@@ -108,7 +108,7 @@ public class RatsJEIPlugin implements IModPlugin {
 	}
 
 	@Override
-	public ResourceLocation getPluginUid() {
+	public Identifier getPluginUid() {
 		return MOD;
 	}
 }

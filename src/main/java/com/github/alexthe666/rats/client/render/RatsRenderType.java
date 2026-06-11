@@ -1,50 +1,90 @@
 package com.github.alexthe666.rats.client.render;
 
 import com.github.alexthe666.rats.RatsMod;
-import com.github.alexthe666.rats.client.events.ModClientEvents;
 import com.github.alexthe666.rats.client.render.block.RatlantisPortalRenderer;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import net.minecraft.Util;
-import net.minecraft.client.renderer.RenderStateShard;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.rendertype.TextureTransform;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Matrix4f;
 
 import java.util.Arrays;
 import java.util.List;
 
-public class RatsRenderType extends RenderType {
+/**
+ * Custom {@link RenderType} factories for Rats. Minecraft 26.1 uses {@link RenderSetup} instead of the
+ * removed {@code RenderStateShard} / {@code CompositeState}; glints are built on the vanilla GLINT pipeline.
+ */
+public class RatsRenderType {
 
-	protected static final RenderStateShard.ShaderStateShard RENDERTYPE_RATLANTIS_PORTAL_SHADER = new RenderStateShard.ShaderStateShard(ModClientEvents::getRendertypeRatlantisPortalShader);
-	private static final RenderType RATLANTIS_PORTAL = create("ratlantis_portal", DefaultVertexFormat.POSITION_COLOR, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RENDERTYPE_RATLANTIS_PORTAL_SHADER).setTextureState(RenderStateShard.MultiTextureStateShard.builder().add(RatlantisPortalRenderer.PORTAL_BG, false, false).add(RatlantisPortalRenderer.PORTAL_FG, false, false).build()).createCompositeState(false));
-
-	protected static final RenderStateShard.TexturingStateShard RAINBOW_GLINT_TEXTURING = new RenderStateShard.TexturingStateShard("rainbow_glint_texturing", RatsRenderType::setupRainbowRendering, RenderSystem::resetTextureMatrix);
-	private static final RenderType ACE_GLINT = create("ace_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/ace_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-	private static final RenderType AGENDER_GLINT = create("agender_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/agender_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-	private static final RenderType ARO_GLINT = create("aro_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/aro_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-	private static final RenderType BI_GLINT = create("bi_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/bi_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-	private static final RenderType ENBY_GLINT = create("enby_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/enby_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-	private static final RenderType GAY_GLINT = create("gay_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/gay_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-	private static final RenderType GENDERFLUID_GLINT = create("genderfluid_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/genderfluid_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-	private static final RenderType LESBIAN_GLINT = create("lesbian_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/lesbian_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-	private static final RenderType PAN_GLINT = create("pan_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/pan_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-	private static final RenderType RAINBOW_GLINT = create("rainbow_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/rainbow_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-	private static final RenderType TRANS_GLINT = create("trans_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/trans_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-
-	private static final RenderType PISS_GLINT = create("piss_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/piss_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-	private static final RenderType UNPLEASANT_GLINT = create("unpleasant_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setShaderState(RenderStateShard.RENDERTYPE_GLINT_TRANSLUCENT_SHADER).setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/unpleasant_glint.png"), true, false)).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(RAINBOW_GLINT_TEXTURING).setOverlayState(OVERLAY).createCompositeState(true));
-
-	private static final RenderType GREEN_ENTITY_GLINT = create("green_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/green_glint.png"), true, false)).setShaderState(RENDERTYPE_ENTITY_GLINT_SHADER).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(ENTITY_GLINT_TEXTURING).createCompositeState(false));
-	private static final RenderType YELLOW_ENTITY_GLINT = create("yellow_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/yellow_glint.png"), true, false)).setShaderState(RENDERTYPE_ENTITY_GLINT_SHADER).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(ENTITY_GLINT_TEXTURING).createCompositeState(false));
-	private static final RenderType WHITE_ENTITY_GLINT = create("white_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/white_glint.png"), true, false)).setShaderState(RENDERTYPE_ENTITY_GLINT_SHADER).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(ENTITY_GLINT_TEXTURING).createCompositeState(false));
-	private static final RenderType GOLD_ENTITY_GLINT = create("gold_glint", DefaultVertexFormat.POSITION_TEX, VertexFormat.Mode.QUADS, 256, false, false, RenderType.CompositeState.builder().setTextureState(new RenderStateShard.TextureStateShard(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/gold_glint.png"), true, false)).setShaderState(RENDERTYPE_ENTITY_GLINT_SHADER).setWriteMaskState(COLOR_WRITE).setCullState(NO_CULL).setDepthTestState(EQUAL_DEPTH_TEST).setTransparencyState(GLINT_TRANSPARENCY).setTexturingState(ENTITY_GLINT_TEXTURING).createCompositeState(false));
-
-	public RatsRenderType(String name, VertexFormat format, VertexFormat.Mode mode, int bufferSize, boolean affectsCrumble, boolean sort, Runnable builder1, Runnable builder2) {
-		super(name, format, mode, bufferSize, affectsCrumble, sort, builder1, builder2);
+	private RatsRenderType() {
 	}
+
+	private static Matrix4f rainbowMatrix(long time) {
+		long i = Util.getMillis() * time;
+		float f = (float) (i % 10000L) / 10000.0F;
+		Matrix4f matrix4f = new Matrix4f().translation(0.0F, f, 0.0F);
+		matrix4f.scale(0.16F);
+		return matrix4f;
+	}
+
+	private static final TextureTransform RAINBOW_GLINT_TEXTURING = new TextureTransform("entity_glint_texturing", () -> rainbowMatrix(8L));
+
+	private static RenderType glintType(String name, Identifier texture, TextureTransform transform) {
+		RenderSetup setup = RenderSetup.builder(RenderPipelines.GLINT)
+				.withTexture("Sampler0", texture)
+				.useLightmap()
+				.useOverlay()
+				.setTextureTransform(transform)
+				.setOutline(RenderSetup.OutlineProperty.AFFECTS_OUTLINE)
+				.createRenderSetup();
+		return RenderType.create(name, setup);
+	}
+
+	private static RenderType dyeGlint(String name) {
+		return glintType(name + "_glint", Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/special_dyes/" + name + "_glint.png"), RAINBOW_GLINT_TEXTURING);
+	}
+
+	private static RenderType entityGlint(String name) {
+		return glintType(name + "_glint", Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/" + name + "_glint.png"), TextureTransform.GLINT_TEXTURING);
+	}
+
+	private static final RenderType RATLANTIS_PORTAL = Util.make(() -> {
+		// 1.21.1 used a bespoke two-texture portal shader; the vanilla end-portal pipeline provides the
+		// same layered effect in 26.1, fed with the Ratlantis portal textures.
+		RenderSetup setup = RenderSetup.builder(RenderPipelines.END_PORTAL)
+				.withTexture("Sampler0", RatlantisPortalRenderer.PORTAL_BG)
+				.withTexture("Sampler1", RatlantisPortalRenderer.PORTAL_FG)
+				.createRenderSetup();
+		return RenderType.create("ratlantis_portal", setup);
+	});
+
+	private static final RenderType ACE_GLINT = dyeGlint("ace");
+	private static final RenderType AGENDER_GLINT = dyeGlint("agender");
+	private static final RenderType ARO_GLINT = dyeGlint("aro");
+	private static final RenderType BI_GLINT = dyeGlint("bi");
+	private static final RenderType ENBY_GLINT = dyeGlint("enby");
+	private static final RenderType GAY_GLINT = dyeGlint("gay");
+	private static final RenderType GENDERFLUID_GLINT = dyeGlint("genderfluid");
+	private static final RenderType LESBIAN_GLINT = dyeGlint("lesbian");
+	private static final RenderType PAN_GLINT = dyeGlint("pan");
+	private static final RenderType RAINBOW_GLINT = dyeGlint("rainbow");
+	private static final RenderType TRANS_GLINT = dyeGlint("trans");
+
+	private static final RenderType PISS_GLINT = dyeGlint("piss");
+	private static final RenderType UNPLEASANT_GLINT = dyeGlint("unpleasant");
+
+	private static final RenderType GREEN_ENTITY_GLINT = entityGlint("green");
+	private static final RenderType YELLOW_ENTITY_GLINT = entityGlint("yellow");
+	private static final RenderType WHITE_ENTITY_GLINT = entityGlint("white");
+	private static final RenderType GOLD_ENTITY_GLINT = entityGlint("gold");
 
 	public static RenderType getYellowGlint() {
 		return YELLOW_ENTITY_GLINT;
@@ -70,24 +110,40 @@ public class RatsRenderType extends RenderType {
 		return RAINBOW_GLINT;
 	}
 
-	public static RenderType getGlowingTranslucent(ResourceLocation location) {
-		RenderStateShard.TextureStateShard texture = new RenderStateShard.TextureStateShard(location, false, true);
-		return create("glowing_translucent", DefaultVertexFormat.NEW_ENTITY, VertexFormat.Mode.QUADS, 256, false, false,
-				RenderType.CompositeState.builder().setTextureState(texture)
-						.setShaderState(RenderStateShard.RENDERTYPE_ENERGY_SWIRL_SHADER)
-						.setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-						.setOutputState(TRANSLUCENT_TARGET)
-						.setWriteMaskState(COLOR_DEPTH_WRITE)
-						.createCompositeState(true)
-		);
+	/** 1.21.1 used the energy-swirl shader for this; the vanilla factory matches. */
+	public static RenderType getGlowingTranslucent(Identifier location) {
+		return RenderTypes.energySwirl(location, 0.0F, 0.0F);
 	}
 
-	private static void setupRainbowRendering() {
-		long i = Util.getMillis() * 8L;
-		float f = (float) (i % 10000L) / 10000.0F;
-		Matrix4f matrix4f = new Matrix4f().translation(0.0F, f, 0.0F);
-		matrix4f.scale(0.16F);
-		RenderSystem.setTextureMatrix(matrix4f);
+	private static boolean encounteredMultiConsumerError = false;
+
+	public static VertexConsumer createMergedVertexConsumer(VertexConsumer consumer1, VertexConsumer consumer2) {
+		VertexConsumer vertexConsumer = consumer2;
+		if (!encounteredMultiConsumerError) {
+			try {
+				vertexConsumer = VertexMultiConsumer.create(consumer1, consumer2);
+			} catch (Exception e) {
+				RatsMod.LOGGER.warn("Encountered issue mixing two render types together. Likely an issue with a rendering mod. This warning will only display once.");
+				encounteredMultiConsumerError = true;
+			}
+		}
+		return vertexConsumer;
+	}
+
+	/** Replaces removed {@code ItemRenderer#getFoilBuffer} for entity cutouts. */
+	public static VertexConsumer entityFoilBuffer(MultiBufferSource buffer, RenderType base, boolean foil) {
+		if (!foil) {
+			return buffer.getBuffer(base);
+		}
+		return createMergedVertexConsumer(buffer.getBuffer(base), buffer.getBuffer(RenderTypes.entityGlint()));
+	}
+
+	/** Replaces removed {@code ItemRenderer#getArmorFoilBuffer} for armor cutouts. */
+	public static VertexConsumer armorFoilBuffer(MultiBufferSource buffer, RenderType base, boolean foil) {
+		if (!foil) {
+			return buffer.getBuffer(base);
+		}
+		return createMergedVertexConsumer(buffer.getBuffer(base), buffer.getBuffer(RenderTypes.armorEntityGlint()));
 	}
 
 	public enum GlintType {

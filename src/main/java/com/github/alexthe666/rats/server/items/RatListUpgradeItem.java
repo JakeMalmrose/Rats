@@ -56,7 +56,7 @@ public class RatListUpgradeItem extends BaseRatUpgradeItem {
 		super.appendHoverText(stack, context, tooltip, flag);
 		CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 
-		if (tag.contains("Items", 9)) {
+		if (tag.contains("Items")) {
 			NonNullList<ItemStack> nonnulllist = NonNullList.withSize(27, ItemStack.EMPTY);
 			ContainerHelper.loadAllItems(tag, nonnulllist, net.minecraft.core.RegistryAccess.EMPTY);
 			int i = 0;

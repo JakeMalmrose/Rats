@@ -1,10 +1,10 @@
 {
   "pack": {
-    "description": {
-      "translate": "pack.rats.rats"
-    },
-    "pack_format": 34
-  },
-  "neoforge:resource_pack_format": 34,
-  "neoforge:data_pack_format": 48
+    "description": "Rats resources",
+    "min_format": [
+      84,
+      0
+    ],
+    "max_format": 101
+  }
 }

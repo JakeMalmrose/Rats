@@ -7,17 +7,18 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 public class PlagueShotRenderer extends EntityRenderer<PlagueShot> {
 
-	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/plague_cloud.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/plague_cloud.png");
 	private static final RatlanteanSpiritModel<PlagueShot> MODEL_SPIRIT = new RatlanteanSpiritModel<>();
 
 	public PlagueShotRenderer(EntityRendererProvider.Context context) {
@@ -30,7 +31,7 @@ public class PlagueShotRenderer extends EntityRenderer<PlagueShot> {
 		stack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(partialTicks, entity.yRotO, entity.getYRot()) + 180.0F));
 		stack.mulPose(Axis.XP.rotationDegrees(-Mth.lerp(partialTicks, entity.xRotO, entity.getXRot())));
 		stack.translate(0F, -1.5F, 0F);
-		VertexConsumer consumer = ItemRenderer.getFoilBuffer(buffer, RenderType.entityCutoutNoCull(TEXTURE), false, true);
+		VertexConsumer consumer = ItemRenderer.getFoilBuffer(buffer, RenderTypes.entityCutoutNoCull(TEXTURE), false, true);
 		MODEL_SPIRIT.renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 		stack.popPose();
 
@@ -38,7 +39,7 @@ public class PlagueShotRenderer extends EntityRenderer<PlagueShot> {
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(PlagueShot entity) {
+	public Identifier getTextureLocation(PlagueShot entity) {
 		return TEXTURE;
 	}
 }

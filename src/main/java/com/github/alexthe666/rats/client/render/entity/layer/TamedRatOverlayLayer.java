@@ -12,19 +12,20 @@ import com.github.alexthe666.rats.server.misc.RatUpgradeUtils;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 
 public class TamedRatOverlayLayer extends RenderLayer<TamedRat, AbstractRatModel<TamedRat>> {
-	private static final RenderType TEXTURE_DYED_NOT = RenderType.entitySmoothCutout(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/undyed_part.png"));
-	private static final RenderType TEXTURE_DYED = RenderType.entityNoOutline(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/dyed_part.png"));
-	private static final RenderType TOGA_TEX = RenderType.entitySmoothCutout(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/toga.png"));
+	private static final RenderType TEXTURE_DYED_NOT = RenderTypes.entitySmoothCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/undyed_part.png"));
+	private static final RenderType TEXTURE_DYED = RenderTypes.entityNoOutline(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/dyed_part.png"));
+	private static final RenderType TOGA_TEX = RenderTypes.entitySmoothCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/toga.png"));
 
 	public TamedRatOverlayLayer(RenderLayerParent<TamedRat, AbstractRatModel<TamedRat>> parent) {
 		super(parent);
@@ -41,7 +42,7 @@ public class TamedRatOverlayLayer extends RenderLayer<TamedRat, AbstractRatModel
 				this.getParentModel().renderToBuffer(stack, vertexBuilder, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 			} else {
 				if (RatUpgradeUtils.hasUpgrade(rat, RatsItemRegistry.RAT_UPGRADE_GOD.get()) && RatConfig.ratGodGlint) {
-					VertexConsumer vertexBuilder = ItemRenderer.getFoilBuffer(buffer, RenderType.entityCutoutNoCull(this.getTextureLocation(rat)), false, true);
+					VertexConsumer vertexBuilder = ItemRenderer.getFoilBuffer(buffer, RenderTypes.entityCutoutNoCull(this.getTextureLocation(rat)), false, true);
 					this.getParentModel().renderToBuffer(stack, vertexBuilder, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 				}
 

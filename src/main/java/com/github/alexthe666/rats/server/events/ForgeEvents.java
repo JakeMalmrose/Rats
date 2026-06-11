@@ -55,7 +55,7 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.CustomSpawner;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.storage.loot.LootParams;
@@ -223,10 +223,10 @@ public class ForgeEvents {
 
 	@SubscribeEvent
 	public static void maybeSendPlayerWarning(PlayerEvent.PlayerLoggedInEvent event) {
-		if (!event.getEntity().level().getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) {
+		if (!event.getEntity().level().getGameRules().getBooleanOr(GameRules.RULE_MOBGRIEFING, false)) {
 			CompoundTag playerData = event.getEntity().getPersistentData();
-			CompoundTag data = playerData.getCompound(Player.PERSISTED_NBT_TAG);
-			if (!data.getBoolean("rats_griefing_warning")) {
+			CompoundTag data = playerData.getCompoundOrEmpty(Player.PERSISTED_NBT_TAG);
+			if (!data.getBooleanOr("rats_griefing_warning", false)) {
 				event.getEntity().displayClientMessage(Component.translatable(RatsLangConstants.MOB_GRIEFING_WARNING).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC), false);
 				data.putBoolean("rats_griefing_warning", true);
 				playerData.put(Player.PERSISTED_NBT_TAG, data);
@@ -262,13 +262,13 @@ public class ForgeEvents {
 	public static void spawnStriderJockeys(FinalizeSpawnEvent event) {
 		//Carry On passes null into their difficulty when firing this event so we have to check this unfortunately. They shouldnt be doing this.
 		if (event.getDifficulty() == null) return;
-		if (event.getDifficulty().getDifficulty() != Difficulty.PEACEFUL && (event.getSpawnType() == MobSpawnType.CHUNK_GENERATION || event.getSpawnType() == MobSpawnType.NATURAL)) {
+		if (event.getDifficulty().getDifficulty() != Difficulty.PEACEFUL && (event.getSpawnType() == EntitySpawnReason.CHUNK_GENERATION || event.getSpawnType() == EntitySpawnReason.NATURAL)) {
 			if (event.getEntity() instanceof Strider strider && event.getEntity().getType() == EntityType.STRIDER) {
 				if (!strider.isBaby() && !strider.isSaddled() && strider.getPassengers().isEmpty() && strider.getRandom().nextFloat() < 0.1F) {
 					DemonRat demonRat = RatsEntityRegistry.DEMON_RAT.get().create(event.getLevel().getLevel());
 					if (demonRat != null) {
 						demonRat.moveTo(strider.getX(), strider.getY(), strider.getZ(), strider.getYRot(), 0.0F);
-						demonRat.finalizeSpawn(event.getLevel(), event.getDifficulty(), MobSpawnType.JOCKEY, null);
+						demonRat.finalizeSpawn(event.getLevel(), event.getDifficulty(), EntitySpawnReason.JOCKEY, null);
 						demonRat.startRiding(strider, true);
 						demonRat.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.WARPED_FUNGUS_ON_A_STICK));
 						strider.equipSaddle(new ItemStack(Items.SADDLE), null);

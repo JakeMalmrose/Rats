@@ -9,16 +9,17 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
 public class RatTrapRenderer implements BlockEntityRenderer<RatTrapBlockEntity> {
 	private static final RatTrapModel<?> MODEL_RAT_TRAP = new RatTrapModel<>();
-	private static final RenderType TEXTURE = RenderType.entityCutout(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_trap.png"));
+	private static final RenderType TEXTURE = RenderTypes.entityCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_trap.png"));
 
 	public RatTrapRenderer(BlockEntityRendererProvider.Context context) {
 	}

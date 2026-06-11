@@ -4,8 +4,8 @@ import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
-import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.Function;
 
@@ -15,7 +15,7 @@ public class PiratHatModel extends AbstractHatModel {
 		super(root);
 	}
 
-	public PiratHatModel(ModelPart root, Function<ResourceLocation, RenderType> function) {
+	public PiratHatModel(ModelPart root, Function<Identifier, RenderType> function) {
 		super(root, function);
 	}
 

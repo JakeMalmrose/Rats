@@ -7,7 +7,7 @@ import com.github.alexthe666.rats.registry.RatsBlockRegistry;
 import com.github.alexthe666.rats.registry.RatsItemRegistry;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.models.ItemModelGenerators;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
@@ -36,7 +36,7 @@ public class ItemModelGenerator extends ItemModelProvider {
 		for (Item i : BuiltInRegistries.ITEM.stream().toList()) {
 			if (i instanceof SpawnEggItem && Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(i)).getNamespace().equals(RatsMod.MODID)) {
 				this.getBuilder(Objects.requireNonNull(BuiltInRegistries.ITEM.getKey(i)).getPath())
-						.parent(this.getExistingFile(ResourceLocation.parse("item/template_spawn_egg")));
+						.parent(this.getExistingFile(Identifier.parse("item/template_spawn_egg")));
 			}
 		}
 
@@ -54,7 +54,7 @@ public class ItemModelGenerator extends ItemModelProvider {
 		this.singleTex(RatsItemRegistry.CENTIPEDE);
 		this.fullbrightSingleTex(RatsItemRegistry.CHARGED_CREEPER_CHUNK);
 		this.singleTex(RatsItemRegistry.CHEESE);
-		this.generated(RatsItemRegistry.CHEESE_BANNER_PATTERN.getId().getPath(), false, ResourceLocation.parse("item/creeper_banner_pattern"));
+		this.generated(RatsItemRegistry.CHEESE_BANNER_PATTERN.getId().getPath(), false, Identifier.parse("item/creeper_banner_pattern"));
 		this.singleTexTool(RatsItemRegistry.CHEESE_STICK);
 		this.singleTex(RatsItemRegistry.CHEF_TOQUE);
 		this.toBlock(RatsBlockRegistry.COMPRESSED_GARBAGE.get());
@@ -105,10 +105,10 @@ public class ItemModelGenerator extends ItemModelProvider {
 		this.toBlock(RatsBlockRegistry.PURIFIED_GARBAGE.get());
 		this.singleTex(RatsItemRegistry.PURIFYING_LIQUID);
 		this.singleTexTool(RatsItemRegistry.RADIUS_STICK);
-		this.generated(RatsItemRegistry.RAC_BANNER_PATTERN.getId().getPath(), false, ResourceLocation.parse("item/creeper_banner_pattern"));
+		this.generated(RatsItemRegistry.RAC_BANNER_PATTERN.getId().getPath(), false, Identifier.parse("item/creeper_banner_pattern"));
 		this.singleTex(RatsItemRegistry.RAT_ARROW);
 		this.generated(RatsBlockRegistry.RAT_ATTRACTOR.getId().getPath(), false, this.itemPrefix("rat_attractor"));
-		this.generated(RatsItemRegistry.RAT_BANNER_PATTERN.getId().getPath(), false, ResourceLocation.parse("item/creeper_banner_pattern"));
+		this.generated(RatsItemRegistry.RAT_BANNER_PATTERN.getId().getPath(), false, Identifier.parse("item/creeper_banner_pattern"));
 		this.singleTex(RatsItemRegistry.RAT_BREEDING_LANTERN);
 		this.singleTex(RatsItemRegistry.RAT_BURGER);
 		this.toBlockModel(RatsBlockRegistry.RAT_CAGE.get(), this.blockPrefix("rat_cage_item"));
@@ -132,9 +132,9 @@ public class ItemModelGenerator extends ItemModelProvider {
 		ModelFile sack2 = this.generated("rat_sack_2", false, this.itemPrefix("rat_sack_2"));
 		ModelFile sack3 = this.generated("rat_sack_3", false, this.itemPrefix("rat_sack_3"));
 		singleTex(RatsItemRegistry.RAT_SACK)
-				.override().predicate(ResourceLocation.tryParse("rat_count"), 1).model(sack1).end()
-				.override().predicate(ResourceLocation.tryParse("rat_count"), 2).model(sack2).end()
-				.override().predicate(ResourceLocation.tryParse("rat_count"), 3).model(sack3).end();
+				.override().predicate(Identifier.tryParse("rat_count"), 1).model(sack1).end()
+				.override().predicate(Identifier.tryParse("rat_count"), 2).model(sack2).end()
+				.override().predicate(Identifier.tryParse("rat_count"), 3).model(sack3).end();
 
 		this.singleTex(RatsItemRegistry.RAT_SEED_BOWL);
 		this.singleTex(RatsItemRegistry.RAT_SKULL);
@@ -142,7 +142,7 @@ public class ItemModelGenerator extends ItemModelProvider {
 		this.singleTex(RatsItemRegistry.RAT_WATER_BOTTLE);
 		this.singleTex(RatsItemRegistry.RAT_WHEEL);
 		this.singleTex(RatsItemRegistry.RAT_WHISTLE);
-		ResourceLocation special = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "special");
+		Identifier special = Identifier.fromNamespaceAndPath(RatsMod.MODID, "special");
 		this.fullbrightSingleTex(RatsItemRegistry.RATBOW_ESSENCE)
 				.override().predicate(special, 1).model(this.generated("ratbow_essence_agender", true, this.itemPrefix("ratbow_essence_agender"))).end()
 				.override().predicate(special, 2).model(this.generated("ratbow_essence_aro", true, this.itemPrefix("ratbow_essence_aro"))).end()
@@ -201,7 +201,7 @@ public class ItemModelGenerator extends ItemModelProvider {
 		this.singleTex(RatsItemRegistry.RAT_UPGRADE_CROSSBOW);
 		this.singleTex(RatsItemRegistry.RAT_UPGRADE_DAMAGE_PROTECTION);
 		ModelFile soul = this.generated("rat_upgrade_soul_demon", false, itemPrefix("rat_upgrade_soul_demon"));
-		this.singleTex(RatsItemRegistry.RAT_UPGRADE_DEMON).override().predicate(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "soul"), 1).model(soul).end();
+		this.singleTex(RatsItemRegistry.RAT_UPGRADE_DEMON).override().predicate(Identifier.fromNamespaceAndPath(RatsMod.MODID, "soul"), 1).model(soul).end();
 		this.singleTex(RatsItemRegistry.RAT_UPGRADE_DISENCHANTER);
 		this.singleTex(RatsItemRegistry.RAT_UPGRADE_DJ);
 		this.singleTex(RatsItemRegistry.RAT_UPGRADE_DRAGON);
@@ -313,7 +313,7 @@ public class ItemModelGenerator extends ItemModelProvider {
 		this.toBlockModel(RatlantisBlockRegistry.PIRAT_TRAPDOOR.get(), this.blockPrefix("pirat_trapdoor_bottom"));
 		this.toBlock(RatlantisBlockRegistry.PIRAT_WOOD.get());
 		this.fullbrightSingleTex(RatlantisItemRegistry.PSIONIC_RAT_BRAIN);
-		this.generated(RatlantisItemRegistry.RAS_BANNER_PATTERN.getId().getPath(), false, ResourceLocation.parse("item/creeper_banner_pattern"));
+		this.generated(RatlantisItemRegistry.RAS_BANNER_PATTERN.getId().getPath(), false, Identifier.parse("item/creeper_banner_pattern"));
 		this.singleTex(RatlantisItemRegistry.RAT_TOGA);
 		this.singleTex(RatlantisItemRegistry.RATBOT_BARREL);
 		this.singleTex(RatlantisItemRegistry.RATFISH);
@@ -328,9 +328,9 @@ public class ItemModelGenerator extends ItemModelProvider {
 		ModelFile bowPulling1 = bow("ratlantis_bow_pulling_1", itemPrefix("ratlantis_bow_pulling_1"));
 		ModelFile bowPulling2 = bow("ratlantis_bow_pulling_2", itemPrefix("ratlantis_bow_pulling_2"));
 		this.bow(RatlantisItemRegistry.RATLANTIS_BOW.getId().getPath(), this.itemPrefix("ratlantis_bow"))
-				.override().predicate(ResourceLocation.parse("pulling"), 1).model(bowPulling0).end()
-				.override().predicate(ResourceLocation.parse("pulling"), 1).predicate(ResourceLocation.parse("pull"), (float) 0.65).model(bowPulling1).end()
-				.override().predicate(ResourceLocation.parse("pulling"), 1).predicate(ResourceLocation.parse("pull"), (float) 0.9).model(bowPulling2).end();
+				.override().predicate(Identifier.parse("pulling"), 1).model(bowPulling0).end()
+				.override().predicate(Identifier.parse("pulling"), 1).predicate(Identifier.parse("pull"), (float) 0.65).model(bowPulling1).end()
+				.override().predicate(Identifier.parse("pulling"), 1).predicate(Identifier.parse("pull"), (float) 0.9).model(bowPulling2).end();
 		this.trimmedArmor(RatlantisItemRegistry.RATLANTIS_CHESTPLATE);
 		this.trimmedArmor(RatlantisItemRegistry.RATLANTIS_HELMET);
 		this.singleTexTool(RatlantisItemRegistry.RATLANTIS_HOE);
@@ -362,7 +362,7 @@ public class ItemModelGenerator extends ItemModelProvider {
 		toBlockModel(b, blockPrefix(BuiltInRegistries.BLOCK.getKey(b).getPath()));
 	}
 
-	private void toBlockModel(Block b, ResourceLocation model) {
+	private void toBlockModel(Block b, Identifier model) {
 		withExistingParent(BuiltInRegistries.BLOCK.getKey(b).getPath(), model);
 	}
 
@@ -378,7 +378,7 @@ public class ItemModelGenerator extends ItemModelProvider {
 			ModelFile trimModel = this.withExistingParent(name, this.mcLoc("item/generated"))
 					.texture("layer0", this.itemPrefix(armor.getId().getPath()))
 					.texture("layer1", this.mcLoc("trims/items/" + armor.get().getType().getName() + "_trim_" + material));
-			base.override().predicate(ResourceLocation.parse("trim_type"), trim.itemModelIndex()).model(trimModel).end();
+			base.override().predicate(Identifier.parse("trim_type"), trim.itemModelIndex()).model(trimModel).end();
 		}
 	}
 
@@ -394,23 +394,23 @@ public class ItemModelGenerator extends ItemModelProvider {
 		return generated(item.getId().getPath(), true, itemPrefix(item.getId().getPath()));
 	}
 
-	private ItemModelBuilder generated(String name, boolean fullbright, ResourceLocation... layers) {
+	private ItemModelBuilder generated(String name, boolean fullbright, Identifier... layers) {
 		return buildItem(name, "item/generated", fullbright, null, layers);
 	}
 
-	private ItemModelBuilder generatedRenderType(String name, boolean fullbright, @Nullable String renderType, ResourceLocation... layers) {
+	private ItemModelBuilder generatedRenderType(String name, boolean fullbright, @Nullable String renderType, Identifier... layers) {
 		return buildItem(name, "item/generated", fullbright, renderType, layers);
 	}
 
-	private void tool(String name, boolean fullbright, ResourceLocation... layers) {
+	private void tool(String name, boolean fullbright, Identifier... layers) {
 		buildItem(name, "item/handheld", fullbright, null, layers);
 	}
 
-	private ItemModelBuilder bow(String name, ResourceLocation... layers) {
+	private ItemModelBuilder bow(String name, Identifier... layers) {
 		return buildItem(name, "item/bow", false, null, layers);
 	}
 
-	private ItemModelBuilder buildItem(String name, String parent, boolean fullbright, @Nullable String renderType, ResourceLocation... layers) {
+	private ItemModelBuilder buildItem(String name, String parent, boolean fullbright, @Nullable String renderType, Identifier... layers) {
 		ItemModelBuilder builder = withExistingParent(name, parent);
 		for (int i = 0; i < layers.length; i++) {
 			builder = builder.texture("layer" + i, layers[i]);
@@ -423,11 +423,11 @@ public class ItemModelGenerator extends ItemModelProvider {
 		return builder;
 	}
 
-	private ResourceLocation blockPrefix(String name) {
-		return ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "block/" + name);
+	private Identifier blockPrefix(String name) {
+		return Identifier.fromNamespaceAndPath(RatsMod.MODID, "block/" + name);
 	}
 
-	private ResourceLocation itemPrefix(String name) {
-		return ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "item/" + name);
+	private Identifier itemPrefix(String name) {
+		return Identifier.fromNamespaceAndPath(RatsMod.MODID, "item/" + name);
 	}
 }

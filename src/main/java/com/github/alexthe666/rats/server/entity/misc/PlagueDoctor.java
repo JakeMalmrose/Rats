@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.misc;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.core.registries.BuiltInRegistries;
 import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.RatsMod;
@@ -18,7 +20,7 @@ import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -38,8 +40,8 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.*;
-import net.minecraft.world.entity.npc.AbstractVillager;
-import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.entity.npc.villager.AbstractVillager;
+import net.minecraft.world.item.trading.VillagerTrades;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -289,7 +291,7 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag compound) {
+	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
 		compound.putInt("DespawnDelay", this.despawnDelay);
 		compound.putBoolean("WillDespawn", this.willDespawn());
@@ -300,13 +302,13 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag compound) {
+	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
-		if (compound.contains("DespawnDelay", 99)) {
-			this.despawnDelay = compound.getInt("DespawnDelay");
+		if (compound.contains("DespawnDelay")) {
+			this.despawnDelay = compound.getIntOr("DespawnDelay", 0);
 		}
-		this.setWillDespawn(compound.getBoolean("WillDespawn"));
-		this.restockedToday = compound.getBoolean("RestockedToday");
+		this.setWillDespawn(compound.getBooleanOr("WillDespawn", false));
+		this.restockedToday = compound.getBooleanOr("RestockedToday", false);
 
 		if (compound.contains("WanderTarget")) {
 			// 1.21: NbtUtils.readBlockPos now requires (CompoundTag, String); returns Optional<BlockPos>.
@@ -377,7 +379,7 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 			if (this.isAlive() && level.getCurrentDifficultyAt(this.blockPosition()).getDifficulty() != Difficulty.PEACEFUL) {
 				BlackDeath death = new BlackDeath(RatsEntityRegistry.BLACK_DEATH.get(), level);
 				death.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-				EventHooks.finalizeMobSpawn(death, level, level.getCurrentDifficultyAt(this.blockPosition()), MobSpawnType.CONVERSION, null);
+				EventHooks.finalizeMobSpawn(death, level, level.getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.CONVERSION, null);
 				death.setNoAi(this.isNoAi());
 				if (!this.getMainHandItem().isEmpty()) {
 					this.spawnAtLocation(this.getMainHandItem());
@@ -509,7 +511,7 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 			if (!this.isBaby() && !this.level().isClientSide()) {
 				BlackDeath death = new BlackDeath(RatsEntityRegistry.BLACK_DEATH.get(), this.level());
 				death.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-				EventHooks.finalizeMobSpawn(death, (ServerLevelAccessor) this.level(), this.level().getCurrentDifficultyAt(death.blockPosition()), MobSpawnType.TRIGGERED, null);
+				EventHooks.finalizeMobSpawn(death, (ServerLevelAccessor) this.level(), this.level().getCurrentDifficultyAt(death.blockPosition()), EntitySpawnReason.TRIGGERED, null);
 				if (this.hasCustomName()) {
 					death.setCustomName(this.getCustomName());
 				}
@@ -525,7 +527,7 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 				}
 				return InteractionResult.SUCCESS;
 			}
-		} else if (!itemstack.is(Items.VILLAGER_SPAWN_EGG) && !itemstack.is(BuiltInRegistries.ITEM.get(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "plague_doctor_spawn_egg"))) &&
+		} else if (!itemstack.is(Items.VILLAGER_SPAWN_EGG) && !itemstack.is(BuiltInRegistries.ITEM.get(Identifier.fromNamespaceAndPath(RatsMod.MODID, "plague_doctor_spawn_egg"))) &&
 				this.isAlive() && !this.isTrading() && !this.isBaby()) {
 			if (hand == InteractionHand.MAIN_HAND) {
 				player.awardStat(Stats.TALKED_TO_VILLAGER);

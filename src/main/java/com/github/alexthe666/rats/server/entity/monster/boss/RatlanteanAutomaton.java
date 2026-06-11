@@ -1,5 +1,6 @@
 package com.github.alexthe666.rats.server.entity.monster.boss;
 
+import net.minecraft.world.level.storage.ValueInput;
 import com.github.alexthe666.citadel.animation.Animation;
 import com.github.alexthe666.citadel.animation.AnimationHandler;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
@@ -273,7 +274,7 @@ public class RatlanteanAutomaton extends Monster implements IAnimatedEntity, Ran
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag compound) {
+	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
 		if (this.hasCustomName()) {
 			this.bossInfo.setName(this.getDisplayName());

@@ -65,11 +65,11 @@ public class RatSackItem extends Item {
 		for (String tagInfo : tag.getAllKeys()) {
 			if (tagInfo.contains("Rat")) {
 				ratCount++;
-				CompoundTag ratTag = tag.getCompound(tagInfo);
+				CompoundTag ratTag = tag.getCompoundOrEmpty(tagInfo);
 				TamedRat rat = new TamedRat(RatsEntityRegistry.TAMED_RAT.get(), level);
 				rat.readAdditionalSaveData(ratTag);
-				if (!ratTag.getString("CustomName").isEmpty()) {
-					rat.setCustomName(Component.Serializer.fromJson(ratTag.getString("CustomName"), RegistryAccess.EMPTY));
+				if (!ratTag.getStringOr("CustomName", "").isEmpty()) {
+					rat.setCustomName(Component.Serializer.fromJson(ratTag.getStringOr("CustomName", ""), RegistryAccess.EMPTY));
 				}
 				rat.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, 0.0F, 0.0F);
 				if (!level.isClientSide()) {
@@ -87,11 +87,11 @@ public class RatSackItem extends Item {
 		CompoundTag tag = readTag(stack);
 		for (String tagInfo : tag.getAllKeys()) {
 			if (tagInfo.contains("Rat")) {
-				CompoundTag ratTag = tag.getCompound(tagInfo);
+				CompoundTag ratTag = tag.getCompoundOrEmpty(tagInfo);
 				ratCount++;
 				String ratName = Component.translatable("entity.rats.rat").getString();
-				if (!ratTag.getString("CustomName").isEmpty()) {
-					Component ratNameTag = Component.Serializer.fromJson(ratTag.getString("CustomName"), RegistryAccess.EMPTY);
+				if (!ratTag.getStringOr("CustomName", "").isEmpty()) {
+					Component ratNameTag = Component.Serializer.fromJson(ratTag.getStringOr("CustomName", ""), RegistryAccess.EMPTY);
 					if (ratNameTag != null) {
 						ratName = ratNameTag.getString();
 					}

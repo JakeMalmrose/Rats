@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.monster.boss;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatlantisBlockRegistry;
 import com.github.alexthe666.rats.registry.RatlantisEntityRegistry;
 import com.github.alexthe666.rats.registry.RatlantisItemRegistry;
@@ -65,7 +67,7 @@ public class RatBaron extends AbstractRat implements Enemy {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag tag) {
+	public void addAdditionalSaveData(ValueOutput tag) {
 		super.addAdditionalSaveData(tag);
 		if (this.getRestrictCenter() != BlockPos.ZERO) {
 			BlockPos home = this.getRestrictCenter();
@@ -74,16 +76,16 @@ public class RatBaron extends AbstractRat implements Enemy {
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag tag) {
+	public void readAdditionalSaveData(ValueInput tag) {
 		super.readAdditionalSaveData(tag);
 		if (this.hasCustomName()) {
 			this.bossInfo.setName(this.getDisplayName());
 		}
-		if (tag.contains("Home", 9)) {
-			ListTag nbttaglist = tag.getList("Home", 6);
-			int hx = (int) nbttaglist.getDouble(0);
-			int hy = (int) nbttaglist.getDouble(1);
-			int hz = (int) nbttaglist.getDouble(2);
+		if (tag.contains("Home")) {
+			ListTag nbttaglist = tag.getListOrEmpty("Home");
+			int hx = (int) nbttaglist.getDoubleOr(0, 0.0D);
+			int hy = (int) nbttaglist.getDoubleOr(1, 0.0D);
+			int hz = (int) nbttaglist.getDoubleOr(2, 0.0D);
 			this.restrictTo(new BlockPos(hx, hy, hz), 16);
 		}
 	}
@@ -135,11 +137,11 @@ public class RatBaron extends AbstractRat implements Enemy {
 
 	@Nullable
 	@Override
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, MobSpawnType type, @Nullable SpawnGroupData data) {
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, EntitySpawnReason type, @Nullable SpawnGroupData data) {
 		data = super.finalizeSpawn(accessor, difficulty, type, data);
 		this.setItemSlot(EquipmentSlot.HEAD, new ItemStack(RatlantisItemRegistry.AVIATOR_HAT.get()));
 		this.setGuaranteedDrop(EquipmentSlot.HEAD);
-		if (type != MobSpawnType.MOB_SUMMONED) {
+		if (type != EntitySpawnReason.MOB_SUMMONED) {
 			this.restrictTo(this.blockPosition(), 16);
 		}
 		if (!this.isPassenger()) {

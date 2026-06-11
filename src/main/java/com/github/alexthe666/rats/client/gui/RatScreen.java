@@ -15,7 +15,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
 
@@ -23,8 +23,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RatScreen extends AbstractContainerScreen<RatMenu> {
-	protected static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/rat_inventory.png");
-	private static final ResourceLocation TEXTURE_BACKDROP = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/rat_inventory_backdrop.png");
+	protected static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/rat_inventory.png");
+	private static final Identifier TEXTURE_BACKDROP = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/rat_inventory_backdrop.png");
 	private int currentDisplayCommand = 0;
 	private final TamedRat rat;
 

@@ -5,7 +5,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import com.github.alexthe666.rats.server.block.entity.RatCraftingTableBlockEntity;
 import net.minecraft.core.BlockPos;
@@ -14,7 +14,7 @@ import net.minecraft.world.item.ItemStack;
 
 public record ClearRatRecipePacket(long blockPos) implements CustomPacketPayload {
 
-    public static final Type<ClearRatRecipePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "clear_rat_recipe"));
+    public static final Type<ClearRatRecipePacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(RatsMod.MODID, "clear_rat_recipe"));
 
     public static final StreamCodec<FriendlyByteBuf, ClearRatRecipePacket> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_LONG, ClearRatRecipePacket::blockPos,

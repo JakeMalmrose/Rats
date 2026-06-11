@@ -12,7 +12,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.crafting.CraftingRecipe;
 
@@ -23,7 +23,7 @@ import java.util.Optional;
 // therefore not present on this screen; cycle-result buttons and the cooking-progress display
 // remain so the rat-driven crafting flow still has full UI affordance.
 public class RatCraftingTableScreen extends AbstractContainerScreen<RatCraftingTableMenu> {
-	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/rat_crafting_table.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/rat_crafting_table.png");
 	private final Inventory playerInventory;
 	private final RatCraftingTableMenu table;
 

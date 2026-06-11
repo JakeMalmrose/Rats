@@ -69,7 +69,7 @@ public class RatEnterTrapGoal extends RatMoveToBlockGoal {
 					ItemStack duplicate = trap.getBait().copy();
 					duplicate.setCount(1);
 					if (!this.rat.getItemInHand(InteractionHand.MAIN_HAND).isEmpty() && !this.rat.level().isClientSide()) {
-						this.rat.spawnAtLocation(this.rat.getItemInHand(InteractionHand.MAIN_HAND), 0.0F);
+						this.rat.spawnAtLocation(getServerLevel(this.rat), this.rat.getItemInHand(InteractionHand.MAIN_HAND), 0.0F);
 					}
 					this.rat.setItemInHand(InteractionHand.MAIN_HAND, duplicate);
 					trap.getBait().shrink(1);

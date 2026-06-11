@@ -9,7 +9,8 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.util.RandomSource;
@@ -61,7 +62,7 @@ public class RatlantisTokenRenderer implements BlockEntityRenderer<RatlantisToke
 			}
 
 			RandomSource random = RandomSource.create(432L);
-			VertexConsumer consumer = buffer.getBuffer(RenderType.lightning());
+			VertexConsumer consumer = buffer.getBuffer(RenderTypes.lightning());
 			stack.pushPose();
 			stack.translate(0.0D, 0.0D, -0.0D);
 			stack.scale(0.2F, 0.8F, 0.2F);

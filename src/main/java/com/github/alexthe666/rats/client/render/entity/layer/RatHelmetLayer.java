@@ -14,14 +14,15 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.Sheets;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.*;
@@ -141,8 +142,8 @@ public class RatHelmetLayer<T extends AbstractRat, M extends AbstractRatModel<T>
 		}
 	}
 
-	private void renderModel(PoseStack stack, MultiBufferSource buffer, int light, Model model, float red, float green, float blue, ResourceLocation armorResource) {
-		VertexConsumer vertexconsumer = buffer.getBuffer(RenderType.armorCutoutNoCull(armorResource));
+	private void renderModel(PoseStack stack, MultiBufferSource buffer, int light, Model model, float red, float green, float blue, Identifier armorResource) {
+		VertexConsumer vertexconsumer = buffer.getBuffer(RenderTypes.armorCutoutNoCull(armorResource));
 		model.renderToBuffer(stack, vertexconsumer, light, OverlayTexture.NO_OVERLAY, net.minecraft.util.FastColor.ARGB32.colorFromFloat(1.0F, red, green, blue));
 	}
 
@@ -155,18 +156,18 @@ public class RatHelmetLayer<T extends AbstractRat, M extends AbstractRatModel<T>
 	}
 
 	private void renderGlint(PoseStack stack, MultiBufferSource buffer, int light, Model model) {
-		model.renderToBuffer(stack, buffer.getBuffer(RenderType.armorEntityGlint()), light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+		model.renderToBuffer(stack, buffer.getBuffer(RenderTypes.armorEntityGlint()), light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
 	}
 
 	// 1.21: defer the texture path to the per-stack IItemExtension.getArmorTexture hook (HatItem / RatlantisArmorItem
 	// override it to return the actual texture under model/hat/ or model/armor/). Falls back to the ArmorMaterial layer
 	// path when no override is provided. The legacy "type" parameter is unused — overlay/dye is now a separate render pass.
-	public ResourceLocation getArmorResource(Entity entity, ItemStack stack, EquipmentSlot slot, @Nullable String type) {
+	public Identifier getArmorResource(Entity entity, ItemStack stack, EquipmentSlot slot, @Nullable String type) {
 		ArmorItem item = (ArmorItem) stack.getItem();
 		net.minecraft.world.item.ArmorMaterial material = item.getMaterial().value();
 		java.util.List<net.minecraft.world.item.ArmorMaterial.Layer> layers = material.layers();
 		net.minecraft.world.item.ArmorMaterial.Layer layer = layers.isEmpty()
-				? new net.minecraft.world.item.ArmorMaterial.Layer(ResourceLocation.withDefaultNamespace("iron"))
+				? new net.minecraft.world.item.ArmorMaterial.Layer(Identifier.withDefaultNamespace("iron"))
 				: layers.get(0);
 		return net.neoforged.neoforge.client.ClientHooks.getArmorTexture(entity, stack, layer, false, slot);
 	}

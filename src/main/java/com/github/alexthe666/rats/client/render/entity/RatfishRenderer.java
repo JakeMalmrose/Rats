@@ -7,18 +7,18 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 public class RatfishRenderer extends MobRenderer<Ratfish, RatFishModel<Ratfish>> {
-	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratfish.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratfish.png");
 
 	public RatfishRenderer(EntityRendererProvider.Context context) {
 		super(context, new RatFishModel<>(0), 0.3F);
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(Ratfish entity) {
+	public Identifier getTextureLocation(Ratfish entity) {
 		return TEXTURE;
 	}
 

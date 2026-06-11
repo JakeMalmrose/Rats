@@ -10,14 +10,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.SpawnPlacementType;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.FallingBlock;
@@ -33,12 +33,12 @@ import java.util.Objects;
 @SuppressWarnings("deprecation")
 public abstract class AbstractGarbageBlock extends FallingBlock {
 
-	public final MobSpawnType spawnReason;
+	public final EntitySpawnReason spawnReason;
 	public final double spawnRateModifier;
 
 	public AbstractGarbageBlock(BlockBehaviour.Properties properties, double spawnRateModifier) {
 		super(properties);
-		this.spawnReason = MobSpawnType.SPAWNER;
+		this.spawnReason = EntitySpawnReason.SPAWNER;
 		this.spawnRateModifier = spawnRateModifier;
 	}
 
@@ -51,7 +51,7 @@ public abstract class AbstractGarbageBlock extends FallingBlock {
 	@Override
 	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
 		if (random.nextInt(level.getGameRules().getRule(GameRules.RULE_RANDOMTICKING).get()) <= 3) {
-			if (!level.getBlockState(pos.above()).isSuffocating(level, pos) && level.getGameRules().getBoolean(GameRules.RULE_DOMOBSPAWNING)) {
+			if (!level.getBlockState(pos.above()).isSuffocating(level, pos) && level.getGameRules().getBooleanOr(GameRules.RULE_DOMOBSPAWNING, false)) {
 				if (random.nextFloat() <= RatConfig.garbageSpawnRate * spawnRateModifier) {
 					PathfinderMob mob = this.getEntityToSpawn().create(level);
 					if (mob == null) return;
@@ -59,8 +59,8 @@ public abstract class AbstractGarbageBlock extends FallingBlock {
 					if (!mob.checkSpawnRules(level, this.spawnReason)) return;
 					if (!mob.isInWall() && mob.checkSpawnObstruction(level)) {
 						if (mob instanceof AbstractRat) {
-							if (!level.getGameRules().getBoolean(RatsMod.SPAWN_RATS)) return;
-							if (Objects.requireNonNull(level.getChunkSource().getLastSpawnState()).getMobCategoryCounts().getInt(RatsMod.RATS) >= RatsMod.RATS.getMaxInstancesPerChunk() * 2)
+							if (!level.getGameRules().getBooleanOr(RatsMod.SPAWN_RATS, false)) return;
+							if (Objects.requireNonNull(level.getChunkSource().getLastSpawnState()).getMobCategoryCounts().getIntOr(RatsMod.RATS, 0) >= RatsMod.RATS.getMaxInstancesPerChunk() * 2)
 								return;
 							if (RatConfig.ratsSpawnLikeMonsters && !this.isDarkEnoughForMonsterSpawns(level, mob.blockPosition(), random))
 								return;
@@ -68,7 +68,7 @@ public abstract class AbstractGarbageBlock extends FallingBlock {
 							this.postInitSpawn(mob, random);
 							level.tryAddFreshEntityWithPassengers(mob);
 						} else {
-							if (mob instanceof PiedPiper && !level.getGameRules().getBoolean(RatsMod.SPAWN_PIPERS))
+							if (mob instanceof PiedPiper && !level.getGameRules().getBooleanOr(RatsMod.SPAWN_PIPERS, false))
 								return;
 							if (this.isDarkEnoughForMonsterSpawns(level, mob.blockPosition(), random)) {
 								EventHooks.finalizeMobSpawn(mob, level, level.getCurrentDifficultyAt(pos), this.spawnReason, null);

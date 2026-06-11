@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.monster;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.data.tags.RatsEntityTags;
 import com.github.alexthe666.rats.registry.RatsEffectRegistry;
@@ -114,7 +116,7 @@ public class PlagueBeast extends FeralRatlantean {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag compound) {
+	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
 		if (this.getOwnerId() == null) {
 			compound.putString("OwnerUUID", "");
@@ -124,13 +126,13 @@ public class PlagueBeast extends FeralRatlantean {
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag compound) {
+	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
 		UUID uuid;
 		if (compound.hasUUID("Owner")) {
 			uuid = compound.getUUID("Owner");
 		} else {
-			String s = compound.getString("Owner");
+			String s = compound.getStringOr("Owner", "");
 			uuid = OldUsersConverter.convertMobOwnerIfNecessary(this.getServer(), s);
 		}
 

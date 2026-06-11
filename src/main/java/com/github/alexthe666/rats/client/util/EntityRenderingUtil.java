@@ -7,7 +7,7 @@ import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
@@ -23,11 +23,11 @@ import java.util.Map;
 import java.util.Set;
 
 public class EntityRenderingUtil {
-	private static final Map<ResourceLocation, Entity> ENTITY_MAP = new HashMap<>();
-	private static final Set<ResourceLocation> IGNORED_ENTITIES = new HashSet<>();
+	private static final Map<Identifier, Entity> ENTITY_MAP = new HashMap<>();
+	private static final Set<Identifier> IGNORED_ENTITIES = new HashSet<>();
 
 	@Nullable
-	public static LivingEntity fetchEntity(@Nullable ResourceLocation entityName, @Nullable Level level) {
+	public static LivingEntity fetchEntity(@Nullable Identifier entityName, @Nullable Level level) {
 		if (entityName != null && level != null && !IGNORED_ENTITIES.contains(entityName)) {
 			EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(entityName);
 			if (type != null) {
@@ -47,7 +47,7 @@ public class EntityRenderingUtil {
 		return null;
 	}
 
-	public static int getAdjustedMobScale(ResourceLocation entityName) {
+	public static int getAdjustedMobScale(Identifier entityName) {
 		LivingEntity entity = fetchEntity(entityName, Minecraft.getInstance().level);
 		if (entity != null) {
 			int scale = 35;
@@ -61,7 +61,7 @@ public class EntityRenderingUtil {
 		return 0;
 	}
 
-	public static void addEntityToBlacklist(ResourceLocation entityName) {
+	public static void addEntityToBlacklist(Identifier entityName) {
 		IGNORED_ENTITIES.add(entityName);
 		ENTITY_MAP.remove(entityName);
 	}

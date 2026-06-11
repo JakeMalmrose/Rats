@@ -9,15 +9,15 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 public class UpgradeCombinerRenderer implements BlockEntityRenderer<UpgradeCombinerBlockEntity> {
 	private static final RatlanteanSpiritModel<?> MODEL_SPIRIT = new RatlanteanSpiritModel<>();
-	private static final RenderType TEXTURE = RatsRenderType.getGlowingTranslucent(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/upgrade_combiner.png"));
+	private static final RenderType TEXTURE = RatsRenderType.getGlowingTranslucent(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/upgrade_combiner.png"));
 
 	public UpgradeCombinerRenderer(BlockEntityRendererProvider.Context context) {
 	}

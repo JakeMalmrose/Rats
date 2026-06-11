@@ -12,7 +12,8 @@ import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -28,7 +29,7 @@ import java.util.Optional;
 public class RunningRatParticle extends Particle {
 
 	private final StaticRatModel<?> model = new StaticRatModel<>();
-	private final RenderType renderType = RenderType.entityCutoutNoCull(RatVariant.getRandomVariant(RandomSource.create(), false).getTexture());
+	private final RenderType renderType = RenderTypes.entityCutoutNoCull(RatVariant.getRandomVariant(RandomSource.create(), false).getTexture());
 	private final Vec3 headingTo;
 	private int oldAge;
 

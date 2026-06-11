@@ -14,7 +14,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ServerLevelAccessor;
@@ -77,7 +77,7 @@ public class DutchratBellBlockEntity extends BlockEntity {
 					Dutchrat dutchrat = new Dutchrat(RatlantisEntityRegistry.DUTCHRAT.get(), level);
 					dutchrat.setPos(pos.getX() + 0.5D, pos.getY() + 10.0D, pos.getZ() + 0.5D);
 					dutchrat.setBellSummoned();
-					EventHooks.finalizeMobSpawn(dutchrat, (ServerLevelAccessor) level, level.getCurrentDifficultyAt(pos), MobSpawnType.MOB_SUMMONED, null);
+					EventHooks.finalizeMobSpawn(dutchrat, (ServerLevelAccessor) level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.MOB_SUMMONED, null);
 					dutchrat.restrictTo(pos, RatConfig.dutchratRestrictionRadius);
 					level.addFreshEntity(dutchrat);
 					level.blockEvent(pos, state.getBlock(), 2, Direction.NORTH.get2DDataValue());

@@ -5,17 +5,17 @@ import com.github.alexthe666.rats.client.model.entity.BiplaneModel;
 import com.github.alexthe666.rats.server.entity.mount.RatBiplaneMount;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class RatBiplaneMountRenderer extends MobRenderer<RatBiplaneMount, BiplaneModel<RatBiplaneMount>> {
 
-	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/mounts/biplane_mount.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/mounts/biplane_mount.png");
 
 	public RatBiplaneMountRenderer(EntityRendererProvider.Context context) {
 		super(context, new BiplaneModel<>(), 1.65F);
 	}
 
-	public ResourceLocation getTextureLocation(RatBiplaneMount entity) {
+	public Identifier getTextureLocation(RatBiplaneMount entity) {
 		return TEXTURE;
 	}
 }

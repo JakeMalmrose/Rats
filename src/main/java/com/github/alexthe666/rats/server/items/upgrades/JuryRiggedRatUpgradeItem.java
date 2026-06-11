@@ -73,7 +73,7 @@ public class JuryRiggedRatUpgradeItem extends BaseRatUpgradeItem implements Comb
 
 	private boolean isUpgradeLocked(ItemStack stack) {
 		CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-		if (tag.contains("Items", 9)) {
+		if (tag.contains("Items")) {
 			NonNullList<ItemStack> nonnulllist = NonNullList.withSize(this.getUpgradeSlots(), ItemStack.EMPTY);
 			ContainerHelper.loadAllItems(tag, nonnulllist, net.minecraft.core.RegistryAccess.EMPTY);
 			return !nonnulllist.get(0).isEmpty() && !nonnulllist.get(1).isEmpty();

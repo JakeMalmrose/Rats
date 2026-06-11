@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.block.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatsBlockEntityRegistry;
 import com.github.alexthe666.rats.server.block.RatTubeBlock;
 import com.github.alexthe666.rats.server.entity.rat.Rat;
@@ -84,23 +86,23 @@ public class RatTubeBlockEntity extends BlockEntity {
 		return false;
 	}
 
-	public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	public void saveAdditional(ValueOutput compound) {
 		compound.putBoolean("RatNode", isNode);
 		compound.putInt("OpenSide", opening == null ? -1 : opening.ordinal());
 		compound.putInt("TubeColor", color);
 		super.saveAdditional(compound, registries);
 	}
 
-	protected void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	protected void loadAdditional(ValueInput compound) {
 		super.loadAdditional(compound, registries);
-		isNode = compound.getBoolean("RatNode");
-		int i = compound.getInt("OpenSide");
+		isNode = compound.getBooleanOr("RatNode", false);
+		int i = compound.getIntOr("OpenSide", 0);
 		if (i == -1) {
 			opening = null;
 		} else {
 			opening = Direction.values()[Mth.clamp(i, 0, Direction.values().length - 1)];
 		}
-		color = compound.getInt("TubeColor");
+		color = compound.getIntOr("TubeColor", 0);
 	}
 
 	public void setEntranceData(Direction side, boolean open) {

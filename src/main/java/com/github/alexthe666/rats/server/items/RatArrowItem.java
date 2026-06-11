@@ -26,12 +26,12 @@ public class RatArrowItem extends ArrowItem {
 	public InteractionResult useOn(UseOnContext context) {
 		ItemStack stack = context.getPlayer().getItemInHand(context.getHand());
 		CompoundTag stored = stack.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
-		CompoundTag ratTag = stored.contains("Rat") ? stored.getCompound("Rat") : new CompoundTag();
+		CompoundTag ratTag = stored.contains("Rat") ? stored.getCompoundOrEmpty("Rat") : new CompoundTag();
 		TamedRat rat = new TamedRat(RatsEntityRegistry.TAMED_RAT.get(), context.getLevel());
 		BlockPos offset = context.getClickedPos().relative(context.getClickedFace());
 		rat.readAdditionalSaveData(ratTag);
-		if (!ratTag.getString("CustomName").isEmpty()) {
-			rat.setCustomName(Component.Serializer.fromJson(ratTag.getString("CustomName"), net.minecraft.core.RegistryAccess.EMPTY));
+		if (!ratTag.getStringOr("CustomName", "").isEmpty()) {
+			rat.setCustomName(Component.Serializer.fromJson(ratTag.getStringOr("CustomName", ""), net.minecraft.core.RegistryAccess.EMPTY));
 		}
 		rat.moveTo(offset.getX() + 0.5D, offset.getY(), offset.getZ() + 0.5D, 0, 0);
 		if (!context.getLevel().isClientSide()) {

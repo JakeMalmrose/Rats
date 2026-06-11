@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.monster;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.citadel.animation.Animation;
 import com.github.alexthe666.citadel.animation.AnimationHandler;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
@@ -129,21 +131,21 @@ public class FeralRatlantean extends Monster implements IAnimatedEntity {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag compound) {
+	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
 		compound.putInt("ColorVariant", this.getColorVariant());
 		compound.putBoolean("Toga", this.hasToga());
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag compound) {
+	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
-		this.setToga(compound.getBoolean("Toga"));
-		this.setColorVariant(compound.getInt("ColorVariant"));
+		this.setToga(compound.getBooleanOr("Toga", false));
+		this.setColorVariant(compound.getIntOr("ColorVariant", 0));
 	}
 
 	@Nullable
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, MobSpawnType type, @Nullable SpawnGroupData data) {
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, EntitySpawnReason type, @Nullable SpawnGroupData data) {
 		data = super.finalizeSpawn(accessor, difficulty, type, data);
 		this.setColorVariant(this.getRandom().nextInt(4));
 		this.setToga(true);
@@ -196,7 +198,7 @@ public class FeralRatlantean extends Monster implements IAnimatedEntity {
 		return super.getVoicePitch() * 0.4F;
 	}
 
-	public static boolean checkRatlanteanSpawnRules(EntityType<? extends Mob> entityType, LevelAccessor world, MobSpawnType reason, BlockPos pos, RandomSource rand) {
+	public static boolean checkRatlanteanSpawnRules(EntityType<? extends Mob> entityType, LevelAccessor world, EntitySpawnReason reason, BlockPos pos, RandomSource rand) {
 		return rand.nextInt(8) == 0 && canSpawnAtPos(world, pos) && Mob.checkMobSpawnRules(entityType, world, reason, pos, rand);
 	}
 

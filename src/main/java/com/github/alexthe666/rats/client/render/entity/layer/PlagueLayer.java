@@ -6,16 +6,17 @@ import com.github.alexthe666.rats.server.entity.rat.AbstractRat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 
 public class PlagueLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
 
-	private static final RenderType TEXTURE = RenderType.entityTranslucent(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/plague_overlay.png"));
+	private static final RenderType TEXTURE = RenderTypes.entityTranslucent(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/plague_overlay.png"));
 
 	public PlagueLayer(RenderLayerParent<T, M> parent) {
 		super(parent);

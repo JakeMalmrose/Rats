@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.projectile;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatsEntityRegistry;
 import com.github.alexthe666.rats.registry.RatsItemRegistry;
 import com.github.alexthe666.rats.server.entity.RatSummoner;
@@ -45,14 +47,14 @@ public class RatShot extends ThrowableProjectile {
 		super(type, thrower, level);
 	}
 
-	public void addAdditionalSaveData(CompoundTag compound) {
+	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
 		compound.putString("RatColor", RatVariant.getVariantId(this.getColorVariant()));
 	}
 
-	public void readAdditionalSaveData(CompoundTag compound) {
+	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
-		this.setColorVariant(RatVariant.getVariant(compound.getString("RatColor")));
+		this.setColorVariant(RatVariant.getVariant(compound.getStringOr("RatColor", "")));
 	}
 
 	public void handleEntityEvent(byte id) {
@@ -107,7 +109,7 @@ public class RatShot extends ThrowableProjectile {
 					ratter.setRatsSummoned(ratter.getRatsSummoned() + 1);
 				}
 				if (this.level() instanceof ServerLevelAccessor accessor) {
-					EventHooks.finalizeMobSpawn(rat, accessor, this.level().getCurrentDifficultyAt(this.blockPosition()), MobSpawnType.REINFORCEMENT, null);
+					EventHooks.finalizeMobSpawn(rat, accessor, this.level().getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.REINFORCEMENT, null);
 				}
 				rat.setColorVariant(this.getColorVariant());
 				if (rat instanceof Rat plagueable) {

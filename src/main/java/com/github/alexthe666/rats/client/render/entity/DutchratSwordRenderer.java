@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -37,7 +37,7 @@ public class DutchratSwordRenderer extends EntityRenderer<DutchratSword> {
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(DutchratSword entity) {
+	public Identifier getTextureLocation(DutchratSword entity) {
 		return InventoryMenu.BLOCK_ATLAS;
 	}
 }

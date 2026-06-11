@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.block.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.registry.RatsBlockEntityRegistry;
 import com.github.alexthe666.rats.registry.RatsBlockRegistry;
@@ -149,18 +151,18 @@ public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements 
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	protected void loadAdditional(ValueInput compound) {
 		super.loadAdditional(compound, registries);
 		// 1.21: FluidTank.readFromNBT now requires HolderLookup.Provider.
 		this.tank.readFromNBT(registries, compound);
 		this.curdlerStacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
 		ContainerHelper.loadAllItems(compound, this.curdlerStacks, registries);
-		this.cookTime = compound.getInt("CookTime");
-		this.totalCookTime = compound.getInt("CookTimeTotal");
+		this.cookTime = compound.getIntOr("CookTime", 0);
+		this.totalCookTime = compound.getIntOr("CookTimeTotal", 0);
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	public void saveAdditional(ValueOutput compound) {
 		super.saveAdditional(compound, registries);
 		// 1.21: FluidTank.writeToNBT now requires HolderLookup.Provider.
 		this.tank.writeToNBT(registries, compound);

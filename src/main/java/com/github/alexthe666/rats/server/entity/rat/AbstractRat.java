@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.rat;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.citadel.animation.Animation;
 import com.github.alexthe666.citadel.animation.AnimationHandler;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
@@ -42,12 +44,12 @@ import net.minecraft.world.entity.ai.goal.*;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.OwnerHurtTargetGoal;
-import net.minecraft.world.entity.animal.Cat;
-import net.minecraft.world.entity.animal.Fox;
-import net.minecraft.world.entity.animal.Ocelot;
+import net.minecraft.world.entity.animal.feline.Cat;
+import net.minecraft.world.entity.animal.fox.Fox;
+import net.minecraft.world.entity.animal.feline.Ocelot;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.UseAnim;
+import net.minecraft.world.item.ItemUseAnimation;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.LightLayer;
@@ -410,12 +412,12 @@ public abstract class AbstractRat extends TamableAnimal implements IAnimatedEnti
 	}
 
 	@Override
-	public boolean checkSpawnRules(LevelAccessor accessor, MobSpawnType type) {
-		return accessor.getLevelData().getGameRules().getBoolean(RatsMod.SPAWN_RATS) && super.checkSpawnRules(accessor, type);
+	public boolean checkSpawnRules(LevelAccessor accessor, EntitySpawnReason type) {
+		return accessor.getLevelData().getGameRules().getBooleanOr(RatsMod.SPAWN_RATS, false) && super.checkSpawnRules(accessor, type);
 	}
 
 	@Override
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, MobSpawnType type, @Nullable SpawnGroupData data) {
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, EntitySpawnReason type, @Nullable SpawnGroupData data) {
 		data = super.finalizeSpawn(accessor, difficulty, type, data);
 		this.setColorVariant(RatVariant.getRandomVariant(this.getRandom(), false));
 		this.setMale(this.getRandom().nextBoolean());
@@ -423,7 +425,7 @@ public abstract class AbstractRat extends TamableAnimal implements IAnimatedEnti
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag tag) {
+	public void addAdditionalSaveData(ValueOutput tag) {
 		super.addAdditionalSaveData(tag);
 		tag.putBoolean("IsMale", this.isMale());
 		tag.putBoolean("Sitting", this.isOrderedToSit());
@@ -432,17 +434,17 @@ public abstract class AbstractRat extends TamableAnimal implements IAnimatedEnti
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag tag) {
+	public void readAdditionalSaveData(ValueInput tag) {
 		super.readAdditionalSaveData(tag);
-		this.setMale(tag.getBoolean("IsMale"));
-		this.setOrderedToSit(tag.getBoolean("Sitting"));
+		this.setMale(tag.getBooleanOr("IsMale", false));
+		this.setOrderedToSit(tag.getBooleanOr("Sitting", false));
 		if (tag.contains("ColorVariant", Tag.TAG_INT)) {
-			this.setColorVariant(RatUtils.convertOldRatVariant(tag.getInt("ColorVariant")));
-			RatsMod.LOGGER.debug("Converted Rat variant for Rat {} from {} to {}.", this.getUUID(), tag.getInt("ColorVariant"), RatVariantRegistry.RAT_VARIANT_REGISTRY.getKey(RatUtils.convertOldRatVariant(tag.getInt("ColorVariant"))).toString());
+			this.setColorVariant(RatUtils.convertOldRatVariant(tag.getIntOr("ColorVariant", 0)));
+			RatsMod.LOGGER.debug("Converted Rat variant for Rat {} from {} to {}.", this.getUUID(), tag.getIntOr("ColorVariant", 0), RatVariantRegistry.RAT_VARIANT_REGISTRY.getKey(RatUtils.convertOldRatVariant(tag.getIntOr("ColorVariant", 0))).toString());
 		} else if (tag.contains("ColorVariant", Tag.TAG_STRING)) {
-			this.setColorVariant(RatVariant.getVariant(tag.getString("ColorVariant")));
+			this.setColorVariant(RatVariant.getVariant(tag.getStringOr("ColorVariant", "")));
 		}
-		this.raidCooldown = tag.getInt("RaidCooldown");
+		this.raidCooldown = tag.getIntOr("RaidCooldown", 0);
 	}
 
 	@Nullable

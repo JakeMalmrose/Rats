@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.monster.boss;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.data.tags.RatsEntityTags;
 import com.github.alexthe666.rats.registry.RatsItemRegistry;
 import com.github.alexthe666.rats.registry.RatsParticleRegistry;
@@ -249,7 +251,7 @@ public class BlackDeath extends Monster implements RatSummoner {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag compound) {
+	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
 		compound.putInt("SummoningTicks", this.summonTicks);
 		compound.putInt("RatsSummoned", this.getRatsSummoned());
@@ -258,15 +260,15 @@ public class BlackDeath extends Monster implements RatSummoner {
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag compound) {
+	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
 		if (this.hasCustomName()) {
 			this.bossInfo.setName(this.getDisplayName());
 		}
-		this.summonTicks = compound.getInt("SummoningTicks");
-		this.setRatsSummoned(compound.getInt("RatsSummoned"));
-		this.setCloudsSummoned(compound.getInt("CloudsSummoned"));
-		this.setBeastsSummoned(compound.getInt("BeastsSummoned"));
+		this.summonTicks = compound.getIntOr("SummoningTicks", 0);
+		this.setRatsSummoned(compound.getIntOr("RatsSummoned", 0));
+		this.setCloudsSummoned(compound.getIntOr("CloudsSummoned", 0));
+		this.setBeastsSummoned(compound.getIntOr("BeastsSummoned", 0));
 
 	}
 
@@ -320,7 +322,7 @@ public class BlackDeath extends Monster implements RatSummoner {
 
 	@Nullable
 	@Override
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, MobSpawnType type, @Nullable SpawnGroupData data) {
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, EntitySpawnReason type, @Nullable SpawnGroupData data) {
 		SpawnGroupData finalData = super.finalizeSpawn(accessor, difficulty, type, data);
 		this.populateDefaultEquipmentSlots(accessor.getRandom(), difficulty);
 		this.populateDefaultEquipmentEnchantments(accessor, accessor.getRandom(), difficulty);

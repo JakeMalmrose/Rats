@@ -19,7 +19,7 @@ import net.minecraft.data.metadata.PackMetadataGenerator;
 import net.minecraft.data.models.ItemModelGenerators;
 import net.minecraft.data.tags.TagsProvider;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.server.packs.metadata.pack.PackMetadataSection;
 import net.minecraft.world.level.block.Block;
@@ -92,10 +92,10 @@ public class RatsDataRegistry {
 
 	private static void addArmorTrims(ExistingFileHelper existingFileHelper) {
 		for (ItemModelGenerators.TrimModelData trim : ItemModelGenerators.GENERATED_TRIM_MODELS) {
-			existingFileHelper.trackGenerated(ResourceLocation.parse("boots_trim_" + trim.name()), PackType.CLIENT_RESOURCES, ".png", "textures/trims/items");
-			existingFileHelper.trackGenerated(ResourceLocation.parse("chestplate_trim_" + trim.name()), PackType.CLIENT_RESOURCES, ".png", "textures/trims/items");
-			existingFileHelper.trackGenerated(ResourceLocation.parse("helmet_trim_" + trim.name()), PackType.CLIENT_RESOURCES, ".png", "textures/trims/items");
-			existingFileHelper.trackGenerated(ResourceLocation.parse("leggings_trim_" + trim.name()), PackType.CLIENT_RESOURCES, ".png", "textures/trims/items");
+			existingFileHelper.trackGenerated(Identifier.parse("boots_trim_" + trim.name()), PackType.CLIENT_RESOURCES, ".png", "textures/trims/items");
+			existingFileHelper.trackGenerated(Identifier.parse("chestplate_trim_" + trim.name()), PackType.CLIENT_RESOURCES, ".png", "textures/trims/items");
+			existingFileHelper.trackGenerated(Identifier.parse("helmet_trim_" + trim.name()), PackType.CLIENT_RESOURCES, ".png", "textures/trims/items");
+			existingFileHelper.trackGenerated(Identifier.parse("leggings_trim_" + trim.name()), PackType.CLIENT_RESOURCES, ".png", "textures/trims/items");
 		}
 	}
 }

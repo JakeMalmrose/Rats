@@ -13,7 +13,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.level.material.Fluid; // ✅ FIXED IMPORT
@@ -28,8 +28,8 @@ import java.util.List;
 
 public class AutoCurdlerScreen extends AbstractContainerScreen<AutoCurdlerMenu> {
 
-	private static final ResourceLocation TEXTURE =
-		ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/auto_curdler.png");
+	private static final Identifier TEXTURE =
+		Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/auto_curdler.png");
 
 	private final AutoCurdlerMenu curdler;
 

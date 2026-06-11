@@ -28,8 +28,14 @@ public class PiratNavigation extends PathNavigation {
 
 	@Override
 	protected boolean canUpdatePath() {
-		// 1.21: PathNavigation.isInLiquid removed; use mob.isInWaterOrBubble() instead.
-		return this.mob.isInWaterOrBubble();
+		// 26.1: Entity#isInWaterOrBubble() removed; replicate water-or-bubble-column check
+		return this.mob.isInWater() || this.mob.level().getBlockState(this.mob.blockPosition()).is(Blocks.BUBBLE_COLUMN);
+	}
+
+	@Override
+	public boolean canNavigateGround() {
+		// water-surface (boat) navigator, same as vanilla WaterBoundPathNavigation
+		return false;
 	}
 
 	@Override

@@ -19,7 +19,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.FormattedCharSequence;
@@ -36,8 +36,8 @@ import java.util.*;
 
 public class MobFilterScreen extends Screen {
 
-	private static final ResourceLocation TEXTURE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/mob_filter.png");
-	private static final ResourceLocation TEXTURE_BACKDROP = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/mob_filter_backdrop.png");
+	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/mob_filter.png");
+	private static final Identifier TEXTURE_BACKDROP = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/container/mob_filter_backdrop.png");
 
 	private static final int SCROLL_X_START = 218;
 	private static final int SCROLL_Y_START = 21;
@@ -56,7 +56,7 @@ public class MobFilterScreen extends Screen {
 
 	//screen fields
 	@Nullable
-	private ResourceLocation hoveredEntityName;
+	private Identifier hoveredEntityName;
 	private int startIndex;
 	private final List<Pair<String, Component>> allMobs;
 	private final List<Pair<String, Component>> filteredMobs = new ArrayList<>();
@@ -134,7 +134,7 @@ public class MobFilterScreen extends Screen {
 		//show a tooltip with the entity's id and any selected tags if hovering over its name
 		if (this.isHovering(121, 24, 90, 90, mouseX, mouseY) && !this.filteredMobs.isEmpty()) {
 			int y = (mouseY - this.topPos - 26) / 18;
-			this.hoveredEntityName = ResourceLocation.tryParse(this.filteredMobs.get(Mth.clamp(this.startIndex + y, 0, Math.max(0, this.filteredMobs.size() - 1))).getFirst());
+			this.hoveredEntityName = Identifier.tryParse(this.filteredMobs.get(Mth.clamp(this.startIndex + y, 0, Math.max(0, this.filteredMobs.size() - 1))).getFirst());
 			if (hoveredEntityName != null && this.startIndex + y < this.filteredMobs.size()) {
 				graphics.blit(TEXTURE, this.leftPos + 121, this.topPos + 26 + (y * 18), 0, 168, 90, 15);
 				List<FormattedCharSequence> tooltipParts = new ArrayList<>();
@@ -300,7 +300,7 @@ public class MobFilterScreen extends Screen {
 		this.filteredMobs.clear();
 		this.visibleTags.clear();
 		if (this.selectedMobsShown.selected) {
-			this.selectedMobs.forEach(s -> this.filteredMobs.add(Pair.of(s, BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.tryParse(s)).getDescription())));
+			this.selectedMobs.forEach(s -> this.filteredMobs.add(Pair.of(s, BuiltInRegistries.ENTITY_TYPE.get(Identifier.tryParse(s)).getDescription())));
 		} else {
 			if (this.searchBar.getValue().startsWith("#")) {
 				String tagName = this.searchBar.getValue().substring(1).trim();
@@ -308,7 +308,7 @@ public class MobFilterScreen extends Screen {
 				if (!tags.isEmpty()) {
 					tags.forEach(key -> {
 						this.filteredMobs.addAll(this.allMobs.stream().filter(pair -> {
-							net.minecraft.world.entity.EntityType<?> et = BuiltInRegistries.ENTITY_TYPE.get(ResourceLocation.tryParse(pair.getFirst()));
+							net.minecraft.world.entity.EntityType<?> et = BuiltInRegistries.ENTITY_TYPE.get(Identifier.tryParse(pair.getFirst()));
 							return et != null && BuiltInRegistries.ENTITY_TYPE.wrapAsHolder(et).is(key);
 						}).toList());
 						this.visibleTags.add(key);

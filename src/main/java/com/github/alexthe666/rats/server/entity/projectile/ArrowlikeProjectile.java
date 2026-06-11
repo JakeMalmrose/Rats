@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.projectile;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
@@ -251,7 +253,7 @@ public abstract class ArrowlikeProjectile extends Projectile {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag tag) {
+	public void addAdditionalSaveData(ValueOutput tag) {
 		super.addAdditionalSaveData(tag);
 		tag.putShort("life", (short) this.life);
 		if (this.lastState != null) {
@@ -264,17 +266,17 @@ public abstract class ArrowlikeProjectile extends Projectile {
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag tag) {
+	public void readAdditionalSaveData(ValueInput tag) {
 		super.readAdditionalSaveData(tag);
-		this.life = tag.getShort("life");
-		if (tag.contains("inBlockState", 10)) {
-			this.lastState = NbtUtils.readBlockState(this.level().holderLookup(Registries.BLOCK), tag.getCompound("inBlockState"));
+		this.life = tag.getShortOr("life", (short) 0);
+		if (tag.contains("inBlockState")) {
+			this.lastState = NbtUtils.readBlockState(this.level().holderLookup(Registries.BLOCK), tag.getCompoundOrEmpty("inBlockState"));
 		}
 
-		this.shakeTime = tag.getByte("shake") & 255;
-		this.inGround = tag.getBoolean("inGround");
-		if (tag.contains("damage", 99)) {
-			this.baseDamage = tag.getDouble("damage");
+		this.shakeTime = tag.getByteOr("shake", (byte) 0) & 255;
+		this.inGround = tag.getBooleanOr("inGround", false);
+		if (tag.contains("damage")) {
+			this.baseDamage = tag.getDoubleOr("damage", 0.0D);
 		}
 	}
 

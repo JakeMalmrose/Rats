@@ -13,7 +13,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.data.worldgen.Pools;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.random.WeightedRandomList;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.level.biome.Biome;
@@ -64,8 +64,8 @@ public class RatlantisStructureRegistry {
 	public static void bootstrapPools(BootstrapContext<StructureTemplatePool> context) {
 		Holder<StructureTemplatePool> emptyPool = context.lookup(Registries.TEMPLATE_POOL).getOrThrow(Pools.EMPTY);
 
-		context.register(BARON_RUNWAY_START, new StructureTemplatePool(emptyPool, ImmutableList.of(Pair.of(StructurePoolElement.single(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "baron_runway").toString()), 1)), StructureTemplatePool.Projection.TERRAIN_MATCHING));
-		context.register(DUTCHRAT_SHIP_START, new StructureTemplatePool(emptyPool, ImmutableList.of(Pair.of(StructurePoolElement.single(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "dutchrat_ship").toString()), 1)), StructureTemplatePool.Projection.RIGID));
+		context.register(BARON_RUNWAY_START, new StructureTemplatePool(emptyPool, ImmutableList.of(Pair.of(StructurePoolElement.single(Identifier.fromNamespaceAndPath(RatsMod.MODID, "baron_runway").toString()), 1)), StructureTemplatePool.Projection.TERRAIN_MATCHING));
+		context.register(DUTCHRAT_SHIP_START, new StructureTemplatePool(emptyPool, ImmutableList.of(Pair.of(StructurePoolElement.single(Identifier.fromNamespaceAndPath(RatsMod.MODID, "dutchrat_ship").toString()), 1)), StructureTemplatePool.Projection.RIGID));
 	}
 
 	public static void bootstrapSets(BootstrapContext<StructureSet> context) {
@@ -129,18 +129,18 @@ public class RatlantisStructureRegistry {
 	}
 
 	private static ResourceKey<Structure> registerStructureKey(String name) {
-		return ResourceKey.create(Registries.STRUCTURE, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, name));
+		return ResourceKey.create(Registries.STRUCTURE, Identifier.fromNamespaceAndPath(RatsMod.MODID, name));
 	}
 
 	private static ResourceKey<StructureTemplatePool> registerPoolKey(String name) {
-		return ResourceKey.create(Registries.TEMPLATE_POOL, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, name));
+		return ResourceKey.create(Registries.TEMPLATE_POOL, Identifier.fromNamespaceAndPath(RatsMod.MODID, name));
 	}
 
 	private static ResourceKey<StructureSet> registerSetKey(String name) {
-		return ResourceKey.create(Registries.STRUCTURE_SET, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, name));
+		return ResourceKey.create(Registries.STRUCTURE_SET, Identifier.fromNamespaceAndPath(RatsMod.MODID, name));
 	}
 
 	private static ResourceKey<StructureProcessorList> registerProcessorKey(String name) {
-		return ResourceKey.create(Registries.PROCESSOR_LIST, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, name));
+		return ResourceKey.create(Registries.PROCESSOR_LIST, Identifier.fromNamespaceAndPath(RatsMod.MODID, name));
 	}
 }

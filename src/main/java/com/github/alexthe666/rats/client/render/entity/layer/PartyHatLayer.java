@@ -14,12 +14,13 @@ import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.Model;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
@@ -60,9 +61,9 @@ public class PartyHatLayer<T extends LivingEntity, M extends EntityModel<T>, A e
 			}
 			boolean flag1 = itemstack.hasFoil();
 			int i = hat.getColor(itemstack);
-			this.renderModel(stack, source, light, flag1, this.partyHat, (float) (i >> 16 & 255) / 255.0F, (float) (i >> 8 & 255) / 255.0F, (float) (i & 255) / 255.0F, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/model/hat/party_hat_layer_1.png"));
+			this.renderModel(stack, source, light, flag1, this.partyHat, (float) (i >> 16 & 255) / 255.0F, (float) (i >> 8 & 255) / 255.0F, (float) (i & 255) / 255.0F, Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/model/hat/party_hat_layer_1.png"));
 			i = this.invertColor(hat.getColor(itemstack));
-			this.renderModel(stack, source, light, flag1, this.partyHat, (float) (i >> 16 & 255) / 255.0F, (float) (i >> 8 & 255) / 255.0F, (float) (i & 255) / 255.0F, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/model/hat/party_hat_layer_2.png"));
+			this.renderModel(stack, source, light, flag1, this.partyHat, (float) (i >> 16 & 255) / 255.0F, (float) (i >> 8 & 255) / 255.0F, (float) (i & 255) / 255.0F, Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/model/hat/party_hat_layer_2.png"));
 			stack.popPose();
 		}
 	}
@@ -79,9 +80,9 @@ public class PartyHatLayer<T extends LivingEntity, M extends EntityModel<T>, A e
 		return (a & 0xff) << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);
 	}
 
-	private void renderModel(PoseStack stack, MultiBufferSource source, int light, boolean glint, Model model, float red, float green, float blue, ResourceLocation texture) {
+	private void renderModel(PoseStack stack, MultiBufferSource source, int light, boolean glint, Model model, float red, float green, float blue, Identifier texture) {
 		// 1.21: ItemRenderer.getArmorFoilBuffer dropped the `boolean noCullValue` arg.
-		VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(source, RenderType.armorCutoutNoCull(texture), glint);
+		VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(source, RenderTypes.armorCutoutNoCull(texture), glint);
 		model.renderToBuffer(stack, vertexconsumer, light, OverlayTexture.NO_OVERLAY, net.minecraft.util.FastColor.ARGB32.colorFromFloat(1.0F, red, green, blue));
 	}
 }

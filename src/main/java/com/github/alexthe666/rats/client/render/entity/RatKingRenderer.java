@@ -9,12 +9,12 @@ import com.mojang.math.Axis;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.Vec3;
 
 public class RatKingRenderer extends MobRenderer<RatKing, EmptyModel<RatKing>> {
 
-	private static final ResourceLocation TEXTURE_1 = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/black.png");
+	private static final Identifier TEXTURE_1 = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/black.png");
 
 	public RatKingRenderer(EntityRendererProvider.Context context) {
 		super(context, new EmptyModel<>(), 1.0F);
@@ -38,7 +38,7 @@ public class RatKingRenderer extends MobRenderer<RatKing, EmptyModel<RatKing>> {
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(RatKing entity) {
+	public Identifier getTextureLocation(RatKing entity) {
 		return TEXTURE_1;
 	}
 }

@@ -14,10 +14,11 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.ItemStack;
 
@@ -28,12 +29,12 @@ public class DecoratedRatCageRenderer implements BlockEntityRenderer<DecoratedRa
 	private final RatSeedBowlModel<?> seed_bowl;
 	private static final RatBreedingLanternModel<?> MODEL_RAT_BREEDING_LANTERN = new RatBreedingLanternModel<>();
 	private static final RatWheelModel<?> MODEL_RAT_WHEEL = new RatWheelModel<>();
-	private static final RenderType TEXTURE_RAT_IGLOO = RenderType.entityTranslucent(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_igloo.png"));
-	private static final RenderType TEXTURE_RAT_HAMMOCK = RenderType.entityTranslucent(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_hammock_0.png"));
-	private static final RenderType TEXTURE_RAT_WATER_BOTTLE = RenderType.entityTranslucent(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_water_bottle.png"));
-	private static final RenderType TEXTURE_RAT_SEED_BOWL = RenderType.entityTranslucent(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_seed_bowl.png"));
-	private static final RenderType TEXTURE_RAT_BREEDING_LANTERN = RenderType.entityTranslucent(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_breeding_lantern.png"));
-	private static final RenderType TEXTURE_RAT_WHEEL = RenderType.entityTranslucent(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_wheel.png"));
+	private static final RenderType TEXTURE_RAT_IGLOO = RenderTypes.entityTranslucent(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_igloo.png"));
+	private static final RenderType TEXTURE_RAT_HAMMOCK = RenderTypes.entityTranslucent(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_hammock_0.png"));
+	private static final RenderType TEXTURE_RAT_WATER_BOTTLE = RenderTypes.entityTranslucent(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_water_bottle.png"));
+	private static final RenderType TEXTURE_RAT_SEED_BOWL = RenderTypes.entityTranslucent(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_seed_bowl.png"));
+	private static final RenderType TEXTURE_RAT_BREEDING_LANTERN = RenderTypes.entityTranslucent(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_breeding_lantern.png"));
+	private static final RenderType TEXTURE_RAT_WHEEL = RenderTypes.entityTranslucent(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/block/rat_wheel.png"));
 
 	public DecoratedRatCageRenderer(BlockEntityRendererProvider.Context context) {
 		this.igloo = new RatIglooModel<>(context.bakeLayer(RatsModelLayers.IGLOO));

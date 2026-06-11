@@ -7,7 +7,7 @@ import net.minecraft.core.Vec3i;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
@@ -37,7 +37,7 @@ public class RatlantisRuinFeature extends Feature<RatlantisRuinConfiguration> {
 	// Loot tables to inject into otherwise-empty containers of specific ruins. Feature-placed
 	// templates don't run the jigsaw loot pass, so chests would generate empty without this.
 	private static final Map<String, ResourceKey<LootTable>> STRUCTURE_LOOT = Map.of(
-			"plague_doctor_hut", ResourceKey.create(Registries.LOOT_TABLE, ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "chest/plague_doctor_hut"))
+			"plague_doctor_hut", ResourceKey.create(Registries.LOOT_TABLE, Identifier.fromNamespaceAndPath(RatsMod.MODID, "chest/plague_doctor_hut"))
 	);
 
 	public RatlantisRuinFeature(Codec<RatlantisRuinConfiguration> codec) {
@@ -54,13 +54,13 @@ public class RatlantisRuinFeature extends Feature<RatlantisRuinConfiguration> {
 
 		StructureTemplateManager structuretemplatemanager = level.getLevel().getServer().getStructureManager();
 		StructureTemplate structuretemplate = null;
-		ResourceLocation chosenRuin = null;
+		Identifier chosenRuin = null;
 
 		//shuffle the map. This makes it so the last entries are actually used more often
-		List<ResourceLocation> shuffledList = new ArrayList<>(config.ruins().keySet());
+		List<Identifier> shuffledList = new ArrayList<>(config.ruins().keySet());
 		Collections.shuffle(shuffledList);
 
-		for (ResourceLocation entry : shuffledList) {
+		for (Identifier entry : shuffledList) {
 			if (random.nextFloat() < config.ruins().get(entry)) {
 				structuretemplate = structuretemplatemanager.getOrCreate(entry);
 				chosenRuin = entry;

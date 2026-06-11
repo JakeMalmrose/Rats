@@ -8,14 +8,15 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class TrashCanRenderer implements BlockEntityRenderer<TrashCanBlockEntity> {
 	private static final TrashCanModel<?> MODEL_TRASH_CAN = new TrashCanModel<>();
-	private static final RenderType TEXTURE = RenderType.entityCutoutNoCull(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/block/trash_can.png"), true);
+	private static final RenderType TEXTURE = RenderTypes.entityCutoutNoCull(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/block/trash_can.png"), true);
 
 	public TrashCanRenderer(BlockEntityRendererProvider.Context context) {
 	}

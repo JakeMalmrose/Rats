@@ -6,21 +6,22 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class LaserBeamRenderer extends EntityRenderer<LaserBeam> {
 
-	private static final ResourceLocation TEXTURE_RED = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/neo_ratlantean/laser_beam.png");
-	private static final ResourceLocation TEXTURE_BLUE = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/neo_ratlantean/laser_beam_blue.png");
-	private static final RenderType RENDER_TYPE_RED = RenderType.eyes(TEXTURE_RED);
-	private static final RenderType RENDER_TYPE_BLUE = RenderType.eyes(TEXTURE_BLUE);
+	private static final Identifier TEXTURE_RED = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/neo_ratlantean/laser_beam.png");
+	private static final Identifier TEXTURE_BLUE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/neo_ratlantean/laser_beam_blue.png");
+	private static final RenderType RENDER_TYPE_RED = RenderTypes.eyes(TEXTURE_RED);
+	private static final RenderType RENDER_TYPE_BLUE = RenderTypes.eyes(TEXTURE_BLUE);
 
 	public LaserBeamRenderer(EntityRendererProvider.Context context) {
 		super(context);
@@ -64,7 +65,7 @@ public class LaserBeamRenderer extends EntityRenderer<LaserBeam> {
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(LaserBeam entity) {
+	public Identifier getTextureLocation(LaserBeam entity) {
 		int r = (int) (entity.getRGB()[0] * 255F);
 		return r > 200 ? TEXTURE_RED : TEXTURE_BLUE;
 	}

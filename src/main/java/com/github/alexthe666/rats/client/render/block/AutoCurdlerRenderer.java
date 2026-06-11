@@ -9,11 +9,12 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
@@ -22,8 +23,8 @@ import org.joml.Matrix4f;
 
 public class AutoCurdlerRenderer implements BlockEntityRenderer<AutoCurdlerBlockEntity> {
 	private static final AutoCurdlerModel<?> MODEL_AUTO_CURDLER = new AutoCurdlerModel<>();
-	private static final RenderType TEXTURE = RenderType.entityCutout(ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/block/auto_curdler.png"));
-	private static final RenderType TEXTURE_BLOCKS = RenderType.entitySmoothCutout(InventoryMenu.BLOCK_ATLAS);
+	private static final RenderType TEXTURE = RenderTypes.entityCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/block/auto_curdler.png"));
+	private static final RenderType TEXTURE_BLOCKS = RenderTypes.entitySmoothCutout(InventoryMenu.BLOCK_ATLAS);
 
 	public AutoCurdlerRenderer(BlockEntityRendererProvider.Context context) {
 

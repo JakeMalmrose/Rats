@@ -7,16 +7,17 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.ItemRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class LaserPortalRenderer extends EntityRenderer<LaserPortal> {
 
-	private static final ResourceLocation PORTAL = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/neo_ratlantean/neo_ratlantean_glow.png");
+	private static final Identifier PORTAL = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/neo_ratlantean/neo_ratlantean_glow.png");
 	private static final LaserPortalModel MODEL_NEO_RATLANTEAN = new LaserPortalModel();
 
 	public LaserPortalRenderer(EntityRendererProvider.Context context) {
@@ -26,7 +27,7 @@ public class LaserPortalRenderer extends EntityRenderer<LaserPortal> {
 	}
 
 	public void render(LaserPortal entity, float entityYaw, float partialTicks, PoseStack stack, MultiBufferSource buffer, int light) {
-		VertexConsumer consumer = ItemRenderer.getFoilBuffer(buffer, RenderType.entityCutoutNoCull(PORTAL), false, true);
+		VertexConsumer consumer = ItemRenderer.getFoilBuffer(buffer, RenderTypes.entityCutoutNoCull(PORTAL), false, true);
 		float d1 = this.interpolateValue(entity.scaleOfPortalPrev, entity.scaleOfPortal, (partialTicks));
 
 		stack.pushPose();
@@ -50,7 +51,7 @@ public class LaserPortalRenderer extends EntityRenderer<LaserPortal> {
 	}
 
 	@Override
-	public ResourceLocation getTextureLocation(LaserPortal entity) {
+	public Identifier getTextureLocation(LaserPortal entity) {
 		return PORTAL;
 	}
 }

@@ -5,7 +5,7 @@ import com.github.alexthe666.rats.registry.RatsEntityRegistry;
 import com.github.alexthe666.rats.server.entity.monster.PlagueCloud;
 import com.github.alexthe666.rats.server.entity.monster.boss.BlackDeath;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.neoforged.neoforge.event.EventHooks;
 
 public class BlackDeathSummonCloudGoal extends BlackDeathAbstractSummonGoal {
@@ -29,7 +29,7 @@ public class BlackDeathSummonCloudGoal extends BlackDeathAbstractSummonGoal {
 	@Override
 	public void summonEntity() {
 		PlagueCloud cloud = new PlagueCloud(RatsEntityRegistry.PLAGUE_CLOUD.get(), this.death.level());
-		EventHooks.finalizeMobSpawn(cloud, (ServerLevel) this.death.level(), this.death.level().getCurrentDifficultyAt(this.death.blockPosition()), MobSpawnType.MOB_SUMMONED, null);
+		EventHooks.finalizeMobSpawn(cloud, (ServerLevel) this.death.level(), this.death.level().getCurrentDifficultyAt(this.death.blockPosition()), EntitySpawnReason.MOB_SUMMONED, null);
 		cloud.copyPosition(this.death);
 		this.death.level().addFreshEntity(cloud);
 		cloud.setOwnerId(this.death.getUUID());

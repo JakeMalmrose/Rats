@@ -17,7 +17,7 @@ import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -29,7 +29,7 @@ public class CauldronRecipeCategory implements IRecipeCategory<CauldronInfoHolde
 	private final IDrawable arrowIcon;
 
 	public CauldronRecipeCategory(IGuiHelper helper) {
-		ResourceLocation location = ResourceLocation.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/jei/cauldron_jei.png");
+		Identifier location = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/gui/jei/cauldron_jei.png");
 		this.background = helper.createDrawable(location, 0, 0, WIDTH, HEIGHT);
 		this.arrowIcon = helper.drawableBuilder(location, 170, 0, 24, 16)
 				.buildAnimated(RatConfig.milkCauldronTime, IDrawableAnimated.StartDirection.LEFT, false);

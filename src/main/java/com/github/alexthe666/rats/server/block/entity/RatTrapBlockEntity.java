@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.block.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatsBlockEntityRegistry;
 import com.github.alexthe666.rats.registry.RatsSoundRegistry;
 import com.github.alexthe666.rats.server.block.RatTrapBlock;
@@ -76,18 +78,18 @@ public class RatTrapBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	public void saveAdditional(ValueOutput compound) {
 		ContainerHelper.saveAllItems(compound, this.baitStack, registries);
 		compound.putFloat("ShutProgress", this.shutProgress);
 		super.saveAdditional(compound, registries);
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag compound, HolderLookup.Provider registries) {
+	protected void loadAdditional(ValueInput compound) {
 		super.loadAdditional(compound, registries);
 		this.baitStack = NonNullList.withSize(1, ItemStack.EMPTY);
 		ContainerHelper.loadAllItems(compound, this.baitStack, registries);
-		this.shutProgress = compound.getFloat("ShutProgress");
+		this.shutProgress = compound.getFloatOr("ShutProgress", 0.0F);
 	}
 
 	public ItemStack getBait() {

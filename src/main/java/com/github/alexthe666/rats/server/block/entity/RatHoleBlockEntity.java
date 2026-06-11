@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.block.entity;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatsBlockEntityRegistry;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
@@ -38,13 +40,13 @@ public class RatHoleBlockEntity extends BlockEntity {
 	}
 
 	@Override
-	public void saveAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+	public void saveAdditional(ValueOutput tag) {
 		super.saveAdditional(tag, registries);
 		ContainerHelper.saveAllItems(tag, this.imitationStack, registries);
 	}
 
 	@Override
-	protected void loadAdditional(CompoundTag tag, HolderLookup.Provider registries) {
+	protected void loadAdditional(ValueInput tag) {
 		super.loadAdditional(tag, registries);
 		this.imitationStack = NonNullList.withSize(1, ItemStack.EMPTY);
 		ContainerHelper.loadAllItems(tag, this.imitationStack, registries);

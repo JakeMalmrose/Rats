@@ -1,5 +1,7 @@
 package com.github.alexthe666.rats.server.entity.monster.boss;
 
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.citadel.animation.Animation;
 import com.github.alexthe666.citadel.animation.AnimationHandler;
 import com.github.alexthe666.citadel.animation.IAnimatedEntity;
@@ -218,11 +220,11 @@ public class Dutchrat extends Monster implements IAnimatedEntity {
 
 	@Nullable
 	@Override
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, MobSpawnType type, @Nullable SpawnGroupData data) {
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor accessor, DifficultyInstance difficulty, EntitySpawnReason type, @Nullable SpawnGroupData data) {
 		data = super.finalizeSpawn(accessor, difficulty, type, data);
 		this.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RatlantisItemRegistry.GHOST_PIRAT_CUTLASS.get()));
 		this.setItemSlot(EquipmentSlot.HEAD, new ItemStack(RatlantisItemRegistry.GHOST_PIRAT_HAT.get()));
-		if (type != MobSpawnType.MOB_SUMMONED) {
+		if (type != EntitySpawnReason.MOB_SUMMONED) {
 			this.restrictTo(this.blockPosition(), RatConfig.dutchratRestrictionRadius);
 		}
 		return data;
@@ -268,7 +270,7 @@ public class Dutchrat extends Monster implements IAnimatedEntity {
 	}
 
 	@Override
-	public void addAdditionalSaveData(CompoundTag tag) {
+	public void addAdditionalSaveData(ValueOutput tag) {
 		super.addAdditionalSaveData(tag);
 		if (this.getRestrictCenter() != BlockPos.ZERO) {
 			BlockPos home = this.getRestrictCenter();
@@ -278,19 +280,19 @@ public class Dutchrat extends Monster implements IAnimatedEntity {
 	}
 
 	@Override
-	public void readAdditionalSaveData(CompoundTag tag) {
+	public void readAdditionalSaveData(ValueInput tag) {
 		super.readAdditionalSaveData(tag);
 		if (this.hasCustomName()) {
 			this.bossInfo.setName(this.getDisplayName());
 		}
-		if (tag.contains("Home", 9)) {
-			ListTag nbttaglist = tag.getList("Home", 6);
-			int hx = (int) nbttaglist.getDouble(0);
-			int hy = (int) nbttaglist.getDouble(1);
-			int hz = (int) nbttaglist.getDouble(2);
+		if (tag.contains("Home")) {
+			ListTag nbttaglist = tag.getListOrEmpty("Home");
+			int hx = (int) nbttaglist.getDoubleOr(0, 0.0D);
+			int hy = (int) nbttaglist.getDoubleOr(1, 0.0D);
+			int hz = (int) nbttaglist.getDoubleOr(2, 0.0D);
 			this.restrictTo(new BlockPos(hx, hy, hz), RatConfig.dutchratRestrictionRadius);
 		}
-		this.getEntityData().set(BELL_SPAWN_TICKS, tag.getInt("Invul"));
+		this.getEntityData().set(BELL_SPAWN_TICKS, tag.getIntOr("Invul", 0));
 	}
 
 	private ListTag makeDoubleList(double... pNumbers) {

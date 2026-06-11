@@ -34,8 +34,8 @@ public class GhostPirat extends AbstractRat implements Enemy {
 				.add(Attributes.FOLLOW_RANGE, 16.0D);
 	}
 
-	public static boolean checkGhostPiratSpawnRules(EntityType<? extends Mob> entityType, LevelAccessor world, MobSpawnType reason, BlockPos pos, RandomSource rand) {
-		return canSpawnAtPos(world, pos) || reason == MobSpawnType.SPAWNER;
+	public static boolean checkGhostPiratSpawnRules(EntityType<? extends Mob> entityType, LevelAccessor world, EntitySpawnReason reason, BlockPos pos, RandomSource rand) {
+		return canSpawnAtPos(world, pos) || reason == EntitySpawnReason.SPAWNER;
 	}
 
 	private static boolean canSpawnAtPos(LevelAccessor world, BlockPos pos) {
@@ -57,7 +57,7 @@ public class GhostPirat extends AbstractRat implements Enemy {
 	}
 
 	@Nullable
-	public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, MobSpawnType reason, @Nullable SpawnGroupData data) {
+	public SpawnGroupData finalizeSpawn(ServerLevelAccessor level, DifficultyInstance difficulty, EntitySpawnReason reason, @Nullable SpawnGroupData data) {
 		data = super.finalizeSpawn(level, difficulty, reason, data);
 		this.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(RatlantisItemRegistry.GHOST_PIRAT_CUTLASS.get()));
 		this.setItemSlot(EquipmentSlot.HEAD, new ItemStack(RatlantisItemRegistry.GHOST_PIRAT_HAT.get()));

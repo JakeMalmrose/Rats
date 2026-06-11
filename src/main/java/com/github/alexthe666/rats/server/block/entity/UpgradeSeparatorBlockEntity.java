@@ -38,7 +38,7 @@ public class UpgradeSeparatorBlockEntity extends BlockEntity {
 			if (item.getItem() instanceof CombinedRatUpgradeItem) {
 				CompoundTag CompoundNBT1 = item.getOrDefault(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.EMPTY).copyTag();
 				int spawnedItem = 0;
-				if (CompoundNBT1.contains("Items", 9)) {
+				if (CompoundNBT1.contains("Items")) {
 					NonNullList<ItemStack> nonnulllist = NonNullList.withSize(27, ItemStack.EMPTY);
 					ContainerHelper.loadAllItems(CompoundNBT1, nonnulllist, net.minecraft.core.RegistryAccess.EMPTY);
 					for (ItemStack itemstack : nonnulllist) {
