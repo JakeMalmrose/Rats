@@ -1,5 +1,6 @@
 package com.github.alexthe666.rats.registry;
 
+import net.minecraft.util.random.Weighted;
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.data.tags.RatsBiomeTags;
 import net.minecraft.core.registries.Registries;
@@ -20,16 +21,16 @@ public class RatsBiomeModifierRegistry {
 		context.register(ADD_RAT_SPAWNS,
 				BiomeModifiers.AddSpawnsBiomeModifier.singleSpawn(
 						context.lookup(Registries.BIOME).getOrThrow(RatsBiomeTags.RAT_SPAWN_BIOMES),
-						new MobSpawnSettings.SpawnerData(RatsEntityRegistry.RAT.get(), 80, 1, 3)));
+						new Weighted<>(new MobSpawnSettings.SpawnerData(RatsEntityRegistry.RAT.get(), 1, 3), 80)));
 
 		context.register(ADD_PIPER_SPAWNS,
 				BiomeModifiers.AddSpawnsBiomeModifier.singleSpawn(
 						context.lookup(Registries.BIOME).getOrThrow(RatsBiomeTags.PIPER_SPAWN_BIOMES),
-						new MobSpawnSettings.SpawnerData(RatsEntityRegistry.PIED_PIPER.get(), 25, 1, 1)));
+						new Weighted<>(new MobSpawnSettings.SpawnerData(RatsEntityRegistry.PIED_PIPER.get(), 1, 1), 25)));
 
 		context.register(ADD_DEMON_RAT_SPAWNS,
 				BiomeModifiers.AddSpawnsBiomeModifier.singleSpawn(
 						context.lookup(Registries.BIOME).getOrThrow(RatsBiomeTags.DEMON_RAT_SPAWN_BIOMES),
-						new MobSpawnSettings.SpawnerData(RatsEntityRegistry.DEMON_RAT.get(), 15, 1, 1)));
+						new Weighted<>(new MobSpawnSettings.SpawnerData(RatsEntityRegistry.DEMON_RAT.get(), 1, 1), 15)));
 	}
 }

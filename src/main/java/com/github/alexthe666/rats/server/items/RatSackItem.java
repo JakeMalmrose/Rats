@@ -7,11 +7,13 @@ import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import com.github.alexthe666.rats.server.misc.RatsLangConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.item.ItemEntity;
@@ -20,10 +22,12 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class RatSackItem extends Item {
 
@@ -41,10 +45,12 @@ public class RatSackItem extends Item {
 
 	public static void packRatIntoSack(ItemStack sack, TamedRat rat, int ratCount) {
 		CompoundTag tag = readTag(sack);
-		CompoundTag ratTag = new CompoundTag();
-		rat.addAdditionalSaveData(ratTag);
+		// 26.1: entity save data goes through ValueOutput, bridged via TagValueOutput
+		TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, rat.registryAccess());
+		rat.addAdditionalSaveData(output);
+		CompoundTag ratTag = output.buildResult();
 		if (rat.hasCustomName()) {
-			ratTag.putString("CustomName", Component.Serializer.toJson(rat.getCustomName(), RegistryAccess.EMPTY));
+			ratTag.store("CustomName", ComponentSerialization.CODEC, rat.getCustomName());
 		}
 		tag.put("Rat_" + ratCount, ratTag);
 		writeTag(sack, tag);
@@ -53,7 +59,7 @@ public class RatSackItem extends Item {
 	public static int getRatsInSack(ItemStack sack) {
 		int ratCount = 0;
 		CompoundTag tag = readTag(sack);
-		for (String tagInfo : tag.getAllKeys()) {
+		for (String tagInfo : tag.keySet()) {
 			if (tagInfo.contains("Rat")) ratCount++;
 		}
 		return ratCount;
@@ -62,15 +68,13 @@ public class RatSackItem extends Item {
 	public static int ejectRatsFromSack(ItemStack stack, Level level, BlockPos pos) {
 		int ratCount = 0;
 		CompoundTag tag = readTag(stack);
-		for (String tagInfo : tag.getAllKeys()) {
+		for (String tagInfo : tag.keySet()) {
 			if (tagInfo.contains("Rat")) {
 				ratCount++;
 				CompoundTag ratTag = tag.getCompoundOrEmpty(tagInfo);
 				TamedRat rat = new TamedRat(RatsEntityRegistry.TAMED_RAT.get(), level);
-				rat.readAdditionalSaveData(ratTag);
-				if (!ratTag.getStringOr("CustomName", "").isEmpty()) {
-					rat.setCustomName(Component.Serializer.fromJson(ratTag.getStringOr("CustomName", ""), RegistryAccess.EMPTY));
-				}
+				rat.readAdditionalSaveData(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), ratTag));
+				ratTag.read("CustomName", ComponentSerialization.CODEC).ifPresent(rat::setCustomName);
 				rat.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, 0.0F, 0.0F);
 				if (!level.isClientSide()) {
 					level.addFreshEntity(rat);

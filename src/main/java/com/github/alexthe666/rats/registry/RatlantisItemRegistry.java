@@ -1,5 +1,6 @@
 package com.github.alexthe666.rats.registry;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import com.github.alexthe666.rats.RatsMod;
@@ -19,7 +20,7 @@ public class RatlantisItemRegistry {
 
 	public static final DeferredRegister<Item> ITEMS = DeferredRegister.create(BuiltInRegistries.ITEM, RatsMod.MODID);
 
-	public static final DeferredHolder<Item, Item> RAS_BANNER_PATTERN = ITEMS.register("rat_and_sickle_banner_pattern", key -> new BannerPatternItem(RatsBannerPatternTags.RAS_BANNER_PATTERN, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1)));
+	public static final DeferredHolder<Item, Item> RAS_BANNER_PATTERN = ITEMS.register("rat_and_sickle_banner_pattern", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(RatsBannerPatternTags.RAS_BANNER_PATTERN))));
 	public static final DeferredHolder<Item, Item> RATLANTIS_RAT_SKULL = ITEMS.register("ratlantis_rat_skull", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).rarity(RatsMod.RATLANTIS_SPECIAL).fireResistant()));
 	public static final DeferredHolder<Item, Item> AVIATOR_HAT = ITEMS.register("aviator_hat", key -> new HatItem(RatsRegistryHelper.withItemId(key, new Item.Properties()), RatsArmorMaterialRegistry.GENERIC_HAT, 0));
 	public static final DeferredHolder<Item, Item> RAT_TOGA = ITEMS.register("rat_toga", key -> new LoreTagItem(RatsRegistryHelper.withItemId(key, new Item.Properties()), 2));
@@ -61,7 +62,7 @@ public class RatlantisItemRegistry {
 	public static final DeferredHolder<Item, Item> RATTLING_GUN = ITEMS.register("rattling_gun", key -> new RattlingGunItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1)));
 	public static final DeferredHolder<Item, Item> IDOL_OF_RATLANTIS = ITEMS.register("idol_of_ratlantis", key -> new LoreTagItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).rarity(RatsMod.RATLANTIS_SPECIAL).fireResistant(), 1));
 
-	public static final DeferredHolder<Item, Item> PIRAT_SIGN = ITEMS.register("pirat_sign", key -> new SignItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(16), RatlantisBlockRegistry.PIRAT_SIGN.get(), RatlantisBlockRegistry.PIRAT_WALL_SIGN.get()));
+	public static final DeferredHolder<Item, Item> PIRAT_SIGN = ITEMS.register("pirat_sign", key -> new SignItem(RatlantisBlockRegistry.PIRAT_SIGN.get(), RatlantisBlockRegistry.PIRAT_WALL_SIGN.get(), RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(16)));
 	public static final DeferredHolder<Item, Item> PIRAT_HANGING_SIGN = ITEMS.register("pirat_hanging_sign", key -> new HangingSignItem(RatlantisBlockRegistry.PIRAT_HANGING_SIGN.get(), RatlantisBlockRegistry.PIRAT_WALL_HANGING_SIGN.get(), RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(16)));
 	public static final DeferredHolder<Item, Item> PIRAT_BOAT = ITEMS.register("pirat_boat", key -> new PiratBoatItem(false, PiratWoodBoat.Type.PIRAT, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1)));
 	public static final DeferredHolder<Item, Item> PIRAT_CHEST_BOAT = ITEMS.register("pirat_chest_boat", key -> new PiratBoatItem(true, PiratWoodBoat.Type.PIRAT, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1)));

@@ -1,5 +1,6 @@
 package com.github.alexthe666.rats.registry;
 
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.RatsMod;
@@ -11,6 +12,8 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.food.FoodProperties;
+import net.minecraft.world.item.component.Consumable;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
 import net.minecraft.world.item.*;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.fluids.FluidType;
@@ -75,16 +78,19 @@ public class RatsItemRegistry {
 	public static final DeferredHolder<Item, Item> DRAGON_WING = ITEMS.register("dragon_wing", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties())));
 	public static final DeferredHolder<Item, Item> PLASTIC_WASTE = ITEMS.register("plastic_waste", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties())));
 	public static final DeferredHolder<Item, Item> RAW_PLASTIC = ITEMS.register("raw_plastic", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties())));
-	public static final DeferredHolder<Item, Item> CONTAMINATED_FOOD = ITEMS.register("contaminated_food", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).food(new FoodProperties.Builder().nutrition(2).saturationModifier(0.5F)
-			.effect(() -> new MobEffectInstance(RatsEffectRegistry.PLAGUE, 2400), 0.3F)
-			.effect(() -> new MobEffectInstance(MobEffects.POISON, 2400), 0.3F)
-			.effect(() -> new MobEffectInstance(MobEffects.HUNGER, 2400), 0.3F)
-			.effect(() -> new MobEffectInstance(MobEffects.CONFUSION, 2400), 0.3F)
-			.effect(() -> new MobEffectInstance(MobEffects.WEAKNESS, 2400), 0.3F)
-			.effect(() -> new MobEffectInstance(MobEffects.WITHER, 2400), 0.3F)
-			.effect(() -> new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2400), 0.3F)
-			.effect(() -> new MobEffectInstance(MobEffects.UNLUCK, 2400), 1.0F)
-			.build())));
+	public static final DeferredHolder<Item, Item> CONTAMINATED_FOOD = ITEMS.register("contaminated_food", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).food(
+			new FoodProperties.Builder().nutrition(2).saturationModifier(0.5F).build(),
+			// 26.1: food effects moved off FoodProperties onto the Consumable component
+			Consumable.builder()
+					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(RatsEffectRegistry.PLAGUE, 2400), 0.3F))
+					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.POISON, 2400), 0.3F))
+					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.HUNGER, 2400), 0.3F))
+					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.CONFUSION, 2400), 0.3F))
+					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.WEAKNESS, 2400), 0.3F))
+					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.WITHER, 2400), 0.3F))
+					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2400), 0.3F))
+					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.UNLUCK, 2400), 1.0F))
+					.build())));
 	public static final DeferredHolder<Item, Item> PURIFYING_LIQUID = ITEMS.register("purifying_liquid", key -> new PurifyingLiquidItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1), false));
 	public static final DeferredHolder<Item, Item> CRIMSON_FLUID = ITEMS.register("crimson_liquid", key -> new PurifyingLiquidItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1), true));
 	public static final DeferredHolder<Item, Item> PLAGUE_ESSENCE = ITEMS.register("plague_essence", key -> new LoreTagItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).rarity(Rarity.UNCOMMON), 1));
@@ -121,12 +127,12 @@ public class RatsItemRegistry {
 	public static final DeferredHolder<Item, Item> RAT_SEED_BOWL = ITEMS.register("rat_seed_bowl", key -> new RatDecorationItem(RatsRegistryHelper.withItemId(key, new Item.Properties())));
 	public static final DeferredHolder<Item, Item> RAT_BREEDING_LANTERN = ITEMS.register("rat_breeding_lantern", key -> new RatDecorationItem(RatsRegistryHelper.withItemId(key, new Item.Properties())));
 	public static final DeferredHolder<Item, Item> RAT_WHEEL = ITEMS.register("rat_wheel", key -> new RatDecorationItem(RatsRegistryHelper.withItemId(key, new Item.Properties())));
-	public static final DeferredHolder<Item, Item> CONFIT_BYALDI = ITEMS.register("confit_byaldi", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).food(new FoodProperties.Builder().nutrition(50).saturationModifier(1.0F).effect(() -> new MobEffectInstance(RatsEffectRegistry.SYNESTHESIA, 2400), 1.0F).alwaysEdible().build())));
+	public static final DeferredHolder<Item, Item> CONFIT_BYALDI = ITEMS.register("confit_byaldi", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).food(new FoodProperties.Builder().nutrition(50).saturationModifier(1.0F).alwaysEdible().build(), Consumable.builder().onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(RatsEffectRegistry.SYNESTHESIA, 2400), 1.0F)).build())));
 	public static final DeferredHolder<Item, Item> POTATO_PANCAKE = ITEMS.register("potato_pancake", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).food(new FoodProperties.Builder().nutrition(4).saturationModifier(0.5F).alwaysEdible().build())));
 	public static final DeferredHolder<Item, Item> LITTLE_BLACK_SQUASH_BALLS = ITEMS.register("little_black_squash_balls", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties())));
 	public static final DeferredHolder<Item, Item> LITTLE_BLACK_WORM = ITEMS.register("little_black_worm", key -> new LoreTagItem(RatsRegistryHelper.withItemId(key, new Item.Properties()), 1));
 	public static final DeferredHolder<Item, Item> CENTIPEDE = ITEMS.register("centipede", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties())));
-	public static final DeferredHolder<Item, Item> POTATO_KNISHES = ITEMS.register("potato_knishes", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).food(new FoodProperties.Builder().nutrition(50).saturationModifier(1.0F).effect(() -> new MobEffectInstance(RatsEffectRegistry.SYNESTHESIA, 2400), 1.0F).alwaysEdible().build())));
+	public static final DeferredHolder<Item, Item> POTATO_KNISHES = ITEMS.register("potato_knishes", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).food(new FoodProperties.Builder().nutrition(50).saturationModifier(1.0F).alwaysEdible().build(), Consumable.builder().onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(RatsEffectRegistry.SYNESTHESIA, 2400), 1.0F)).build())));
 	public static final DeferredHolder<Item, Item> TINY_COIN = ITEMS.register("tiny_coin", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties())));
 	public static final DeferredHolder<Item, Item> TOKEN_FRAGMENT = ITEMS.register("token_fragment", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).rarity(Rarity.UNCOMMON)));
 	public static final DeferredHolder<Item, Item> TOKEN_PIECE = ITEMS.register("token_piece", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).rarity(Rarity.RARE)));
@@ -237,7 +243,7 @@ public class RatsItemRegistry {
 
 	public static final DeferredHolder<Item, Item> RAT_NUGGET = ITEMS.register("rat_nugget", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties())));
 	public static final DeferredHolder<Item, Item> RAT_NUGGET_ORE = ITEMS.register("rat_nugget_ore", key -> new OreRatNuggetItem(RatsRegistryHelper.withItemId(key, new Item.Properties())));
-	public static final DeferredHolder<Item, Item> RAT_BANNER_PATTERN = ITEMS.register("rat_banner_pattern", key -> new BannerPatternItem(RatsBannerPatternTags.RAT_BANNER_PATTERN, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1)));
-	public static final DeferredHolder<Item, Item> CHEESE_BANNER_PATTERN = ITEMS.register("cheese_banner_pattern", key -> new BannerPatternItem(RatsBannerPatternTags.CHEESE_BANNER_PATTERN, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1)));
-	public static final DeferredHolder<Item, Item> RAC_BANNER_PATTERN = ITEMS.register("rat_and_crossbones_banner_pattern", key -> new BannerPatternItem(RatsBannerPatternTags.RAC_BANNER_PATTERN, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1)));
+	public static final DeferredHolder<Item, Item> RAT_BANNER_PATTERN = ITEMS.register("rat_banner_pattern", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(RatsBannerPatternTags.RAT_BANNER_PATTERN))));
+	public static final DeferredHolder<Item, Item> CHEESE_BANNER_PATTERN = ITEMS.register("cheese_banner_pattern", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(RatsBannerPatternTags.CHEESE_BANNER_PATTERN))));
+	public static final DeferredHolder<Item, Item> RAC_BANNER_PATTERN = ITEMS.register("rat_and_crossbones_banner_pattern", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).delayedComponent(DataComponents.PROVIDES_BANNER_PATTERNS, context -> context.getOrThrow(RatsBannerPatternTags.RAC_BANNER_PATTERN))));
 }

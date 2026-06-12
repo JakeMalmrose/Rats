@@ -53,7 +53,7 @@ public class PiratBoatSailLayer extends RenderLayer<LivingEntityRenderState, Pir
 		stack.mulPose(Axis.YN.rotationDegrees(90));
 		stack.translate(0, 0.1F, -0.6F);
 		stack.scale(0.75F, 0.75F, 0.75F);
-		collector.submitCustomGeometry(stack, RenderTypes.entityCutoutNoCull(TEXTURE_PIRATE_CANNON), (pose, consumer) ->
+		collector.submitCustomGeometry(stack, RenderTypes.entityCutout(TEXTURE_PIRATE_CANNON), (pose, consumer) ->
 				MODEL_PIRAT_CANNON.renderToBuffer(stack, consumer, light, overlay, -1));
 		stack.popPose();
 
@@ -62,7 +62,7 @@ public class PiratBoatSailLayer extends RenderLayer<LivingEntityRenderState, Pir
 			stack.mulPose(Axis.YN.rotationDegrees(90));
 			stack.translate(0, 0.1F, -0.6F);
 			stack.scale(0.75F, 0.75F, 0.75F);
-			collector.submitCustomGeometry(stack, RenderTypes.entityCutoutNoCull(TEXTURE_PIRATE_CANNON_FIRE), (pose, consumer) ->
+			collector.submitCustomGeometry(stack, RenderTypes.entityCutout(TEXTURE_PIRATE_CANNON_FIRE), (pose, consumer) ->
 					MODEL_PIRAT_CANNON.renderToBuffer(stack, consumer, 240, OverlayTexture.NO_OVERLAY, -1));
 			stack.popPose();
 		}

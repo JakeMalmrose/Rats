@@ -53,7 +53,7 @@ public class RatsUpgradeConflictRegistry {
 			CompoundTag tag = newItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 			if (tag.contains("Items")) {
 				NonNullList<ItemStack> upgradeList = NonNullList.withSize(combined.getUpgradeSlots(), ItemStack.EMPTY);
-				ContainerHelper.loadAllItems(tag, upgradeList, net.minecraft.core.RegistryAccess.EMPTY);
+				ContainerHelper.loadAllItems(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING, net.minecraft.core.RegistryAccess.EMPTY, tag), upgradeList);
 				for (ItemStack selectedUpgrade : upgradeList) {
 					if (doesConflict(selectedUpgrade, existingItem)) {
 						return true;
@@ -64,7 +64,7 @@ public class RatsUpgradeConflictRegistry {
 			CompoundTag tag = existingItem.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 			if (tag.contains("Items")) {
 				NonNullList<ItemStack> upgradeList = NonNullList.withSize(combined.getUpgradeSlots(), ItemStack.EMPTY);
-				ContainerHelper.loadAllItems(tag, upgradeList, net.minecraft.core.RegistryAccess.EMPTY);
+				ContainerHelper.loadAllItems(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING, net.minecraft.core.RegistryAccess.EMPTY, tag), upgradeList);
 				for (ItemStack selectedUpgrade : upgradeList) {
 					if (doesConflict(selectedUpgrade, newItem)) {
 						return true;

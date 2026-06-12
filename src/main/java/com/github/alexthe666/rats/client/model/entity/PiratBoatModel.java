@@ -21,7 +21,7 @@ public class PiratBoatModel extends EntityModel<LivingEntityRenderState> {
 	private final ModelPart rightPaddle;
 
 	public PiratBoatModel(ModelPart root) {
-		super(root, RenderTypes::entityCutoutNoCull);
+		super(root, RenderTypes::entityCutout); // 26.1: entityCutout is the no-cull variant (entityCutoutCull is the culled one)
 		this.leftPaddle = root.getChild("left_paddle");
 		this.rightPaddle = root.getChild("right_paddle");
 	}
