@@ -26,7 +26,7 @@ public class PlagueDoctorFollowGolemGoal extends Goal {
 
 	@Override
 	public boolean canUse() {
-		if (this.doctor.level().isDay()) {
+		if (this.doctor.level().isBrightOutside()) {
 			List<IronGolem> list = this.doctor.level().getEntitiesOfClass(IronGolem.class, this.doctor.getBoundingBox().inflate(6.0D, 2.0D, 6.0D), golem -> golem.getOfferFlowerTick() > 0);
 			if (!list.isEmpty()) {
 				this.ironGolem = list.get(0);

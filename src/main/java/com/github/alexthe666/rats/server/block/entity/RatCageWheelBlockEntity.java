@@ -11,7 +11,6 @@ import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import com.github.alexthe666.rats.server.misc.RatUpgradeUtils;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -20,10 +19,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.capabilities.Capabilities;
 import net.neoforged.neoforge.energy.EnergyStorage;
-import net.neoforged.neoforge.energy.IEnergyStorage;
-
-import java.util.concurrent.atomic.AtomicInteger;
-import net.minecraft.core.HolderLookup;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 public class RatCageWheelBlockEntity extends DecoratedRatCageBlockEntity {
 
@@ -48,23 +45,20 @@ public class RatCageWheelBlockEntity extends DecoratedRatCageBlockEntity {
 	}
 
 	@Override
-	public void saveAdditional(ValueOutput compound) {
+	protected void saveAdditional(ValueOutput compound) {
 		compound.putInt("UseTicks", this.useTicks);
-		// 1.21: EnergyStorage.serializeNBT now requires HolderLookup.Provider.
-		compound.put("Energy", this.energyStorage.serializeNBT(registries));
-
+		// 26.1: EnergyStorage implements ValueIOSerializable and writes into a child output.
+		this.energyStorage.serialize(compound.child("Energy"));
 		compound.putInt("DismountCooldown", this.dismountCooldown);
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(compound);
 	}
 
 	@Override
 	protected void loadAdditional(ValueInput compound) {
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(compound);
 		this.useTicks = compound.getIntOr("UseTicks", 0);
 		this.dismountCooldown = compound.getIntOr("DismountCooldown", 0);
-		if (compound.contains("Energy")) {
-			this.energyStorage.deserializeNBT(registries, compound.get("Energy"));
-		}
+		compound.child("Energy").ifPresent(this.energyStorage::deserialize);
 	}
 
 	public void removeWheeler() {
@@ -124,9 +118,9 @@ public class RatCageWheelBlockEntity extends DecoratedRatCageBlockEntity {
 	}
 
 	private void sendEnergy(Level level, BlockPos pos) {
-		AtomicInteger capacity = new AtomicInteger(this.energyStorage.getEnergyStored());
+		int remaining = this.energyStorage.getEnergyStored();
 
-		for (int i = 0; (i < Direction.values().length) && (capacity.get() > 0); i++) {
+		for (int i = 0; (i < Direction.values().length) && (remaining > 0); i++) {
 			Direction facing = Direction.values()[i];
 			if (facing.equals(Direction.UP))
 				continue;
@@ -134,13 +128,20 @@ public class RatCageWheelBlockEntity extends DecoratedRatCageBlockEntity {
 			BlockEntity blockEntity = level.getBlockEntity(pos.relative(facing));
 			if (blockEntity == null)
 				continue;
-			IEnergyStorage handler = level.getCapability(Capabilities.EnergyStorage.BLOCK,
+			// 26.1: energy capability moved to the transfer api (EnergyHandler + transactions).
+			EnergyHandler handler = level.getCapability(Capabilities.Energy.BLOCK,
 					pos.relative(facing), facing.getOpposite());
-			if (handler != null && handler.canReceive()) {
-				int received = handler.receiveEnergy(Math.min(capacity.get(), 10), false);
-				capacity.addAndGet(-received);
-				this.energyStorage.extractEnergy(received, false);
-				this.setChanged();
+			if (handler != null) {
+				int received;
+				try (Transaction transaction = Transaction.openRoot()) {
+					received = handler.insert(Math.min(remaining, 10), transaction);
+					transaction.commit();
+				}
+				if (received > 0) {
+					remaining -= received;
+					this.energyStorage.extractEnergy(received, false);
+					this.setChanged();
+				}
 			}
 		}
 	}

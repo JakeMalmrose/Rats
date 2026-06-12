@@ -23,11 +23,12 @@ public class BlackDeathSummonRatGoal extends BlackDeathAbstractSummonGoal {
 		this.death.level().broadcastEntityEvent(this.death, (byte) 82);
 
 		Rat rat = new Rat(RatsEntityRegistry.RAT.get(), this.death.level());
-		EventHooks.finalizeMobSpawn(rat, (ServerLevel) this.death.level(), this.death.level().getCurrentDifficultyAt(this.death.blockPosition()), EntitySpawnReason.MOB_SUMMONED, null);
+		ServerLevel serverLevel = (ServerLevel) this.death.level();
+		EventHooks.finalizeMobSpawn(rat, serverLevel, serverLevel.getCurrentDifficultyAt(this.death.blockPosition()), EntitySpawnReason.MOB_SUMMONED, null);
 		rat.copyPosition(this.death);
 		rat.setPlagued(true);
 		this.death.level().addFreshEntity(rat);
-		rat.setOwnerUUID(this.death.getUUID());
+		rat.setOwner(this.death); //26.1: TamableAnimal.setOwnerUUID was replaced by entity-reference setters
 		if (this.death.getTarget() != null) {
 			rat.setTarget(this.death.getTarget());
 		}

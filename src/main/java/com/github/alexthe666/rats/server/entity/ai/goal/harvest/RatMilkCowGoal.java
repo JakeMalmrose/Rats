@@ -12,8 +12,8 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.common.NeoForgeMod;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.wrappers.FluidBucketWrapper;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -52,9 +52,8 @@ public class RatMilkCowGoal extends BaseRatHarvestGoal {
 			this.rat.getNavigation().moveTo(this.getTargetEntity(), 1.25D);
 			if (this.rat.distanceToSqr(this.getTargetEntity()) < this.rat.getRatHarvestDistance(0.0D)) {
 				if (this.rat.transportingFluid.isEmpty()) {
-					FluidBucketWrapper milkWrapper = new FluidBucketWrapper(new ItemStack(Items.MILK_BUCKET));
-					// 1.21: FluidStack(FluidStack, int) replaced by copyWithAmount(int).
-					FluidStack milkFluid = milkWrapper.getFluid().copyWithAmount(1000);
+					//26.1: FluidBucketWrapper is gone; the transfer API reads contained fluids straight off the stack
+					FluidStack milkFluid = FluidUtil.getFirstStackContained(new ItemStack(Items.MILK_BUCKET)).copyWithAmount(1000);
 					if (milkFluid.isEmpty()) {
 						milkFluid = new FluidStack(NeoForgeMod.MILK.get(), 1000);
 					}

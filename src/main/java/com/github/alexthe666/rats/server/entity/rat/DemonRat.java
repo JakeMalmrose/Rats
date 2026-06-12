@@ -8,6 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
@@ -39,8 +40,9 @@ public class DemonRat extends AbstractRat implements Enemy {
 	public DemonRat(EntityType<? extends AbstractRat> type, Level level) {
 		super(type, level);
 		this.xpReward = 5;
-		this.setPathfindingMalus(PathType.DANGER_FIRE, 16.0F);
-		this.setPathfindingMalus(PathType.DAMAGE_FIRE, -1.0F);
+		// 26.1: DANGER_FIRE/DAMAGE_FIRE renamed to FIRE_IN_NEIGHBOR/FIRE
+		this.setPathfindingMalus(PathType.FIRE_IN_NEIGHBOR, 16.0F);
+		this.setPathfindingMalus(PathType.FIRE, -1.0F);
 	}
 
 	@Override
@@ -77,19 +79,19 @@ public class DemonRat extends AbstractRat implements Enemy {
 	}
 
 	@Override
-	public boolean isInvulnerableTo(DamageSource source) {
+	public boolean isInvulnerableTo(ServerLevel level, DamageSource source) {
 		if (source.is(DamageTypeTags.IS_FIRE)) {
 			return true;
 		}
-		return super.isInvulnerableTo(source);
+		return super.isInvulnerableTo(level, source);
 	}
 
 	@Override
-	public boolean doHurtTarget(Entity entity) {
+	public boolean doHurtTarget(ServerLevel level, Entity entity) {
 		if (this.getRandom().nextInt(3) == 0) {
 			entity.igniteForSeconds(5);
 		}
-		return super.doHurtTarget(entity);
+		return super.doHurtTarget(level, entity);
 	}
 
 	@Override
@@ -116,8 +118,14 @@ public class DemonRat extends AbstractRat implements Enemy {
 	}
 
 	@Override
-	protected boolean shouldDespawnInPeaceful() {
-		return true;
+	public void checkDespawn() {
+		// 26.1: shouldDespawnInPeaceful() was removed (peaceful despawn is keyed off EntityType.isAllowedInPeaceful());
+		// replicate the old "always despawn in peaceful" behavior here.
+		if (this.level().getDifficulty() == Difficulty.PEACEFUL) {
+			this.discard();
+		} else {
+			super.checkDespawn();
+		}
 	}
 
 	// 1.21: passenger Y offset is driven by the carrier's EntityAttachments.PASSENGER. Vanilla

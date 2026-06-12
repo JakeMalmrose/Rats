@@ -4,8 +4,8 @@ import com.github.alexthe666.rats.RatConfig;
 import com.github.alexthe666.rats.registry.RatsEntityRegistry;
 import com.github.alexthe666.rats.server.entity.monster.PlagueBeast;
 import com.github.alexthe666.rats.server.entity.monster.boss.BlackDeath;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntitySpawnReason;
-import net.minecraft.world.level.ServerLevelAccessor;
 import net.neoforged.neoforge.event.EventHooks;
 
 public class BlackDeathSummonBeastGoal extends BlackDeathAbstractSummonGoal {
@@ -29,7 +29,8 @@ public class BlackDeathSummonBeastGoal extends BlackDeathAbstractSummonGoal {
 	@Override
 	public void summonEntity() {
 		PlagueBeast beast = new PlagueBeast(RatsEntityRegistry.PLAGUE_BEAST.get(), this.death.level());
-		EventHooks.finalizeMobSpawn(beast, (ServerLevelAccessor) this.death.level(), this.death.level().getCurrentDifficultyAt(this.death.blockPosition()), EntitySpawnReason.MOB_SUMMONED, null);
+		ServerLevel serverLevel = (ServerLevel) this.death.level();
+		EventHooks.finalizeMobSpawn(beast, serverLevel, serverLevel.getCurrentDifficultyAt(this.death.blockPosition()), EntitySpawnReason.MOB_SUMMONED, null);
 		beast.copyPosition(this.death);
 		this.death.level().addFreshEntity(beast);
 		beast.setOwnerId(this.death.getUUID());

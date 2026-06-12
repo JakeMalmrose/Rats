@@ -23,7 +23,8 @@ public class WildRatDefendPlagueDoctorGoal extends TargetGoal {
 	}
 
 	public boolean canUse() {
-		if (this.rat.hasPlague() || !this.rat.isLeashed() || this.rat.level().getCurrentDifficultyAt(this.rat.blockPosition()).getDifficulty() == Difficulty.PEACEFUL) {
+		//26.1: getCurrentDifficultyAt is ServerLevel-only; the local DifficultyInstance's difficulty is just the level difficulty
+		if (this.rat.hasPlague() || !this.rat.isLeashed() || this.rat.level().getDifficulty() == Difficulty.PEACEFUL) {
 			return false;
 		} else {
 			Entity entity = this.rat.getLeashHolder();

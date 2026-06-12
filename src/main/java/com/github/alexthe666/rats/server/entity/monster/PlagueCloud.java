@@ -14,12 +14,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.players.OldUsersConverter;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -45,7 +46,8 @@ import net.minecraft.network.syncher.SynchedEntityData;
 
 public class PlagueCloud extends Monster {
 
-	protected static final EntityDataAccessor<Optional<UUID>> OWNER_UNIQUE_ID = SynchedEntityData.defineId(PlagueCloud.class, EntityDataSerializers.OPTIONAL_UUID);
+	// 26.1: OPTIONAL_UUID serializer removed, owners are synced as EntityReferences now
+	protected static final EntityDataAccessor<Optional<EntityReference<LivingEntity>>> OWNER_UNIQUE_ID = SynchedEntityData.defineId(PlagueCloud.class, EntityDataSerializers.OPTIONAL_LIVING_ENTITY_REFERENCE);
 
 	public PlagueCloud(EntityType<? extends Monster> type, Level level) {
 		super(type, level);
@@ -134,8 +136,8 @@ public class PlagueCloud extends Monster {
 		this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, false));
 	}
 
-	public boolean doHurtTarget(Entity entity) {
-		boolean flag = super.doHurtTarget(entity);
+	public boolean doHurtTarget(ServerLevel level, Entity entity) {
+		boolean flag = super.doHurtTarget(level, entity);
 		if (flag && entity instanceof LivingEntity living) {
 			living.addEffect(new MobEffectInstance(RatsEffectRegistry.PLAGUE, 600));
 		}
@@ -147,65 +149,36 @@ public class PlagueCloud extends Monster {
 	}
 
 	@Override
-	public boolean causeFallDamage(float dist, float mult, DamageSource source) {
+	public boolean causeFallDamage(double dist, float mult, DamageSource source) {
 		return false;
 	}
 
 	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
-		if (this.getOwnerId() == null) {
-			compound.putString("OwnerUUID", "");
-		} else {
-			compound.putString("OwnerUUID", this.getOwnerId().toString());
-		}
+		EntityReference.store(this.getEntityData().get(OWNER_UNIQUE_ID).orElse(null), compound, "OwnerUUID");
 	}
 
 	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
-		UUID uuid;
-		if (compound.hasUUID("Owner")) {
-			uuid = compound.getUUID("Owner");
-		} else {
-			String s = compound.getStringOr("Owner", "");
-			uuid = OldUsersConverter.convertMobOwnerIfNecessary(this.getServer(), s);
+		EntityReference<LivingEntity> owner = EntityReference.readWithOldOwnerConversion(compound, "Owner", this.level());
+		if (owner == null) {
+			owner = EntityReference.readWithOldOwnerConversion(compound, "OwnerUUID", this.level());
 		}
-
-		if (uuid != null) {
-			try {
-				this.setOwnerId(uuid);
-			} catch (Throwable ignored) {
-			}
-		}
+		this.getEntityData().set(OWNER_UNIQUE_ID, Optional.ofNullable(owner));
 	}
 
 	@Nullable
 	public UUID getOwnerId() {
-		return this.getEntityData().get(OWNER_UNIQUE_ID).orElse(null);
+		return this.getEntityData().get(OWNER_UNIQUE_ID).map(EntityReference::getUUID).orElse(null);
 	}
 
 	public void setOwnerId(@Nullable UUID uuid) {
-		this.getEntityData().set(OWNER_UNIQUE_ID, Optional.ofNullable(uuid));
+		this.getEntityData().set(OWNER_UNIQUE_ID, Optional.ofNullable(uuid).map(EntityReference::of));
 	}
 
 	@Nullable
 	public LivingEntity getOwner() {
-		try {
-			UUID uuid = this.getOwnerId();
-			LivingEntity player = uuid == null ? null : this.level().getPlayerByUUID(uuid);
-			if (player != null) {
-				return player;
-			} else {
-				if (!this.level().isClientSide()) {
-					Entity entity = this.level().getServer().getLevel(this.level().dimension()).getEntity(uuid);
-					if (entity instanceof LivingEntity) {
-						return (LivingEntity) entity;
-					}
-				}
-			}
-		} catch (IllegalArgumentException var2) {
-			return null;
-		}
-		return null;
+		return EntityReference.getLivingEntity(this.getEntityData().get(OWNER_UNIQUE_ID).orElse(null), this.level());
 	}
 
 	class AIMoveControl extends MoveControl {
@@ -293,8 +266,8 @@ public class PlagueCloud extends Monster {
 			}
 			if (living.distanceToSqr(this.parentEntity) < 5.0D) {
 				++this.attackTimer;
-				if (this.attackTimer == 5) {
-					this.parentEntity.doHurtTarget(living);
+				if (this.attackTimer == 5 && this.parentEntity.level() instanceof ServerLevel serverLevel) {
+					this.parentEntity.doHurtTarget(serverLevel, living);
 					this.attackTimer = -10;
 				}
 			} else if (this.attackTimer > 0) {
@@ -303,7 +276,8 @@ public class PlagueCloud extends Monster {
 		}
 	}
 
-	public boolean isAlliedTo(Entity entity) {
-		return super.isAlliedTo(entity) || entity.getType().is(RatsEntityTags.PLAGUE_LEGION);
+	// 26.1: isAlliedTo(Entity) is final, override considersEntityAsAlly instead
+	protected boolean considersEntityAsAlly(Entity entity) {
+		return super.considersEntityAsAlly(entity) || entity.is(RatsEntityTags.PLAGUE_LEGION);
 	}
 }

@@ -16,6 +16,7 @@ import net.minecraft.world.entity.SpawnPlacementType;
 import net.minecraft.world.entity.SpawnPlacements;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.LightLayer;
@@ -27,8 +28,8 @@ import net.minecraft.world.level.dimension.DimensionType;
 import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 @SuppressWarnings("deprecation")
 public abstract class AbstractGarbageBlock extends FallingBlock {
@@ -50,17 +51,17 @@ public abstract class AbstractGarbageBlock extends FallingBlock {
 
 	@Override
 	public void randomTick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-		if (random.nextInt(level.getGameRules().getRule(GameRules.RULE_RANDOMTICKING).get()) <= 3) {
-			if (!level.getBlockState(pos.above()).isSuffocating(level, pos) && level.getGameRules().getBooleanOr(GameRules.RULE_DOMOBSPAWNING, false)) {
+		if (random.nextInt(level.getGameRules().get(GameRules.RANDOM_TICK_SPEED)) <= 3) {
+			if (!level.getBlockState(pos.above()).isSuffocating(level, pos) && level.getGameRules().get(GameRules.SPAWN_MOBS)) {
 				if (random.nextFloat() <= RatConfig.garbageSpawnRate * spawnRateModifier) {
-					PathfinderMob mob = this.getEntityToSpawn().create(level);
+					PathfinderMob mob = this.getEntityToSpawn().create(level, this.spawnReason);
 					if (mob == null) return;
-					mob.moveTo(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, 0, 0);
+					mob.snapTo(pos.getX() + 0.5D, pos.getY() + 1.0D, pos.getZ() + 0.5D, 0.0F, 0.0F);
 					if (!mob.checkSpawnRules(level, this.spawnReason)) return;
 					if (!mob.isInWall() && mob.checkSpawnObstruction(level)) {
 						if (mob instanceof AbstractRat) {
-							if (!level.getGameRules().getBooleanOr(RatsMod.SPAWN_RATS, false)) return;
-							if (Objects.requireNonNull(level.getChunkSource().getLastSpawnState()).getMobCategoryCounts().getIntOr(RatsMod.RATS, 0) >= RatsMod.RATS.getMaxInstancesPerChunk() * 2)
+							if (!level.getGameRules().get(RatsMod.SPAWN_RATS)) return;
+							if (Objects.requireNonNull(level.getChunkSource().getLastSpawnState()).getMobCategoryCounts().getInt(RatsMod.RATS) >= RatsMod.RATS.getMaxInstancesPerChunk() * 2)
 								return;
 							if (RatConfig.ratsSpawnLikeMonsters && !this.isDarkEnoughForMonsterSpawns(level, mob.blockPosition(), random))
 								return;
@@ -68,7 +69,7 @@ public abstract class AbstractGarbageBlock extends FallingBlock {
 							this.postInitSpawn(mob, random);
 							level.tryAddFreshEntityWithPassengers(mob);
 						} else {
-							if (mob instanceof PiedPiper && !level.getGameRules().getBooleanOr(RatsMod.SPAWN_PIPERS, false))
+							if (mob instanceof PiedPiper && !level.getGameRules().get(RatsMod.SPAWN_PIPERS))
 								return;
 							if (this.isDarkEnoughForMonsterSpawns(level, mob.blockPosition(), random)) {
 								EventHooks.finalizeMobSpawn(mob, level, level.getCurrentDifficultyAt(pos), this.spawnReason, null);
@@ -94,9 +95,9 @@ public abstract class AbstractGarbageBlock extends FallingBlock {
 		}
 	}
 
-	@Override
-	public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		tooltip.add(Component.translatable(this.getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
+	// 26.1: Block.appendHoverText no longer exists; the block item must delegate here (see RatsBlockItem in items/).
+	public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+		tooltip.accept(Component.translatable(this.getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
 	}
 
 	// 1.21: BlockBehaviour.isValidSpawn is no longer overridable on the block class. Spawn validity

@@ -1,19 +1,21 @@
 package com.github.alexthe666.rats.server.block.entity;
 
-import net.minecraft.world.level.storage.ValueInput;
-import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatsBlockEntityRegistry;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.core.HolderLookup;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 
 public class DecoratedRatCageBlockEntity extends BlockEntity {
 	private NonNullList<ItemStack> containedDeco = NonNullList.withSize(1, ItemStack.EMPTY);
@@ -26,39 +28,51 @@ public class DecoratedRatCageBlockEntity extends BlockEntity {
 		super(type, pos, state);
 	}
 
+	// 26.1: replaces RatCageDecoratedBlock.onRemove - drop the contained decoration when the block changes.
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		Level level = this.getLevel();
+		if (level != null && !this.getContainedItem().isEmpty()) {
+			Containers.dropItemStack(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, this.getContainedItem());
+		}
+		super.preRemoveSideEffects(pos, state);
+	}
+
 	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
-		return ClientboundBlockEntityDataPacket.create(this, BlockEntity::getUpdateTag);
+		return ClientboundBlockEntityDataPacket.create(this);
 	}
 
 	@Override
-	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet, HolderLookup.Provider registries) {
-		this.handleUpdateTag(packet.getTag(), registries);
+	public void onDataPacket(Connection net, ValueInput valueInput) {
+		this.containedDeco = NonNullList.withSize(1, ItemStack.EMPTY);
+		ContainerHelper.loadAllItems(valueInput, this.containedDeco);
 	}
 
+	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-		return this.saveWithId(registries);
+		return this.saveWithoutMetadata(registries);
 	}
 
-	public void saveAdditional(ValueOutput compound) {
-		ContainerHelper.saveAllItems(compound, this.containedDeco, registries);
-		super.saveAdditional(compound, registries);
+	@Override
+	protected void saveAdditional(ValueOutput compound) {
+		super.saveAdditional(compound);
+		ContainerHelper.saveAllItems(compound, this.containedDeco);
 	}
 
+	@Override
 	protected void loadAdditional(ValueInput compound) {
-		super.loadAdditional(compound, registries);
-		containedDeco = NonNullList.withSize(1, ItemStack.EMPTY);
-		ContainerHelper.loadAllItems(compound, containedDeco, registries);
+		super.loadAdditional(compound);
+		this.containedDeco = NonNullList.withSize(1, ItemStack.EMPTY);
+		ContainerHelper.loadAllItems(compound, this.containedDeco);
 	}
 
 	public ItemStack getContainedItem() {
-		return containedDeco.get(0);
+		return this.containedDeco.get(0);
 	}
 
 	public void setContainedItem(ItemStack stack) {
-		containedDeco.set(0, stack);
+		this.containedDeco.set(0, stack);
 		this.setChanged();
 	}
-
-
 }

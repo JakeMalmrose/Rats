@@ -66,7 +66,7 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 		GlobalPos quarryPos = this.rat.getDepositPos().orElse(null);
 		if (quarryPos != null && this.rat.level().getBlockEntity(quarryPos.pos()) instanceof RatQuarryBlockEntity quarry) {
 			int RADIUS = quarry.getRadius();
-			for (BlockPos pos : BlockPos.betweenClosedStream(quarryPos.pos().offset(-RADIUS, -1, -RADIUS), new BlockPos(quarryPos.pos().getX() + RADIUS, this.rat.level().getMinBuildHeight(), quarryPos.pos().getZ() + RADIUS)).map(BlockPos::immutable).toList()) {
+			for (BlockPos pos : BlockPos.betweenClosedStream(quarryPos.pos().offset(-RADIUS, -1, -RADIUS), new BlockPos(quarryPos.pos().getX() + RADIUS, this.rat.level().getMinY(), quarryPos.pos().getZ() + RADIUS)).map(BlockPos::immutable).toList()) {
 				if ((!this.rat.level().isEmptyBlock(pos) && this.doesListContainBlock(this.rat.level(), pos))) {
 					if (this.canMineBlock(pos)) {
 						allBlocks.add(pos);
@@ -83,7 +83,7 @@ public class RatQuarryGoal extends BaseRatHarvestGoal {
 
 	private boolean doesListContainBlock(Level level, BlockPos pos) {
 		BlockState state = level.getBlockState(pos);
-		ItemStack getStack = state.getBlock().getCloneItemStack(level, pos, state);
+		ItemStack getStack = state.getCloneItemStack(level, pos, false);
 		return this.rat.canRatPickupItem(getStack);
 	}
 

@@ -11,7 +11,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
+import com.mojang.serialization.MapCodec;
 
 public record RatKilledAndHasUpgradeCondition(Item upgrade) implements LootItemCondition {
 
@@ -20,7 +20,7 @@ public record RatKilledAndHasUpgradeCondition(Item upgrade) implements LootItemC
 	).apply(instance, RatKilledAndHasUpgradeCondition::new));
 
 	@Override
-	public LootItemConditionType getType() {
+	public MapCodec<? extends LootItemCondition> codec() {
 		return RatsLootRegistry.KILLER_HAS_UPGRADE.get();
 	}
 

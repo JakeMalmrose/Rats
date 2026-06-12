@@ -36,7 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-@EventBusSubscriber(bus = EventBusSubscriber.Bus.MOD, modid = RatsMod.MODID)
+@EventBusSubscriber(modid = RatsMod.MODID)
 public class RatsDataRegistry {
 
 	@SubscribeEvent

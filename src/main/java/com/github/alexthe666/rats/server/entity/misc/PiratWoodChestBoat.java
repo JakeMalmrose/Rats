@@ -5,8 +5,7 @@ import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatlantisEntityRegistry;
 import com.github.alexthe666.rats.registry.RatlantisItemRegistry;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -21,10 +20,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.ContainerEntity;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ChestMenu;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.gameevent.GameEvent;
+import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
 public class PiratWoodChestBoat extends PiratWoodBoat implements HasCustomInventoryScreen, ContainerEntity {
@@ -35,7 +34,8 @@ public class PiratWoodChestBoat extends PiratWoodBoat implements HasCustomInvent
 	private long lootTableSeed;
 
 	public PiratWoodChestBoat(EntityType<? extends PiratWoodBoat> type, Level level) {
-		super(type, level);
+		// 26.1: the drop item is fixed at construction time (AbstractBoat.getDropItem() is final)
+		super(type, level, RatlantisItemRegistry.PIRAT_CHEST_BOAT::get);
 	}
 
 	public PiratWoodChestBoat(Level level, double x, double y, double z) {
@@ -59,19 +59,19 @@ public class PiratWoodChestBoat extends PiratWoodBoat implements HasCustomInvent
 	@Override
 	protected void addAdditionalSaveData(ValueOutput tag) {
 		super.addAdditionalSaveData(tag);
-		this.addChestVehicleSaveData(tag, this.registryAccess());
+		this.addChestVehicleSaveData(tag);
 	}
 
 	@Override
 	protected void readAdditionalSaveData(ValueInput tag) {
 		super.readAdditionalSaveData(tag);
-		this.readChestVehicleSaveData(tag, this.registryAccess());
+		this.readChestVehicleSaveData(tag);
 	}
 
 	@Override
-	public void destroy(DamageSource damageSource) {
-		super.destroy(damageSource);
-		this.chestVehicleDestroyed(damageSource, this.level(), this);
+	public void destroy(ServerLevel level, DamageSource damageSource) {
+		this.destroy(level, this.getDropItem());
+		this.chestVehicleDestroyed(damageSource, level, this);
 	}
 
 	@Override
@@ -84,14 +84,14 @@ public class PiratWoodChestBoat extends PiratWoodBoat implements HasCustomInvent
 	}
 
 	@Override
-	public InteractionResult interact(Player player, InteractionHand hand) {
+	public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
 		if (this.canAddPassenger(player) && !player.isSecondaryUseActive()) {
-			return super.interact(player, hand);
+			return super.interact(player, hand, location);
 		} else {
 			InteractionResult interactionresult = this.interactWithContainerVehicle(player);
-			if (interactionresult.consumesAction()) {
+			if (interactionresult.consumesAction() && player.level() instanceof ServerLevel serverLevel) {
 				this.gameEvent(GameEvent.CONTAINER_OPEN, player);
-				PiglinAi.angerNearbyPiglins(player, true);
+				PiglinAi.angerNearbyPiglins(serverLevel, player, true);
 			}
 
 			return interactionresult;
@@ -101,18 +101,11 @@ public class PiratWoodChestBoat extends PiratWoodBoat implements HasCustomInvent
 	@Override
 	public void openCustomInventoryScreen(Player player) {
 		player.openMenu(this);
-		if (!player.level().isClientSide()) {
+		if (player.level() instanceof ServerLevel serverLevel) {
 			this.gameEvent(GameEvent.CONTAINER_OPEN, player);
-			PiglinAi.angerNearbyPiglins(player, true);
+			PiglinAi.angerNearbyPiglins(serverLevel, player, true);
 		}
 
-	}
-
-	@Override
-	public Item getDropItem() {
-		return switch (this.getRatsBoatType()) {
-			case PIRAT -> RatlantisItemRegistry.PIRAT_CHEST_BOAT.get();
-		};
 	}
 
 	@Override
@@ -176,22 +169,22 @@ public class PiratWoodChestBoat extends PiratWoodBoat implements HasCustomInvent
 
 	@Nullable
 	@Override
-	public net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> getLootTable() {
+	public net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> getContainerLootTable() {
 		return this.lootTable;
 	}
 
 	@Override
-	public void setLootTable(@Nullable net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> key) {
+	public void setContainerLootTable(@Nullable net.minecraft.resources.ResourceKey<net.minecraft.world.level.storage.loot.LootTable> key) {
 		this.lootTable = key;
 	}
 
 	@Override
-	public long getLootTableSeed() {
+	public long getContainerLootTableSeed() {
 		return this.lootTableSeed;
 	}
 
 	@Override
-	public void setLootTableSeed(long seed) {
+	public void setContainerLootTableSeed(long seed) {
 		this.lootTableSeed = seed;
 	}
 

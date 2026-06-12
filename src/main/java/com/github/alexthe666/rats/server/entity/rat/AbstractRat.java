@@ -216,7 +216,7 @@ public abstract class AbstractRat extends TamableAnimal implements IAnimatedEnti
 					double extraZ = (double) (radius * Mth.cos(angle)) + mob.getZ();
 					BlockPos runToPos = BlockPos.containing(extraX, mob.getY(), extraZ);
 					int steps = 0;
-					while (this.level().getBlockState(runToPos).isSolidRender(level(), runToPos) && steps < 10) {
+					while (this.level().getBlockState(runToPos).isSolidRender() && steps < 10) {
 						runToPos = runToPos.above();
 						steps++;
 					}
@@ -413,7 +413,8 @@ public abstract class AbstractRat extends TamableAnimal implements IAnimatedEnti
 
 	@Override
 	public boolean checkSpawnRules(LevelAccessor accessor, EntitySpawnReason type) {
-		return accessor.getLevelData().getGameRules().getBooleanOr(RatsMod.SPAWN_RATS, false) && super.checkSpawnRules(accessor, type);
+		// 26.1: game rules are no longer reachable through LevelData; go through the server level
+		return accessor instanceof ServerLevelAccessor server && server.getLevel().getGameRules().get(RatsMod.SPAWN_RATS) && super.checkSpawnRules(accessor, type);
 	}
 
 	@Override
@@ -438,11 +439,13 @@ public abstract class AbstractRat extends TamableAnimal implements IAnimatedEnti
 		super.readAdditionalSaveData(tag);
 		this.setMale(tag.getBooleanOr("IsMale", false));
 		this.setOrderedToSit(tag.getBooleanOr("Sitting", false));
-		if (tag.contains("ColorVariant", Tag.TAG_INT)) {
-			this.setColorVariant(RatUtils.convertOldRatVariant(tag.getIntOr("ColorVariant", 0)));
-			RatsMod.LOGGER.debug("Converted Rat variant for Rat {} from {} to {}.", this.getUUID(), tag.getIntOr("ColorVariant", 0), RatVariantRegistry.RAT_VARIANT_REGISTRY.getKey(RatUtils.convertOldRatVariant(tag.getIntOr("ColorVariant", 0))).toString());
-		} else if (tag.contains("ColorVariant", Tag.TAG_STRING)) {
-			this.setColorVariant(RatVariant.getVariant(tag.getStringOr("ColorVariant", "")));
+		// 26.1: ValueInput has no typed contains(); probe for the legacy int variant via getInt
+		Optional<Integer> oldVariant = tag.getInt("ColorVariant");
+		if (oldVariant.isPresent()) {
+			this.setColorVariant(RatUtils.convertOldRatVariant(oldVariant.get()));
+			RatsMod.LOGGER.debug("Converted Rat variant for Rat {} from {} to {}.", this.getUUID(), oldVariant.get(), RatVariantRegistry.RAT_VARIANT_REGISTRY.getKey(RatUtils.convertOldRatVariant(oldVariant.get())).toString());
+		} else {
+			tag.getString("ColorVariant").ifPresent(variant -> this.setColorVariant(RatVariant.getVariant(variant)));
 		}
 		this.raidCooldown = tag.getIntOr("RaidCooldown", 0);
 	}
@@ -485,7 +488,7 @@ public abstract class AbstractRat extends TamableAnimal implements IAnimatedEnti
 					return;
 				}
 				summoner.setRatsSummoned(summoner.getRatsSummoned() - 1);
-				this.setOwnerUUID(null);
+				this.setOwnerReference(null);
 			}
 		}
 		super.remove(reason);
@@ -518,7 +521,7 @@ public abstract class AbstractRat extends TamableAnimal implements IAnimatedEnti
 
 	protected void eatItem(ItemStack stack) {
 		if (!stack.isEmpty()) {
-			if (stack.getUseAnimation() == UseAnim.DRINK) {
+			if (stack.getUseAnimation() == ItemUseAnimation.DRINK) {
 				this.gameEvent(GameEvent.DRINK);
 				this.playSound(RatsSoundRegistry.RAT_DRINK.get(), 0.5F, this.level().getRandom().nextFloat() * 0.1F + 0.9F);
 			}
@@ -532,7 +535,7 @@ public abstract class AbstractRat extends TamableAnimal implements IAnimatedEnti
 					vec3d1 = vec3d1.xRot(-this.getXRot() * 0.017453292F);
 					vec3d1 = vec3d1.yRot(-this.getYRot() * 0.017453292F);
 					vec3d1 = vec3d1.add(this.getX(), this.getY() + 0.25D, this.getZ());
-					this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, stack), vec3d1.x(), vec3d1.y(), vec3d1.z(), vec3d.x(), vec3d.y() + 0.05D, vec3d.z());
+					this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, net.minecraft.world.item.ItemStackTemplate.fromNonEmptyStack(stack)), vec3d1.x(), vec3d1.y(), vec3d1.z(), vec3d.x(), vec3d.y() + 0.05D, vec3d.z());
 				}
 				this.gameEvent(GameEvent.EAT);
 				this.playSound(RatsSoundRegistry.RAT_EAT.get(), 0.25F + 0.25F * (float) this.getRandom().nextInt(2), (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.2F + 1.3F);
@@ -540,11 +543,12 @@ public abstract class AbstractRat extends TamableAnimal implements IAnimatedEnti
 		}
 	}
 
-	protected static boolean isValidLightLevel(LevelAccessor accessor, RandomSource random, BlockPos pos) {
+	protected static boolean isValidLightLevel(ServerLevelAccessor accessor, RandomSource random, BlockPos pos) {
 		if (accessor.getBrightness(LightLayer.SKY, pos) > random.nextInt(32)) {
 			return false;
 		} else {
-			int i = accessor.getLevelData().isThundering() ? accessor.getMaxLocalRawBrightness(pos, 10) : accessor.getMaxLocalRawBrightness(pos);
+			// 26.1: isThundering() left LevelData; mirror Monster.isDarkEnoughToSpawn and ask the server level
+			int i = accessor.getLevel().isThundering() ? accessor.getMaxLocalRawBrightness(pos, 10) : accessor.getMaxLocalRawBrightness(pos);
 			return i <= random.nextInt(8);
 		}
 	}

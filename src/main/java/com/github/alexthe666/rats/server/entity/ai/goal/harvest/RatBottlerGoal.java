@@ -2,6 +2,7 @@ package com.github.alexthe666.rats.server.entity.ai.goal.harvest;
 
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
@@ -119,8 +120,8 @@ public class RatBottlerGoal extends BaseRatHarvestGoal {
 		this.rat.getMainHandItem().shrink(1);
 		if (this.rat.getMainHandItem().isEmpty()) {
 			this.rat.setItemInHand(InteractionHand.MAIN_HAND, stack);
-		} else {
-			this.rat.spawnAtLocation(stack);
+		} else if (this.rat.level() instanceof ServerLevel serverLevel) {
+			this.rat.spawnAtLocation(serverLevel, stack);
 		}
 		this.rat.gameEvent(GameEvent.FLUID_PICKUP);
 	}

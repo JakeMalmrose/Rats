@@ -4,13 +4,19 @@ import com.github.alexthe666.rats.server.items.RatListUpgradeItem;
 import com.github.alexthe666.rats.server.items.upgrades.CombinedRatUpgradeItem;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.entity.ContainerUser;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.WorldlyContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import org.jetbrains.annotations.Nullable;
 
 public class RatUpgradeContainer implements WorldlyContainer {
@@ -26,13 +32,16 @@ public class RatUpgradeContainer implements WorldlyContainer {
 		this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
 		// Fresh upgrade items have no "Items" list yet; loadAllItems would log decode errors for it.
 		if (tagCompound.contains("Items")) {
-			ContainerHelper.loadAllItems(tagCompound, this.items, net.minecraft.core.RegistryAccess.EMPTY);
+			// 26.1: ContainerHelper works on ValueInput/ValueOutput now; wrap the CustomData tag.
+			ContainerHelper.loadAllItems(TagValueInput.create(ProblemReporter.DISCARDING, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY), tagCompound), this.items);
 		}
 	}
 
 	private void writeToNBT() {
 		CompoundTag tag = this.upgradeStack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
-		ContainerHelper.saveAllItems(tag, this.items, net.minecraft.core.RegistryAccess.EMPTY);
+		TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY));
+		ContainerHelper.saveAllItems(output, this.items);
+		tag.merge(output.buildResult());
 		this.upgradeStack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
 	}
 
@@ -91,7 +100,7 @@ public class RatUpgradeContainer implements WorldlyContainer {
 	}
 
 	@Override
-	public void stopOpen(Player player) {
+	public void stopOpen(ContainerUser user) {
 		this.writeToNBT();
 	}
 

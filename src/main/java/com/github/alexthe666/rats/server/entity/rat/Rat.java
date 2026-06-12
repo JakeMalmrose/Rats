@@ -344,7 +344,7 @@ public class Rat extends DiggingRat {
 	}
 
 	private static boolean spawnCheck(LevelAccessor accessor, BlockPos pos, RandomSource random, EntitySpawnReason type) {
-		if (!accessor.getLevelData().getGameRules().getBooleanOr(RatsMod.SPAWN_RATS, false)) return false;
+		if (!accessor.getLevelData().getGameRules().get(RatsMod.SPAWN_RATS)) return false;
 		if (type != EntitySpawnReason.NATURAL) return true;
 		int spawnRoll = RatConfig.ratSpawnDecrease;
 		if (accessor instanceof ServerLevelAccessor server && server.getLevel().dimension().equals(RatlantisDimensionRegistry.DIMENSION_KEY))

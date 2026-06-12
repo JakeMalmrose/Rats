@@ -15,8 +15,6 @@ import com.github.alexthe666.rats.server.misc.PlagueDoctorTrades;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -40,8 +38,13 @@ import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.monster.*;
+import net.minecraft.world.entity.monster.illager.Evoker;
+import net.minecraft.world.entity.monster.illager.Illusioner;
+import net.minecraft.world.entity.monster.illager.Pillager;
+import net.minecraft.world.entity.monster.illager.Vindicator;
+import net.minecraft.world.entity.monster.zombie.Zombie;
+import net.minecraft.world.entity.monster.zombie.ZombieVillager;
 import net.minecraft.world.entity.npc.villager.AbstractVillager;
-import net.minecraft.world.item.trading.VillagerTrades;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -52,7 +55,6 @@ import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.phys.AABB;
@@ -69,7 +71,8 @@ import net.minecraft.network.syncher.SynchedEntityData;
 public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 
 	private static final EntityDataAccessor<Boolean> WILL_DESPAWN = SynchedEntityData.defineId(PlagueDoctor.class, EntityDataSerializers.BOOLEAN);
-	private static final Predicate<LivingEntity> PLAGUE_PREDICATE = entity -> entity != null && (entity.hasEffect(RatsEffectRegistry.PLAGUE) || entity.getType().is(RatsEntityTags.PLAGUE_LEGION) || (entity instanceof Rat rat && rat.hasPlague()));
+	// 26.1: entity type tags are checked through the registry holder now
+	private static final Predicate<LivingEntity> PLAGUE_PREDICATE = entity -> entity != null && (entity.hasEffect(RatsEffectRegistry.PLAGUE) || entity.typeHolder().is(RatsEntityTags.PLAGUE_LEGION) || (entity instanceof Rat rat && rat.hasPlague()));
 
 	private BlockPos wanderTarget;
 	private int despawnDelay;
@@ -94,7 +97,7 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 			this,
 			PotionContents.createItemStack(Items.POTION, Potions.INVISIBILITY),
 			RatsSoundRegistry.PLAGUE_DOCTOR_DISAPPEAR.get(),
-			doctor -> !this.level().isDay()
+			doctor -> !this.level().isBrightOutside()
 				&& !doctor.isInvisible()
 				&& !doctor.isUsingItem()
 				&& this.invisPotionCooldown <= 0
@@ -104,7 +107,7 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 			this,
 			new ItemStack(Items.MILK_BUCKET),
 			RatsSoundRegistry.PLAGUE_DOCTOR_REAPPEAR.get(),
-			doctor -> this.level().isDay()
+			doctor -> this.level().isBrightOutside()
 				&& doctor.isInvisible()
 				&& !doctor.isUsingItem()
 				&& this.invisPotionCooldown <= 0
@@ -123,14 +126,15 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 		this.goalSelector.addGoal(2, new RangedAttackGoal(this, 1.0D, 60, 10.0F));
 		this.goalSelector.addGoal(2, new PlagueDoctor.MoveToGoal(this, 2.0D, 1.2D));
 		this.goalSelector.addGoal(3, new PlagueDoctorFollowGolemGoal(this));
-		this.goalSelector.addGoal(4, new TemptGoal(this, 1.2D, Ingredient.of(new ItemStack(Blocks.POPPY)), false));
+		this.goalSelector.addGoal(4, new TemptGoal(this, 1.2D, Ingredient.of(Blocks.POPPY), false));
 		this.goalSelector.addGoal(4, new MoveTowardsRestrictionGoal(this, 1.0D));
 		this.goalSelector.addGoal(8, new WaterAvoidingRandomStrollGoal(this, 1.0D));
 		this.goalSelector.addGoal(9, new InteractGoal(this, Player.class, 3.0F, 1.0F));
 		this.goalSelector.addGoal(10, new LookAtPlayerGoal(this, Mob.class, 8.0F));
 
-		this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, ZombieVillager.class, 0, true, false, entity -> entity != null && entity.isAlive() && !((ZombieVillager) entity).isConverting()));
-		this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 0, false, false, PLAGUE_PREDICATE));
+		// 26.1: target goal selectors are TargetingConditions.Selector (target, level) instead of Predicate<LivingEntity>
+		this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, ZombieVillager.class, 0, true, false, (entity, level) -> entity instanceof ZombieVillager villager && villager.isAlive() && !villager.isConverting()));
+		this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 0, false, false, (entity, level) -> PLAGUE_PREDICATE.test(entity)));
 	}
 
 	@Nullable
@@ -178,14 +182,14 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 			}
 
 			if (this.getHealth() < this.getMaxHealth()
-				&& this.getItemInHand(InteractionHand.MAIN_HAND).getFoodProperties(this) != null
+				&& this.getItemInHand(InteractionHand.MAIN_HAND).has(net.minecraft.core.component.DataComponents.FOOD)
 				&& this.getRandom().nextInt(25) == 0) {
 				this.eating = true;
 			}
 
 			if (!this.willDespawn()) {
 
-				if (this.level().isNight() && this.restockedToday) {
+				if (this.level().isDarkOutside() && this.restockedToday) {
 					this.restockedToday = false;
 				}
 
@@ -198,7 +202,7 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 					}
 				}
 
-				if (!this.restockedToday && hasExhaustedTrades && this.level().isDay()) {
+				if (!this.restockedToday && hasExhaustedTrades && this.level().isBrightOutside()) {
 					for (MerchantOffer merchantoffer : this.getOffers()) {
 						merchantoffer.resetUses();
 					}
@@ -216,7 +220,9 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 
 			if (this.tickCount % 4 == 0) {
 				this.munchCounter++;
-				this.playSound(this.getEatingSound(stack), 0.75F,
+				// 26.1: per-stack eating sound now lives on the CONSUMABLE component
+				net.minecraft.world.item.component.Consumable consumable = stack.get(net.minecraft.core.component.DataComponents.CONSUMABLE);
+				this.playSound(consumable != null ? consumable.sound().value() : SoundEvents.GENERIC_EAT.value(), 0.75F,
 					1.0F + (this.getRandom().nextFloat() - this.getRandom().nextFloat()) * 0.4F);
 				this.gameEvent(GameEvent.EAT);
 				this.level().broadcastEntityEvent(this, (byte) 77);
@@ -229,9 +235,15 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 				if (food != null) {
 					this.heal(food.nutrition());
 
-					for (net.minecraft.world.food.FoodProperties.PossibleEffect possible : food.effects()) {
-						if (this.getRandom().nextFloat() < possible.probability()) {
-							this.addEffect(new net.minecraft.world.effect.MobEffectInstance(possible.effect()));
+					// 26.1: food effects moved from FoodProperties to the CONSUMABLE component's consume effects
+					net.minecraft.world.item.component.Consumable consumable = stack.get(net.minecraft.core.component.DataComponents.CONSUMABLE);
+					if (consumable != null) {
+						for (net.minecraft.world.item.consume_effects.ConsumeEffect effect : consumable.onConsumeEffects()) {
+							if (effect instanceof net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect applied && this.getRandom().nextFloat() < applied.probability()) {
+								for (net.minecraft.world.effect.MobEffectInstance instance : applied.effects()) {
+									this.addEffect(new net.minecraft.world.effect.MobEffectInstance(instance));
+								}
+							}
 						}
 					}
 				}
@@ -278,10 +290,12 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 					vec31 = vec31.xRot(-this.getXRot() * Mth.DEG_TO_RAD);
 					vec31 = vec31.yRot(-this.getYHeadRot() * Mth.DEG_TO_RAD);
 					vec31 = vec31.add(this.getX(), this.getEyeY(), this.getZ());
+					// 26.1: ItemParticleOption takes an ItemStackTemplate instead of an ItemStack
+					ItemParticleOption particle = new ItemParticleOption(ParticleTypes.ITEM, net.minecraft.world.item.ItemStackTemplate.fromNonEmptyStack(stack));
 					if (this.level() instanceof ServerLevel server)
-						server.sendParticles(new ItemParticleOption(ParticleTypes.ITEM, stack), vec31.x(), vec31.y(), vec31.z(), 1, vec3.x(), vec3.y() + 0.05D, vec3.z(), 0.0D);
+						server.sendParticles(particle, vec31.x(), vec31.y(), vec31.z(), 1, vec3.x(), vec3.y() + 0.05D, vec3.z(), 0.0D);
 					else
-						this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, stack), vec31.x(), vec31.y(), vec31.z(), vec3.x(), vec3.y() + 0.05D, vec3.z());
+						this.level().addParticle(particle, vec31.x(), vec31.y(), vec31.z(), vec3.x(), vec3.y() + 0.05D, vec3.z());
 				}
 			}
 		} else {
@@ -296,24 +310,16 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 		compound.putInt("DespawnDelay", this.despawnDelay);
 		compound.putBoolean("WillDespawn", this.willDespawn());
 		compound.putBoolean("RestockedToday", this.restockedToday);
-		if (this.wanderTarget != null) {
-			compound.put("WanderTarget", NbtUtils.writeBlockPos(this.wanderTarget));
-		}
+		compound.storeNullable("WanderTarget", BlockPos.CODEC, this.wanderTarget);
 	}
 
 	@Override
 	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
-		if (compound.contains("DespawnDelay")) {
-			this.despawnDelay = compound.getIntOr("DespawnDelay", 0);
-		}
+		this.despawnDelay = compound.getIntOr("DespawnDelay", 0);
 		this.setWillDespawn(compound.getBooleanOr("WillDespawn", false));
 		this.restockedToday = compound.getBooleanOr("RestockedToday", false);
-
-		if (compound.contains("WanderTarget")) {
-			// 1.21: NbtUtils.readBlockPos now requires (CompoundTag, String); returns Optional<BlockPos>.
-			this.wanderTarget = NbtUtils.readBlockPos(compound, "WanderTarget").orElse(null);
-		}
+		this.wanderTarget = compound.read("WanderTarget", BlockPos.CODEC).orElse(null);
 
 		this.setAge(Math.max(0, this.getAge()));
 	}
@@ -354,10 +360,8 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 		return SoundEvents.VILLAGER_DEATH;
 	}
 
-	@Override
-	protected SoundEvent getDrinkingSound(ItemStack stack) {
-		return stack.is(Items.POTION) ? RatsSoundRegistry.PLAGUE_DOCTOR_DRINK_POTION.get() : RatsSoundRegistry.PLAGUE_DOCTOR_DRINK.get();
-	}
+	// 26.1: LivingEntity.getDrinkingSound(ItemStack) hook was removed (drink sounds come from the CONSUMABLE component);
+	// the custom disappear/reappear sounds are still played by the UseItemGoals registered above.
 
 	@Override
 	public void performRangedAttack(LivingEntity target, float distanceFactor) {
@@ -378,11 +382,11 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 		if (RatConfig.blackDeathLightning) {
 			if (this.isAlive() && level.getCurrentDifficultyAt(this.blockPosition()).getDifficulty() != Difficulty.PEACEFUL) {
 				BlackDeath death = new BlackDeath(RatsEntityRegistry.BLACK_DEATH.get(), level);
-				death.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+				death.snapTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
 				EventHooks.finalizeMobSpawn(death, level, level.getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.CONVERSION, null);
 				death.setNoAi(this.isNoAi());
 				if (!this.getMainHandItem().isEmpty()) {
-					this.spawnAtLocation(this.getMainHandItem());
+					this.spawnAtLocation(level, this.getMainHandItem());
 				}
 				if (this.hasCustomName()) {
 					death.setCustomName(this.getCustomName());
@@ -458,10 +462,32 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 		return false;
 	}
 
+	// 26.1: vanilla's VillagerTrades.ItemListing plumbing was replaced by data-driven TradeSets;
+	// the mod keeps programmatic trades via PlagueDoctorTrades.ItemListing and this local helper.
+	private void addOffersFromItemListings(MerchantOffers offers, PlagueDoctorTrades.ItemListing[] listings, int maxNumbers) {
+		java.util.Set<Integer> set = new java.util.HashSet<>();
+		if (listings.length > maxNumbers) {
+			while (set.size() < maxNumbers) {
+				set.add(this.getRandom().nextInt(listings.length));
+			}
+		} else {
+			for (int i = 0; i < listings.length; i++) {
+				set.add(i);
+			}
+		}
+
+		for (Integer index : set) {
+			MerchantOffer offer = listings[index].getOffer(this, this.getRandom());
+			if (offer != null) {
+				offers.add(offer);
+			}
+		}
+	}
+
 	@Override
-	protected void updateTrades() {
-		VillagerTrades.ItemListing[] level1 = PlagueDoctorTrades.PLAGUE_DOCTOR_TRADES.get(1);
-		VillagerTrades.ItemListing[] level2 = PlagueDoctorTrades.PLAGUE_DOCTOR_TRADES.get(2);
+	protected void updateTrades(ServerLevel level) {
+		PlagueDoctorTrades.ItemListing[] level1 = PlagueDoctorTrades.PLAGUE_DOCTOR_TRADES.get(1);
+		PlagueDoctorTrades.ItemListing[] level2 = PlagueDoctorTrades.PLAGUE_DOCTOR_TRADES.get(2);
 		// Defensive guard: avoid Random.nextInt(0) if either tier is missing or empty.
 		if (level1 == null || level2 == null || level2.length == 0) {
 			return;
@@ -481,9 +507,9 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 				k = this.getRandom().nextInt(level2.length);
 				rolls++;
 			}
-			VillagerTrades.ItemListing rareTrade1 = level2[i];
-			VillagerTrades.ItemListing rareTrade2 = level2[j];
-			VillagerTrades.ItemListing rareTrade3 = level2[k];
+			PlagueDoctorTrades.ItemListing rareTrade1 = level2[i];
+			PlagueDoctorTrades.ItemListing rareTrade2 = level2[j];
+			PlagueDoctorTrades.ItemListing rareTrade3 = level2[k];
 			MerchantOffer merchantoffer1 = rareTrade1.getOffer(this, this.getRandom());
 			if (merchantoffer1 != null) {
 				merchantoffers.add(merchantoffer1);
@@ -508,15 +534,15 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 	protected InteractionResult mobInteract(Player player, InteractionHand hand) {
 		ItemStack itemstack = player.getItemInHand(hand);
 		if (itemstack.is(RatsItemRegistry.PLAGUE_TOME.get())) {
-			if (!this.isBaby() && !this.level().isClientSide()) {
-				BlackDeath death = new BlackDeath(RatsEntityRegistry.BLACK_DEATH.get(), this.level());
-				death.moveTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
-				EventHooks.finalizeMobSpawn(death, (ServerLevelAccessor) this.level(), this.level().getCurrentDifficultyAt(death.blockPosition()), EntitySpawnReason.TRIGGERED, null);
+			if (!this.isBaby() && this.level() instanceof ServerLevel serverLevel) {
+				BlackDeath death = new BlackDeath(RatsEntityRegistry.BLACK_DEATH.get(), serverLevel);
+				death.snapTo(this.getX(), this.getY(), this.getZ(), this.getYRot(), this.getXRot());
+				EventHooks.finalizeMobSpawn(death, serverLevel, serverLevel.getCurrentDifficultyAt(death.blockPosition()), EntitySpawnReason.TRIGGERED, null);
 				if (this.hasCustomName()) {
 					death.setCustomName(this.getCustomName());
 				}
 				if (!this.getMainHandItem().isEmpty()) {
-					this.spawnAtLocation(this.getMainHandItem());
+					this.spawnAtLocation(serverLevel, this.getMainHandItem());
 				}
 				this.level().addFreshEntity(death);
 				RatsAdvancementsRegistry.BLACK_DEATH_SUMMONED.get().trigger((ServerPlayer) player);
@@ -527,23 +553,23 @@ public class PlagueDoctor extends AbstractVillager implements RangedAttackMob {
 				}
 				return InteractionResult.SUCCESS;
 			}
-		} else if (!itemstack.is(Items.VILLAGER_SPAWN_EGG) && !itemstack.is(BuiltInRegistries.ITEM.get(Identifier.fromNamespaceAndPath(RatsMod.MODID, "plague_doctor_spawn_egg"))) &&
+		} else if (!itemstack.is(Items.VILLAGER_SPAWN_EGG) && !itemstack.is(BuiltInRegistries.ITEM.getValue(Identifier.fromNamespaceAndPath(RatsMod.MODID, "plague_doctor_spawn_egg"))) &&
 				this.isAlive() && !this.isTrading() && !this.isBaby()) {
 			if (hand == InteractionHand.MAIN_HAND) {
 				player.awardStat(Stats.TALKED_TO_VILLAGER);
 			}
-			// 1.21: AbstractVillager.getOffers() throws on the client when offers haven't been synced yet.
-			// Defer the empty-offers check and trade-screen open to the server; the client just returns sidedSuccess
+			// AbstractVillager.getOffers() throws on the client when offers haven't been synced yet.
+			// Defer the empty-offers check and trade-screen open to the server; the client just returns SUCCESS
 			// so the interaction packet flows to the server.
 			if (this.level().isClientSide()) {
-				return InteractionResult.sidedSuccess(true);
+				return InteractionResult.SUCCESS;
 			}
 			if (this.getOffers().isEmpty()) {
 				return super.mobInteract(player, hand);
 			}
 			this.setTradingPlayer(player);
 			this.openTradingScreen(player, this.getDisplayName(), 1);
-			return InteractionResult.sidedSuccess(false);
+			return InteractionResult.SUCCESS;
 		}
 		return super.mobInteract(player, hand);
 	}

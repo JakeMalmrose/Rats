@@ -12,6 +12,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.DifficultyInstance;
@@ -65,7 +66,7 @@ public class FeralRatlantean extends Monster implements IAnimatedEntity {
 	}
 
 	@Override
-	public boolean doHurtTarget(Entity entity) {
+	public boolean doHurtTarget(ServerLevel level, Entity entity) {
 		if (this.getAnimation() == NO_ANIMATION) {
 			this.setAnimation(this.getRandom().nextBoolean() ? ANIMATION_SLASH : ANIMATION_BITE);
 		}
@@ -85,7 +86,7 @@ public class FeralRatlantean extends Monster implements IAnimatedEntity {
 		AnimationHandler.INSTANCE.updateAnimations(this);
 		if (!this.level().isClientSide()) {
 			if (this.getTarget() != null && this.distanceToSqr(this.getTarget()) < 3.0D && this.hasLineOfSight(this.getTarget())) {
-				if (this.getTarget().hurt(this.damageSources().mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
+				if (this.level() instanceof ServerLevel serverLevel && this.getTarget().hurtServer(serverLevel, this.damageSources().mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
 					if (this.getAnimation() == NO_ANIMATION) {
 						this.setAnimation(this.getRandom().nextBoolean() ? ANIMATION_BITE : ANIMATION_SLASH);
 					}

@@ -12,7 +12,7 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-@EventBusSubscriber(modid = RatsMod.MODID, bus = EventBusSubscriber.Bus.GAME)
+@EventBusSubscriber(modid = RatsMod.MODID)
 public class RatlantisPackEvents {
 
 	@SubscribeEvent

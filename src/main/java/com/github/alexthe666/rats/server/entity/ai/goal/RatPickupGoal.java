@@ -7,6 +7,7 @@ import com.github.alexthe666.rats.server.message.UpdateRatFluidPacket;
 import com.github.alexthe666.rats.server.misc.RatUpgradeUtils;
 import com.github.alexthe666.rats.server.misc.RatUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
@@ -17,13 +18,19 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.ChestBlockEntity;
 import net.minecraft.world.level.gameevent.GameEvent;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemUtil;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
+import java.util.ArrayList;
 import java.util.EnumSet;
+import java.util.List;
 
 public class RatPickupGoal extends Goal implements RatWorkGoal {
 	private final TamedRat rat;
@@ -118,35 +125,47 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 
 	private void executeTask(BlockEntity entity) {
 		if (this.type == PickupType.INVENTORY) {
-			IItemHandler handler = entity.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, entity.getBlockPos(), this.rat.pickupFacing);
+			ResourceHandler<ItemResource> handler = entity.getLevel().getCapability(Capabilities.Item.BLOCK, entity.getBlockPos(), this.rat.pickupFacing);
 			if (handler != null) {
-				int slot = RatUtils.getItemSlotFromItemHandler(this.rat, handler, this.rat.level().getRandom());
+				int slot = this.getPickupSlot(handler);
 				int extractSize = RatUpgradeUtils.hasUpgrade(this.rat, RatsItemRegistry.RAT_UPGRADE_PLATTER.get()) ? 64 : 1;
 				ItemStack stack = ItemStack.EMPTY;
 				try {
-					if (handler.getSlots() > 0 && handler.extractItem(slot, extractSize, true) != ItemStack.EMPTY) {
-						stack = handler.extractItem(slot, extractSize, false);
+					if (slot != -1 && handler.size() > 0) {
+						ItemResource resource = handler.getResource(slot);
+						if (!resource.isEmpty()) {
+							try (Transaction tx = Transaction.open(null)) {
+								int extracted = handler.extract(slot, resource, extractSize, tx);
+								tx.commit();
+								if (extracted > 0) {
+									stack = resource.toStack(extracted);
+								}
+							}
+						}
 					}
 				} catch (Exception e) {
 					//container is empty
 				}
-				if (slot != -1 && stack != ItemStack.EMPTY) {
+				if (slot != -1 && !stack.isEmpty()) {
 					ItemStack duplicate = stack.copy();
-					if (!this.rat.getItemInHand(InteractionHand.MAIN_HAND).isEmpty() && !this.rat.level().isClientSide()) {
-						this.rat.spawnAtLocation(this.rat.getItemInHand(InteractionHand.MAIN_HAND), 0.0F);
+					if (!this.rat.getItemInHand(InteractionHand.MAIN_HAND).isEmpty() && this.rat.level() instanceof ServerLevel serverLevel) {
+						this.rat.spawnAtLocation(serverLevel, this.rat.getItemInHand(InteractionHand.MAIN_HAND), 0.0F);
 					}
 					this.rat.setItemInHand(InteractionHand.MAIN_HAND, duplicate);
 				}
 			}
 		} else if (this.type == PickupType.ENERGY) {
-			IEnergyStorage storage = entity.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, entity.getBlockPos(), this.rat.pickupFacing);
+			EnergyHandler storage = entity.getLevel().getCapability(Capabilities.Energy.BLOCK, entity.getBlockPos(), this.rat.pickupFacing);
 			if (storage != null) {
 				int howMuchWeWant = this.rat.getRFTransferRate() - this.rat.getHeldRF();
 				int recievedEnergy = 0;
 				try {
-					howMuchWeWant = Math.min(storage.getEnergyStored(), howMuchWeWant);
-					if (storage.extractEnergy(howMuchWeWant, true) > 0) {
-						recievedEnergy = storage.extractEnergy(howMuchWeWant, false);
+					howMuchWeWant = Math.min(storage.getAmountAsInt(), howMuchWeWant);
+					if (howMuchWeWant > 0) {
+						try (Transaction tx = Transaction.open(null)) {
+							recievedEnergy = storage.extract(howMuchWeWant, tx);
+							tx.commit();
+						}
 					}
 				} catch (Exception e) {
 					//container is empty
@@ -156,7 +175,7 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 				}
 			}
 		} else if (this.type == PickupType.FLUID) {
-			IFluidHandler fluidHandler = entity.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, entity.getBlockPos(), this.rat.pickupFacing);
+			ResourceHandler<FluidResource> fluidHandler = entity.getLevel().getCapability(Capabilities.Fluid.BLOCK, entity.getBlockPos(), this.rat.pickupFacing);
 			if (fluidHandler != null) {
 				int currentAmount = 0;
 				if (!this.rat.transportingFluid.isEmpty()) {
@@ -166,21 +185,28 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 
 				FluidStack drainedStack = null;
 				try {
-					if (fluidHandler.getTanks() > 0) {
-						FluidStack firstTank = fluidHandler.getFluidInTank(0);
-						if (fluidHandler.getTanks() > 1) {
-							for (int i = 0; i < fluidHandler.getTanks(); i++) {
-								FluidStack otherTank = fluidHandler.getFluidInTank(i);
-								if (!this.rat.transportingFluid.isEmpty() && this.rat.transportingFluid.isFluidEqual(otherTank)) {
+					if (fluidHandler.size() > 0) {
+						FluidStack firstTank = FluidUtil.getStack(fluidHandler, 0);
+						if (fluidHandler.size() > 1) {
+							for (int i = 0; i < fluidHandler.size(); i++) {
+								FluidStack otherTank = FluidUtil.getStack(fluidHandler, i);
+								if (!this.rat.transportingFluid.isEmpty() && FluidStack.isSameFluidSameComponents(this.rat.transportingFluid, otherTank)) {
 									firstTank = otherTank;
 								}
 							}
 						}
-						if (!firstTank.isEmpty() && (this.rat.transportingFluid.isEmpty() || this.rat.transportingFluid.isFluidEqual(firstTank))) {
+						if (!firstTank.isEmpty() && (this.rat.transportingFluid.isEmpty() || FluidStack.isSameFluidSameComponents(this.rat.transportingFluid, firstTank))) {
 							howMuchWeWant = Math.min(firstTank.getAmount(), howMuchWeWant);
 
-							fluidHandler.drain(howMuchWeWant, IFluidHandler.FluidAction.SIMULATE);
-							drainedStack = fluidHandler.drain(howMuchWeWant, IFluidHandler.FluidAction.EXECUTE);
+							if (howMuchWeWant > 0) {
+								try (Transaction tx = Transaction.open(null)) {
+									int drained = fluidHandler.extract(FluidResource.of(firstTank), howMuchWeWant, tx);
+									tx.commit();
+									if (drained > 0) {
+										drainedStack = firstTank.copyWithAmount(drained);
+									}
+								}
+							}
 						}
 					}
 				} catch (Exception e) {
@@ -199,6 +225,23 @@ public class RatPickupGoal extends Goal implements RatWorkGoal {
 					this.rat.playSound(sound, 1, 1);
 				}
 			}
+		}
+	}
+
+	//26.1: inlined replacement for RatUtils.getItemSlotFromItemHandler, running against the transfer-API ResourceHandler
+	private int getPickupSlot(ResourceHandler<ItemResource> handler) {
+		List<Integer> slots = new ArrayList<>();
+		for (int i = 0; i < handler.size(); i++) {
+			if (this.rat.canRatPickupItem(ItemUtil.getStack(handler, i))) {
+				slots.add(i);
+			}
+		}
+		if (slots.isEmpty()) {
+			return -1;
+		} else if (slots.size() == 1) {
+			return slots.get(0);
+		} else {
+			return slots.get(this.rat.level().getRandom().nextInt(slots.size()));
 		}
 	}
 

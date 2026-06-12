@@ -24,7 +24,7 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 import java.util.List;
 import java.util.Objects;
 
-@EventBusSubscriber(modid = RatsMod.MODID, bus = EventBusSubscriber.Bus.MOD)
+@EventBusSubscriber(modid = RatsMod.MODID)
 public class RatsCreativeTabRegistry {
 
 	public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, RatsMod.MODID);

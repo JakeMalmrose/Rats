@@ -159,7 +159,7 @@ public class ThrownBlock extends Entity {
 				}
 				this.discard();
 
-				if (this.level().getGameRules().getBooleanOr(GameRules.RULE_DOMOBLOOT, false)) {
+				if (this.level().getGameRules().get(GameRules.RULE_DOMOBLOOT)) {
 					if (!level().isClientSide() && this.dropBlock) {
 						this.spawnAtLocation(new ItemStack(block, 1), 0.0F);
 					}

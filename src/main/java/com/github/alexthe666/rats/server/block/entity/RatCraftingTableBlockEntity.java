@@ -228,7 +228,7 @@ public class RatCraftingTableBlockEntity extends BlockEntity implements MenuProv
 	}
 
 	public boolean setRecipeUsed(Level level, @Nullable ServerPlayer player, RecipeHolder<CraftingRecipe> recipe) {
-		return !level.getGameRules().getBooleanOr(GameRules.RULE_LIMITED_CRAFTING, false) || recipe.value().isSpecial();
+		return !level.getGameRules().get(GameRules.RULE_LIMITED_CRAFTING) || recipe.value().isSpecial();
 	}
 
 	@Nullable

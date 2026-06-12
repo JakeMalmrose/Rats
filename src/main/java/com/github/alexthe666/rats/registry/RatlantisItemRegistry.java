@@ -1,5 +1,6 @@
 package com.github.alexthe666.rats.registry;
 
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.data.tags.RatsBannerPatternTags;
@@ -29,10 +30,10 @@ public class RatlantisItemRegistry {
 	public static final DeferredHolder<Item, Item> ORATCHALCUM_INGOT = ITEMS.register("oratchalcum_ingot", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).fireResistant()));
 	public static final DeferredHolder<Item, Item> RAW_ORATCHALCUM = ITEMS.register("raw_oratchalcum", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).fireResistant()));
 	public static final DeferredHolder<Item, Item> ORATCHALCUM_NUGGET = ITEMS.register("oratchalcum_nugget", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).fireResistant()));
-	public static final DeferredHolder<Item, ArmorItem> RATLANTIS_HELMET = ITEMS.register("ratlantis_helmet", key -> new RatlantisArmorItem(RatsArmorMaterialRegistry.RATLANTIS, ArmorItem.Type.HELMET, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).fireResistant().rarity(Rarity.UNCOMMON)));
-	public static final DeferredHolder<Item, ArmorItem> RATLANTIS_CHESTPLATE = ITEMS.register("ratlantis_chestplate", key -> new RatlantisArmorItem(RatsArmorMaterialRegistry.RATLANTIS, ArmorItem.Type.CHESTPLATE, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).fireResistant().rarity(Rarity.UNCOMMON)));
-	public static final DeferredHolder<Item, ArmorItem> RATLANTIS_LEGGINGS = ITEMS.register("ratlantis_leggings", key -> new RatlantisArmorItem(RatsArmorMaterialRegistry.RATLANTIS, ArmorItem.Type.LEGGINGS, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).fireResistant().rarity(Rarity.UNCOMMON)));
-	public static final DeferredHolder<Item, ArmorItem> RATLANTIS_BOOTS = ITEMS.register("ratlantis_boots", key -> new RatlantisArmorItem(RatsArmorMaterialRegistry.RATLANTIS, ArmorItem.Type.BOOTS, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).fireResistant().rarity(Rarity.UNCOMMON)));
+	public static final DeferredHolder<Item, Item> RATLANTIS_HELMET = ITEMS.register("ratlantis_helmet", key -> new RatlantisArmorItem(RatsArmorMaterialRegistry.RATLANTIS, ArmorType.HELMET, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).fireResistant().rarity(Rarity.UNCOMMON)));
+	public static final DeferredHolder<Item, Item> RATLANTIS_CHESTPLATE = ITEMS.register("ratlantis_chestplate", key -> new RatlantisArmorItem(RatsArmorMaterialRegistry.RATLANTIS, ArmorType.CHESTPLATE, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).fireResistant().rarity(Rarity.UNCOMMON)));
+	public static final DeferredHolder<Item, Item> RATLANTIS_LEGGINGS = ITEMS.register("ratlantis_leggings", key -> new RatlantisArmorItem(RatsArmorMaterialRegistry.RATLANTIS, ArmorType.LEGGINGS, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).fireResistant().rarity(Rarity.UNCOMMON)));
+	public static final DeferredHolder<Item, Item> RATLANTIS_BOOTS = ITEMS.register("ratlantis_boots", key -> new RatlantisArmorItem(RatsArmorMaterialRegistry.RATLANTIS, ArmorType.BOOTS, RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).fireResistant().rarity(Rarity.UNCOMMON)));
 	public static final DeferredHolder<Item, Item> RATLANTIS_SWORD = ITEMS.register("ratlantis_sword", key -> new RatlantisSwordItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).rarity(Rarity.UNCOMMON).fireResistant()));
 	public static final DeferredHolder<Item, Item> RATLANTIS_PICKAXE = ITEMS.register("ratlantis_pickaxe", key -> new RatlantisToolItem.Pickaxe(RatsRegistryHelper.withItemId(key, new Item.Properties()).rarity(Rarity.UNCOMMON).fireResistant()));
 	public static final DeferredHolder<Item, Item> RATLANTIS_AXE = ITEMS.register("ratlantis_axe", key -> new RatlantisToolItem.Axe(RatsRegistryHelper.withItemId(key, new Item.Properties()).rarity(Rarity.UNCOMMON).fireResistant()));

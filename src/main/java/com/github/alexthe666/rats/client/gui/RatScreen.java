@@ -1,8 +1,6 @@
 package com.github.alexthe666.rats.client.gui;
 
-import net.neoforged.neoforge.network.PacketDistributor;
 import com.github.alexthe666.rats.RatsMod;
-import com.github.alexthe666.rats.client.util.EntityRenderingUtil;
 import com.github.alexthe666.rats.server.entity.rat.RatCommand;
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import com.github.alexthe666.rats.server.inventory.RatMenu;
@@ -10,14 +8,16 @@ import com.github.alexthe666.rats.server.message.RatCommandPacket;
 import com.github.alexthe666.rats.server.message.RatUpgradeVisibilityPacket;
 import com.github.alexthe666.rats.server.misc.RatUtils;
 import com.github.alexthe666.rats.server.misc.RatsLangConstants;
-import com.google.common.collect.Lists;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.player.Inventory;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,17 +29,8 @@ public class RatScreen extends AbstractContainerScreen<RatMenu> {
 	private final TamedRat rat;
 
 	public RatScreen(RatMenu container, Inventory inv, TamedRat rat) {
-		super(container, inv, rat.getDisplayName());
+		super(container, inv, rat.getDisplayName(), 192, 166);
 		this.rat = rat;
-		this.imageWidth = 192;
-		this.imageHeight = 166;
-	}
-
-	@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-		this.renderBackground(graphics, mouseX, mouseY, partialTicks);
-		super.render(graphics, mouseX, mouseY, partialTicks);
-		this.renderTooltip(graphics, mouseX, mouseY);
 	}
 
 	@Override
@@ -59,59 +50,59 @@ public class RatScreen extends AbstractContainerScreen<RatMenu> {
 			}));
 			this.addRenderableWidget(new CommandPressButton(i + 123, j + 52, button -> {
 				this.rat.setCommand(RatCommand.values()[this.currentDisplayCommand]);
-				PacketDistributor.sendToServer(new RatCommandPacket(this.rat.getId(), this.currentDisplayCommand));
+				ClientPacketDistributor.sendToServer(new RatCommandPacket(this.rat.getId(), this.currentDisplayCommand));
 			}));
 			this.addRenderableWidget(new CommandPressButton(i + 123, j + 52, button -> {
 				this.rat.setCommand(RatCommand.values()[this.currentDisplayCommand]);
-				PacketDistributor.sendToServer(new RatCommandPacket(this.rat.getId(), this.currentDisplayCommand));
+				ClientPacketDistributor.sendToServer(new RatCommandPacket(this.rat.getId(), this.currentDisplayCommand));
 			}));
 
 			this.addRenderableWidget(new UpgradeVisibilityButton(i + 39, j + 15, this.rat.isSlotVisible(EquipmentSlot.CHEST), button -> {
 				((UpgradeVisibilityButton) button).toggleVisibility();
 				this.rat.setSlotVisibility(EquipmentSlot.CHEST, ((UpgradeVisibilityButton) button).getUpgradeVisibility());
-				PacketDistributor.sendToServer(new RatUpgradeVisibilityPacket(this.rat.getId(), EquipmentSlot.CHEST, ((UpgradeVisibilityButton) button).getUpgradeVisibility()));
+				ClientPacketDistributor.sendToServer(new RatUpgradeVisibilityPacket(this.rat.getId(), EquipmentSlot.CHEST, ((UpgradeVisibilityButton) button).getUpgradeVisibility()));
 			}));
 			this.addRenderableWidget(new UpgradeVisibilityButton(i + 39, j + 33, this.rat.isSlotVisible(EquipmentSlot.LEGS), button -> {
 				((UpgradeVisibilityButton) button).toggleVisibility();
 				this.rat.setSlotVisibility(EquipmentSlot.LEGS, ((UpgradeVisibilityButton) button).getUpgradeVisibility());
-				PacketDistributor.sendToServer(new RatUpgradeVisibilityPacket(this.rat.getId(), EquipmentSlot.LEGS, ((UpgradeVisibilityButton) button).getUpgradeVisibility()));
+				ClientPacketDistributor.sendToServer(new RatUpgradeVisibilityPacket(this.rat.getId(), EquipmentSlot.LEGS, ((UpgradeVisibilityButton) button).getUpgradeVisibility()));
 			}));
 			this.addRenderableWidget(new UpgradeVisibilityButton(i + 39, j + 51, this.rat.isSlotVisible(EquipmentSlot.FEET), button -> {
 				((UpgradeVisibilityButton) button).toggleVisibility();
 				this.rat.setSlotVisibility(EquipmentSlot.FEET, ((UpgradeVisibilityButton) button).getUpgradeVisibility());
-				PacketDistributor.sendToServer(new RatUpgradeVisibilityPacket(this.rat.getId(), EquipmentSlot.FEET, ((UpgradeVisibilityButton) button).getUpgradeVisibility()));
+				ClientPacketDistributor.sendToServer(new RatUpgradeVisibilityPacket(this.rat.getId(), EquipmentSlot.FEET, ((UpgradeVisibilityButton) button).getUpgradeVisibility()));
 			}));
 
 		}
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
-		// 1.21: AbstractContainerScreen.renderBackground() now calls renderBg() itself,
-		// so calling this.renderBackground(...) from here recurses infinitely.
+	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+		super.extractBackground(graphics, mouseX, mouseY, partialTicks);
 		int k = (this.width - this.imageWidth) / 2;
 		int l = (this.height - this.imageHeight) / 2;
-		graphics.blit(TEXTURE_BACKDROP, k - 8, l, 0, 0, this.imageWidth, this.imageHeight);
-		EntityRenderingUtil.drawEntityOnScreen(graphics, k + 42, l + 64, 70, k + 51 - (float) mouseX, l + 75 - 50 - (float) mouseY, this.rat, false);
-		graphics.blit(TEXTURE, k - 8, l, 0, 0, this.imageWidth, this.imageHeight);
-		graphics.blit(TEXTURE, k + 52, l + 20, this.rat.isMale() ? 0 : 16, 209, 16, 16);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE_BACKDROP, k - 8, l, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+		// 26.1: entity previews go through the vanilla picture-in-picture helper; the box replaces the old feet-anchor + scale call.
+		InventoryScreen.extractEntityInInventoryFollowsMouse(graphics, k + 12, l + 18, k + 72, l + 78, 70, 0.0F, mouseX, mouseY, this.rat);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, k - 8, l, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, k + 52, l + 20, this.rat.isMale() ? 0 : 16, 209, 16, 16, 256, 256);
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-		graphics.drawString(this.font, this.getTitle(), this.imageWidth / 2 - this.font.width(this.getTitle()) / 2, 6, 4210752, false);
+	protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
+		graphics.text(this.font, this.getTitle(), this.imageWidth / 2 - this.font.width(this.getTitle()) / 2, 6, 4210752, false);
 
 		Component commandDesc = Component.translatable(RatsLangConstants.RAT_CURRENT_COMMAND);
-		graphics.drawString(this.font, commandDesc, this.imageWidth / 2 - this.font.width(commandDesc) / 2 + 38, 19, 4210752, false);
+		graphics.text(this.font, commandDesc, this.imageWidth / 2 - this.font.width(commandDesc) / 2 + 38, 19, 4210752, false);
 
 		Component command = Component.translatable(rat.getCommand().getTranslateName());
-		graphics.drawString(this.font, command, this.imageWidth / 2 - this.font.width(command) / 2 + 36, 31, 0XFFFFFF, false);
+		graphics.text(this.font, command, this.imageWidth / 2 - this.font.width(command) / 2 + 36, 31, 0XFFFFFF, false);
 
 		Component statusDesc = Component.translatable(RatsLangConstants.RAT_COMMAND_SET);
-		graphics.drawString(this.font, statusDesc, this.imageWidth / 2 - this.font.width(statusDesc) / 2 + 36, 44, 4210752, false);
+		graphics.text(this.font, statusDesc, this.imageWidth / 2 - this.font.width(statusDesc) / 2 + 36, 44, 4210752, false);
 		RatCommand command1 = RatUtils.wrapCommand(currentDisplayCommand);
 		Component command2 = Component.translatable(command1.getTranslateName());
-		graphics.drawString(this.font, command2, this.imageWidth / 2 - this.font.width(command2) / 2 + 36, 56, 0XFFFFFF, false);
+		graphics.text(this.font, command2, this.imageWidth / 2 - this.font.width(command2) / 2 + 36, 56, 0XFFFFFF, false);
 		int i = (this.width - 248) / 2;
 		int j = (this.height - 166) / 2;
 		if (mouseX > i + 116 && mouseX < i + 198 && mouseY > j + 22 && mouseY < j + 45) {
@@ -129,15 +120,16 @@ public class RatScreen extends AbstractContainerScreen<RatMenu> {
 					currentStrLength = 0;
 				}
 			}
-			List<MutableComponent> convertedList = new ArrayList<>();
+			List<Component> convertedList = new ArrayList<>();
 			for (String str : list) {
 				convertedList.add(Component.literal(str));
 			}
-			graphics.renderTooltip(this.font, Lists.transform(convertedList, Component::getVisualOrderText), mouseX - i - 30, mouseY - j + 10);
+			// 26.1: tooltips are queued via setTooltipForNextFrame (absolute screen coordinates) instead of drawn immediately.
+			graphics.setTooltipForNextFrame(this.font, convertedList, java.util.Optional.empty(), mouseX - 2, mouseY + 10);
 		}
 		if (mouseX > i + 116 && mouseX < i + 198 && mouseY > j + 53 && mouseY < j + 69) {
 			MutableComponent commandText = Component.translatable(command1.getTranslateDescription());
-			graphics.renderTooltip(this.font, this.font.split(commandText, 110), mouseX - i - 30, mouseY - j + 10);
+			graphics.setTooltipForNextFrame(this.font.split(commandText, 110), mouseX - 2, mouseY + 10);
 		}
 	}
 }

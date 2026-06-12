@@ -29,6 +29,8 @@ import net.minecraft.world.entity.raid.Raid;
 import net.minecraft.world.item.AxeItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.level.gamerules.GameRule;
+import net.minecraft.world.level.gamerules.GameRuleCategory;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
@@ -82,9 +84,9 @@ public class RatsMod {
 		SoundEvents.NETHER_WOOD_BUTTON_CLICK_OFF, SoundEvents.NETHER_WOOD_BUTTON_CLICK_ON);
 	public static final WoodType PIRAT_WOOD_TYPE = WoodType.register(new WoodType(Identifier.fromNamespaceAndPath(MODID, "pirat").toString(), PIRAT_WOOD_SET, SoundType.NETHER_WOOD, SoundType.NETHER_WOOD_HANGING_SIGN, SoundEvents.NETHER_WOOD_FENCE_GATE_CLOSE, SoundEvents.NETHER_WOOD_FENCE_GATE_OPEN));
 
-	public static final GameRules.Key<GameRules.BooleanValue> SPAWN_RATS = GameRules.register("doRatSpawning", GameRules.Category.SPAWNING, GameRules.BooleanValue.create(true));
-	public static final GameRules.Key<GameRules.BooleanValue> SPAWN_PIPERS = GameRules.register("doPiperSpawning", GameRules.Category.SPAWNING, GameRules.BooleanValue.create(true));
-	public static final GameRules.Key<GameRules.BooleanValue> SPAWN_PLAGUE_DOCTORS = GameRules.register("doPlagueDoctorSpawning", GameRules.Category.SPAWNING, GameRules.BooleanValue.create(true));
+	public static final GameRule<Boolean> SPAWN_RATS = GameRules.registerBoolean("doRatSpawning", GameRuleCategory.SPAWNING, true);
+	public static final GameRule<Boolean> SPAWN_PIPERS = GameRules.registerBoolean("doPiperSpawning", GameRuleCategory.SPAWNING, true);
+	public static final GameRule<Boolean> SPAWN_PLAGUE_DOCTORS = GameRules.registerBoolean("doPlagueDoctorSpawning", GameRuleCategory.SPAWNING, true);
 
 	public static boolean ICEANDFIRE_LOADED;
 	public static boolean RATLANTIS_DATAPACK_ENABLED = false;

@@ -45,7 +45,7 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 
 	@Override
 	public int tick(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies) {
-		if (level.getGameRules().getBooleanOr(RatsMod.SPAWN_PLAGUE_DOCTORS, false) && this.tickDelay-- <= 0) {
+		if (level.getGameRules().get(RatsMod.SPAWN_PLAGUE_DOCTORS) && this.tickDelay-- <= 0) {
 			this.tickDelay = 1200;
 			PlagueDoctorWorldData data = PlagueDoctorWorldData.get(level);
 			if (data != null) {
@@ -53,7 +53,7 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 				data.setDoctorSpawnDelay(this.spawnDelay);
 				if (this.spawnDelay <= 0) {
 					this.spawnDelay = 24000;
-					if (level.getGameRules().getBooleanOr(GameRules.RULE_DOMOBSPAWNING, false)) {
+					if (level.getGameRules().get(GameRules.RULE_DOMOBSPAWNING)) {
 						int i = this.spawnChance;
 						this.spawnChance = Mth.clamp(this.spawnChance + 25, 25, 75);
 						data.setDoctorSpawnChance(this.spawnChance);

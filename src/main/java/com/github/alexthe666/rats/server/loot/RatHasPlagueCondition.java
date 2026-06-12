@@ -6,14 +6,14 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
+import com.mojang.serialization.MapCodec;
 
 public class RatHasPlagueCondition implements LootItemCondition {
 
 	public static final MapCodec<RatHasPlagueCondition> CODEC = MapCodec.unit(RatHasPlagueCondition::new);
 
 	@Override
-	public LootItemConditionType getType() {
+	public MapCodec<? extends LootItemCondition> codec() {
 		return RatsLootRegistry.RAT_HAS_PLAGUE.get();
 	}
 

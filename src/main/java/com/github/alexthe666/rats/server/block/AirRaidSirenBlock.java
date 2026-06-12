@@ -92,7 +92,7 @@ public class AirRaidSirenBlock extends Block implements CustomItemRarity {
 			EventHooks.finalizeMobSpawn(baron, (ServerLevelAccessor) level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.MOB_SUMMONED, null);
 			baron.restrictTo(pos, 16);
 
-			if (level.getGameRules().getBooleanOr(GameRules.RULE_DOBLOCKDROPS, false)) {
+			if (level.getGameRules().get(GameRules.RULE_DOBLOCKDROPS)) {
 				for (int i = 0; i < 2; i++) {
 					RandomSource rand = level.getRandom();
 					level.addFreshEntity(new ItemEntity(level, pos.getX() + 0.5D + (rand.nextFloat() - 0.5D) * 3, pos.getY() - 1, pos.getZ() + 0.5D + (rand.nextFloat() - 0.5D) * 3, new ItemStack(Items.IRON_INGOT)));

@@ -118,7 +118,7 @@ public class RatFishermanGoal extends BaseRatHarvestGoal {
 
 	private boolean isShore(BlockPos pos, Level world) {
 		for (Direction facing : Direction.Plane.HORIZONTAL) {
-			if (world.getBlockState(pos.relative(facing)).is(Blocks.WATER) && world.getBlockState(pos).isSolidRender(this.rat.level(), pos) && world.isEmptyBlock(pos.above())) {
+			if (world.getBlockState(pos.relative(facing)).is(Blocks.WATER) && world.getBlockState(pos).isSolidRender() && world.isEmptyBlock(pos.above())) {
 				return true;
 			}
 		}

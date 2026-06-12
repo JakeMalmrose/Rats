@@ -75,7 +75,7 @@ public class RatCraftingResultSlot extends SlotItemHandler {
 	@Override
 	protected void checkTakeAchievements(ItemStack stack) {
 		if (this.amountCrafted > 0) {
-			stack.onCraftedBy(this.player.level(), this.player, this.amountCrafted);
+			stack.onCraftedBy(this.player, this.amountCrafted);
 			EventHooks.firePlayerCraftingEvent(this.player, stack, this.table.matrixWrapper);
 		}
 		this.amountCrafted = 0;

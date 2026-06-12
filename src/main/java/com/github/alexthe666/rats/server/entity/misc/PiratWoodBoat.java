@@ -5,7 +5,6 @@ import net.minecraft.world.level.storage.ValueOutput;
 import com.github.alexthe666.rats.registry.RatlantisBlockRegistry;
 import com.github.alexthe666.rats.registry.RatlantisEntityRegistry;
 import com.github.alexthe666.rats.registry.RatlantisItemRegistry;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -13,7 +12,6 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.vehicle.boat.Boat;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.server.level.ServerEntity;
@@ -24,7 +22,12 @@ public class PiratWoodBoat extends Boat {
 	private static final EntityDataAccessor<Integer> BOAT_TYPE = SynchedEntityData.defineId(PiratWoodBoat.class, EntityDataSerializers.INT);
 
 	public PiratWoodBoat(EntityType<? extends Boat> type, Level level) {
-		super(type, level);
+		// 26.1: AbstractBoat takes its (final) drop item via the constructor; the only wood type is PIRAT.
+		this(type, level, RatlantisItemRegistry.PIRAT_BOAT::get);
+	}
+
+	protected PiratWoodBoat(EntityType<? extends Boat> type, Level level, java.util.function.Supplier<net.minecraft.world.item.Item> dropItem) {
+		super(type, level, dropItem);
 		this.blocksBuilding = true;
 	}
 
@@ -40,12 +43,7 @@ public class PiratWoodBoat extends Boat {
 		return Type.byId(this.getEntityData().get(BOAT_TYPE));
 	}
 
-	@Override
-	public Item getDropItem() {
-		return switch (this.getRatsBoatType()) {
-			case PIRAT -> RatlantisItemRegistry.PIRAT_BOAT.get();
-		};
-	}
+	// 26.1: AbstractBoat.getDropItem() is final; the drop item is supplied through the super constructor.
 
 	public void setTwilightBoatType(Type boatType) {
 		this.getEntityData().set(BOAT_TYPE, boatType.ordinal());
@@ -64,9 +62,7 @@ public class PiratWoodBoat extends Boat {
 
 	@Override
 	protected void readAdditionalSaveData(ValueInput tag) {
-		if (tag.contains("Type")) {
-			this.setTwilightBoatType(Type.getTypeFromString(tag.getStringOr("Type", "")));
-		}
+		this.setTwilightBoatType(Type.getTypeFromString(tag.getStringOr("Type", Type.PIRAT.getName())));
 	}
 
 	@Override

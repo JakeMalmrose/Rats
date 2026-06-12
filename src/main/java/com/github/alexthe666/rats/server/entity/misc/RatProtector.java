@@ -4,6 +4,7 @@ import com.github.alexthe666.rats.registry.RatsParticleRegistry;
 import com.github.alexthe666.rats.server.entity.ai.navigation.control.EtherealRatMoveControl;
 import com.github.alexthe666.rats.server.entity.ai.navigation.navigation.EtherealRatNavigation;
 import com.github.alexthe666.rats.server.entity.rat.AbstractRat;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
@@ -22,16 +23,15 @@ public class RatProtector extends AbstractRat {
 	}
 
 	@Override
-	protected int getBaseExperienceReward() {
-		// 1.21: getExperienceReward is final; use getBaseExperienceReward.
+	protected int getBaseExperienceReward(ServerLevel level) {
 		return 0;
 	}
 
 	@Override
-	public boolean doHurtTarget(Entity entity) {
-		boolean flag = entity.hurt(this.damageSources().mobAttack(this), (float) ((int) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue()));
+	public boolean doHurtTarget(ServerLevel level, Entity entity) {
+		boolean flag = entity.hurtServer(level, this.damageSources().mobAttack(this), (float) ((int) this.getAttribute(Attributes.ATTACK_DAMAGE).getValue()));
 		if (flag) {
-			this.kill();
+			this.kill(level);
 		}
 		return flag;
 	}
@@ -75,9 +75,9 @@ public class RatProtector extends AbstractRat {
 	public void tick() {
 		super.tick();
 		this.noPhysics = true;
-		if (!this.level().isClientSide()) {
+		if (this.level() instanceof ServerLevel serverLevel) {
 			if (this.getTarget() == null || !this.getTarget().isAlive()) {
-				this.kill();
+				this.kill(serverLevel);
 			} else {
 				LivingEntity target = this.getTarget();
 				this.getMoveControl().setWantedPosition(target.getX(), target.getY() + target.getBbHeight() / 2, target.getZ(), 1);

@@ -12,10 +12,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.server.players.OldUsersConverter;
 import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
@@ -35,7 +35,8 @@ import net.minecraft.network.syncher.SynchedEntityData;
 
 public class PlagueBeast extends FeralRatlantean {
 
-	protected static final EntityDataAccessor<Optional<UUID>> OWNER_UNIQUE_ID = SynchedEntityData.defineId(PlagueBeast.class, EntityDataSerializers.OPTIONAL_UUID);
+	// 26.1: OPTIONAL_UUID serializer removed, owners are synced as EntityReferences now
+	protected static final EntityDataAccessor<Optional<EntityReference<LivingEntity>>> OWNER_UNIQUE_ID = SynchedEntityData.defineId(PlagueBeast.class, EntityDataSerializers.OPTIONAL_LIVING_ENTITY_REFERENCE);
 
 	public PlagueBeast(EntityType<? extends Monster> type, Level level) {
 		super(type, level);
@@ -80,7 +81,7 @@ public class PlagueBeast extends FeralRatlantean {
 				double extraZ = (double) (radius * Mth.cos(angle)) + death.getZ();
 				BlockPos runToPos = BlockPos.containing(extraX, death.getY(), extraZ);
 				int steps = 0;
-				while (this.level().getBlockState(runToPos).isSolidRender(this.level(), runToPos) && steps < 10) {
+				while (this.level().getBlockState(runToPos).isSolidRender() && steps < 10) {
 					runToPos = runToPos.above();
 					steps++;
 				}
@@ -118,64 +119,36 @@ public class PlagueBeast extends FeralRatlantean {
 	@Override
 	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
-		if (this.getOwnerId() == null) {
-			compound.putString("OwnerUUID", "");
-		} else {
-			compound.putString("OwnerUUID", this.getOwnerId().toString());
-		}
+		EntityReference.store(this.getEntityData().get(OWNER_UNIQUE_ID).orElse(null), compound, "OwnerUUID");
 	}
 
 	@Override
 	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
-		UUID uuid;
-		if (compound.hasUUID("Owner")) {
-			uuid = compound.getUUID("Owner");
-		} else {
-			String s = compound.getStringOr("Owner", "");
-			uuid = OldUsersConverter.convertMobOwnerIfNecessary(this.getServer(), s);
+		EntityReference<LivingEntity> owner = EntityReference.readWithOldOwnerConversion(compound, "Owner", this.level());
+		if (owner == null) {
+			owner = EntityReference.readWithOldOwnerConversion(compound, "OwnerUUID", this.level());
 		}
-
-		if (uuid != null) {
-			try {
-				this.setOwnerId(uuid);
-			} catch (Throwable ignored) {
-			}
-		}
+		this.getEntityData().set(OWNER_UNIQUE_ID, Optional.ofNullable(owner));
 	}
 
 	@Nullable
 	public UUID getOwnerId() {
-		return this.getEntityData().get(OWNER_UNIQUE_ID).orElse(null);
+		return this.getEntityData().get(OWNER_UNIQUE_ID).map(EntityReference::getUUID).orElse(null);
 	}
 
 	public void setOwnerId(@Nullable UUID uuid) {
-		this.getEntityData().set(OWNER_UNIQUE_ID, Optional.ofNullable(uuid));
+		this.getEntityData().set(OWNER_UNIQUE_ID, Optional.ofNullable(uuid).map(EntityReference::of));
 	}
 
 	@Nullable
 	public LivingEntity getOwner() {
-		try {
-			UUID uuid = this.getOwnerId();
-			LivingEntity player = uuid == null ? null : this.level().getPlayerByUUID(uuid);
-			if (player != null) {
-				return player;
-			} else {
-				if (!this.level().isClientSide()) {
-					Entity entity = this.level().getServer().getLevel(this.level().dimension()).getEntity(uuid);
-					if (entity instanceof LivingEntity living) {
-						return living;
-					}
-				}
-			}
-		} catch (IllegalArgumentException var2) {
-			return null;
-		}
-		return null;
+		return EntityReference.getLivingEntity(this.getEntityData().get(OWNER_UNIQUE_ID).orElse(null), this.level());
 	}
 
+	// 26.1: isAlliedTo(Entity) is final, override considersEntityAsAlly instead
 	@Override
-	public boolean isAlliedTo(Entity entity) {
-		return super.isAlliedTo(entity) || entity.getType().is(RatsEntityTags.PLAGUE_LEGION);
+	protected boolean considersEntityAsAlly(Entity entity) {
+		return super.considersEntityAsAlly(entity) || entity.is(RatsEntityTags.PLAGUE_LEGION);
 	}
 }

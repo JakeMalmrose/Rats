@@ -8,6 +8,7 @@ import com.github.alexthe666.rats.server.entity.rat.DiggingRat;
 import com.github.alexthe666.rats.server.misc.RatPathingHelper;
 import com.github.alexthe666.rats.server.misc.RatUtils;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
@@ -63,8 +64,8 @@ public class RatRaidChestsGoal extends RatMoveToBlockGoal {
 					if (stack != ItemStack.EMPTY) {
 						ItemStack duplicate = stack.copy();
 						duplicate.setCount(1);
-						if (!this.rat.getItemInHand(InteractionHand.MAIN_HAND).isEmpty()) {
-							this.rat.spawnAtLocation(this.rat.getItemInHand(InteractionHand.MAIN_HAND), 0.0F);
+						if (!this.rat.getItemInHand(InteractionHand.MAIN_HAND).isEmpty() && this.rat.level() instanceof ServerLevel serverLevel) {
+							this.rat.spawnAtLocation(serverLevel, this.rat.getItemInHand(InteractionHand.MAIN_HAND), 0.0F);
 						}
 						this.rat.setItemInHand(InteractionHand.MAIN_HAND, duplicate);
 						stack.shrink(1);

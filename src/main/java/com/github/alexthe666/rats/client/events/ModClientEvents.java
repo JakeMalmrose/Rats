@@ -70,7 +70,7 @@ import java.util.Objects;
 
 //the mod event class mostly stores registry event things, such as registering renderers, item and block colors, shaders, and layer definitions.
 //for Forge events, use ForgeClientEvents
-@EventBusSubscriber(modid = RatsMod.MODID, bus = EventBusSubscriber.Bus.MOD, value = Dist.CLIENT)
+@EventBusSubscriber(modid = RatsMod.MODID, value = Dist.CLIENT)
 public class ModClientEvents {
 
 	public static boolean shouldRenderNameplates() {

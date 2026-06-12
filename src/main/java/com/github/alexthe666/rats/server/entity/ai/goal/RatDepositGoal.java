@@ -21,12 +21,15 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
 import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.fluids.capability.IFluidHandler;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.fluid.FluidUtil;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.ItemUtil;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 
 import java.util.EnumSet;
 import java.util.List;
@@ -63,7 +66,7 @@ public class RatDepositGoal extends Goal implements RatWorkGoal {
 				if (this.rat.getMainHandItem().getCount() < 64 && !this.getItemsOfTypeAround(this.rat.getMainHandItem()).isEmpty())
 					return false;
 			}
-			if (te.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, te.getBlockPos(), this.rat.depositFacing) == null) {
+			if (te.getLevel().getCapability(Capabilities.Item.BLOCK, te.getBlockPos(), this.rat.depositFacing) == null) {
 				return false;
 			}
 
@@ -71,14 +74,14 @@ public class RatDepositGoal extends Goal implements RatWorkGoal {
 			if (this.rat.getRFTransferRate() <= 0 || this.rat.getHeldRF() <= 0) {
 				return false;
 			}
-			if (te.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, te.getBlockPos(), this.rat.depositFacing) == null) {
+			if (te.getLevel().getCapability(Capabilities.Energy.BLOCK, te.getBlockPos(), this.rat.depositFacing) == null) {
 				return false;
 			}
 		} else if (this.type == DepositType.FLUID) {
 			if (this.rat.transportingFluid.isEmpty() || this.rat.transportingFluid.getAmount() == 0) {
 				return false;
 			}
-			if (te.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, te.getBlockPos(), this.rat.depositFacing) == null) {
+			if (te.getLevel().getCapability(Capabilities.Fluid.BLOCK, te.getBlockPos(), this.rat.depositFacing) == null) {
 				return false;
 			}
 		}
@@ -155,11 +158,12 @@ public class RatDepositGoal extends Goal implements RatWorkGoal {
 
 	private void executeTask(BlockEntity entity) {
 		if (this.type == DepositType.INVENTORY) {
-			IItemHandler resolvedHandler = entity.getLevel().getCapability(Capabilities.ItemHandler.BLOCK, entity.getBlockPos(), this.rat.depositFacing);
+			ResourceHandler<ItemResource> resolvedHandler = entity.getLevel().getCapability(Capabilities.Item.BLOCK, entity.getBlockPos(), this.rat.depositFacing);
 			if (resolvedHandler != null) {
 				ItemStack duplicate = this.rat.getItemInHand(InteractionHand.MAIN_HAND).copy();
-				if (!ItemHandlerHelper.insertItem(resolvedHandler, duplicate, true).equals(duplicate)) {
-					ItemStack shrunkenStack = ItemHandlerHelper.insertItem(resolvedHandler, duplicate, false);
+				//26.1: the transfer API always returns a copied remainder, so compare counts instead of instances
+				if (ItemUtil.insertItemReturnRemaining(resolvedHandler, duplicate, true, null).getCount() != duplicate.getCount()) {
+					ItemStack shrunkenStack = ItemUtil.insertItemReturnRemaining(resolvedHandler, duplicate, false, null);
 					if (shrunkenStack.isEmpty()) {
 						this.rat.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 					} else {
@@ -168,13 +172,16 @@ public class RatDepositGoal extends Goal implements RatWorkGoal {
 				}
 			}
 		} else if (this.type == DepositType.ENERGY) {
-			IEnergyStorage storage = entity.getLevel().getCapability(Capabilities.EnergyStorage.BLOCK, entity.getBlockPos(), this.rat.depositFacing);
+			EnergyHandler storage = entity.getLevel().getCapability(Capabilities.Energy.BLOCK, entity.getBlockPos(), this.rat.depositFacing);
 			if (storage != null) {
 				int howMuchWeHave = this.rat.getHeldRF();
 				int inputtedEnergy = 0;
 				try {
-					if (storage.canReceive() && storage.receiveEnergy(howMuchWeHave, true) > 0) {
-						inputtedEnergy = storage.receiveEnergy(howMuchWeHave, false);
+					if (howMuchWeHave > 0) {
+						try (Transaction tx = Transaction.open(null)) {
+							inputtedEnergy = storage.insert(howMuchWeHave, tx);
+							tx.commit();
+						}
 					}
 				} catch (Exception e) {
 					//container is empty
@@ -185,24 +192,25 @@ public class RatDepositGoal extends Goal implements RatWorkGoal {
 			}
 		} else if (this.type == DepositType.FLUID) {
 			FluidStack copiedFluid = this.rat.transportingFluid.copy();
-			IFluidHandler fluidHandler = entity.getLevel().getCapability(Capabilities.FluidHandler.BLOCK, entity.getBlockPos(), this.rat.depositFacing);
+			ResourceHandler<FluidResource> fluidHandler = entity.getLevel().getCapability(Capabilities.Fluid.BLOCK, entity.getBlockPos(), this.rat.depositFacing);
 			if (fluidHandler != null) {
 				if (!this.rat.transportingFluid.isEmpty()) {
 					int minusAmount = 0;
 					try {
-						if (fluidHandler.getTanks() > 0) {
-							FluidStack firstTank = fluidHandler.getFluidInTank(0);
-							if (fluidHandler.getTanks() > 1) {
-								for (int i = 0; i < fluidHandler.getTanks(); i++) {
-									FluidStack otherTank = fluidHandler.getFluidInTank(i);
-									if (copiedFluid != null && copiedFluid.isFluidEqual(otherTank)) {
+						if (fluidHandler.size() > 0) {
+							FluidStack firstTank = FluidUtil.getStack(fluidHandler, 0);
+							if (fluidHandler.size() > 1) {
+								for (int i = 0; i < fluidHandler.size(); i++) {
+									FluidStack otherTank = FluidUtil.getStack(fluidHandler, i);
+									if (copiedFluid != null && FluidStack.isSameFluidSameComponents(copiedFluid, otherTank)) {
 										firstTank = otherTank;
 									}
 								}
 							}
-							if (firstTank.isEmpty() || (copiedFluid == null || copiedFluid.isFluidEqual(firstTank))) {
-								if (fluidHandler.fill(copiedFluid, IFluidHandler.FluidAction.SIMULATE) != 0) {
-									minusAmount = fluidHandler.fill(copiedFluid, IFluidHandler.FluidAction.EXECUTE);
+							if (firstTank.isEmpty() || (copiedFluid == null || FluidStack.isSameFluidSameComponents(copiedFluid, firstTank))) {
+								try (Transaction tx = Transaction.open(null)) {
+									minusAmount = fluidHandler.insert(FluidResource.of(copiedFluid), copiedFluid.getAmount(), tx);
+									tx.commit();
 								}
 							}
 						}

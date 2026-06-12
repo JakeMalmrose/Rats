@@ -9,7 +9,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.item.ItemNameBlockItem;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.BonemealableBlock;
@@ -66,7 +66,8 @@ public class RatFarmGoal extends BaseRatHarvestGoal {
 							ItemStack seedStack = this.rat.getItemInHand(InteractionHand.MAIN_HAND).copy();
 							seedStack.setCount(1);
 							this.rat.getItemInHand(InteractionHand.MAIN_HAND).shrink(1);
-							if (seedStack.getItem() instanceof ItemNameBlockItem item) {
+							//26.1: ItemNameBlockItem was folded into BlockItem (Item.Properties#useItemDescriptionPrefix)
+							if (seedStack.getItem() instanceof BlockItem item) {
 								this.rat.level().setBlockAndUpdate(this.getTargetBlock().above(), item.getBlock().defaultBlockState());
 							}
 						}

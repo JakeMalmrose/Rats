@@ -97,7 +97,8 @@ public class PiedPiper extends Raider implements RatSummoner {
 
 	@Override
 	public boolean checkSpawnRules(LevelAccessor accessor, EntitySpawnReason type) {
-		if (!accessor.getLevelData().getGameRules().getBooleanOr(RatsMod.SPAWN_PIPERS, false)) return false;
+		// 26.1: game rules now live on the ServerLevel rather than LevelData
+		if (accessor instanceof ServerLevelAccessor serverAccessor && !serverAccessor.getLevel().getGameRules().get(RatsMod.SPAWN_PIPERS)) return false;
 		if (type == EntitySpawnReason.EVENT || type == EntitySpawnReason.SPAWNER) return super.checkSpawnRules(accessor, type);
 		int spawnRoll = RatConfig.piperSpawnDecrease;
 		if (spawnRoll == 0 || accessor.getRandom().nextInt(spawnRoll) == 0) {
@@ -113,7 +114,7 @@ public class PiedPiper extends Raider implements RatSummoner {
 			for (Rat rat : this.level().getEntitiesOfClass(Rat.class, new AABB(this.getX() - dist, this.getY() - dist, this.getZ() - dist, this.getX() + dist, this.getY() + dist, this.getZ() + dist))) {
 				if (rat.isOwnedBy(this)) {
 					rat.setTame(false, true);
-					rat.setOwnerUUID(null);
+					rat.setOwnerReference(null);
 					rat.setFleePos(rat.blockPosition());
 					rat.setTarget(null);
 					rat.setLastHurtByMob(null);
@@ -185,12 +186,12 @@ public class PiedPiper extends Raider implements RatSummoner {
 			if (this.getRatsSummoned() < 6 && this.ratCooldown == 0) {
 				this.level().broadcastEntityEvent(this, (byte) 82);
 				Rat rat = new Rat(RatsEntityRegistry.RAT.get(), this.level());
-				EventHooks.finalizeMobSpawn(rat, (ServerLevel) this.level(), this.level().getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.MOB_SUMMONED, null);
+				EventHooks.finalizeMobSpawn(rat, (ServerLevel) this.level(), ((ServerLevel) this.level()).getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.MOB_SUMMONED, null);
 				rat.copyPosition(this);
 				this.level().addFreshEntity(rat);
 				rat.setPlagued(false);
 				rat.setTame(false, true);
-				rat.setOwnerUUID(this.getUUID());
+				rat.setOwner(this);
 				if (this.getTarget() != null) {
 					rat.setTarget(this.getTarget());
 				}
@@ -261,9 +262,9 @@ public class PiedPiper extends Raider implements RatSummoner {
 		super.dropCustomDeathLoot(_sl, source, playerKill);
 		if (source.getEntity() instanceof AbstractRat) {
 			if (this.getRandom().nextBoolean()) {
-				this.spawnAtLocation(RatsItemRegistry.MUSIC_DISC_MICE_ON_VENUS.get(), 1);
+				this.spawnAtLocation(_sl, RatsItemRegistry.MUSIC_DISC_MICE_ON_VENUS.get());
 			} else {
-				this.spawnAtLocation(RatsItemRegistry.MUSIC_DISC_LIVING_MICE.get(), 1);
+				this.spawnAtLocation(_sl, RatsItemRegistry.MUSIC_DISC_LIVING_MICE.get());
 			}
 		}
 	}

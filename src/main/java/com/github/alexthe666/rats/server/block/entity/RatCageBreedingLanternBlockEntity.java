@@ -8,7 +8,6 @@ import com.github.alexthe666.rats.registry.RatsItemRegistry;
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.DustParticleOptions;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
@@ -16,7 +15,6 @@ import net.minecraft.world.phys.AABB;
 
 import java.util.ArrayList;
 import java.util.List;
-import net.minecraft.core.HolderLookup;
 
 public class RatCageBreedingLanternBlockEntity extends DecoratedRatCageBlockEntity {
 
@@ -40,14 +38,14 @@ public class RatCageBreedingLanternBlockEntity extends DecoratedRatCageBlockEnti
 	}
 
 	@Override
-	public void saveAdditional(ValueOutput compound) {
+	protected void saveAdditional(ValueOutput compound) {
 		compound.putInt("BreedingCooldown", this.breedingCooldown);
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(compound);
 	}
 
 	@Override
 	protected void loadAdditional(ValueInput compound) {
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(compound);
 		this.breedingCooldown = compound.getIntOr("BreedingCooldown", 0);
 	}
 

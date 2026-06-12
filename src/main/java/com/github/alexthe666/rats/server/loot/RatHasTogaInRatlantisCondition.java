@@ -7,14 +7,14 @@ import com.mojang.serialization.MapCodec;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-import net.minecraft.world.level.storage.loot.predicates.LootItemConditionType;
+import com.mojang.serialization.MapCodec;
 
 public class RatHasTogaInRatlantisCondition implements LootItemCondition {
 
 	public static final MapCodec<RatHasTogaInRatlantisCondition> CODEC = MapCodec.unit(RatHasTogaInRatlantisCondition::new);
 
 	@Override
-	public LootItemConditionType getType() {
+	public MapCodec<? extends LootItemCondition> codec() {
 		return RatsLootRegistry.HAS_TOGA_AND_IN_RATLANTIS.get();
 	}
 

@@ -88,7 +88,7 @@ public class RatHarvestCropsGoal extends BaseRatHarvestGoal {
 				} else if (block.is(Blocks.SWEET_BERRY_BUSH)) {
 					//[VanillaCopy] of Fox.FoxEatBerriesGoal
 					int i = block.getValue(SweetBerryBushBlock.AGE);
-					int j = 1 + this.rat.level().random.nextInt(2) + (i == 3 ? 1 : 0);
+					int j = 1 + this.rat.level().getRandom().nextInt(2) + (i == 3 ? 1 : 0);
 					ItemStack itemstack = this.rat.getItemBySlot(EquipmentSlot.MAINHAND);
 					if (itemstack.isEmpty()) {
 						this.rat.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.SWEET_BERRIES));

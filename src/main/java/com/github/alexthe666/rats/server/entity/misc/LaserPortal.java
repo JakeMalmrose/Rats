@@ -8,8 +8,9 @@ import com.github.alexthe666.rats.registry.RatsSoundRegistry;
 import com.github.alexthe666.rats.server.entity.projectile.LaserBeam;
 import com.github.alexthe666.rats.server.entity.rat.AbstractRat;
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.Entity;
@@ -46,9 +47,16 @@ public class LaserPortal extends Entity {
 		this.setCreator(creator);
 	}
 
+	// 26.1: Entity.hurt() is final; entities override hurtServer instead. The portal is not damageable.
+	@Override
+	public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+		return false;
+	}
+
 	public void tick() {
 		super.tick();
-		if (this.tickCount > 300 || this.level().getCurrentDifficultyAt(this.blockPosition()).getDifficulty() == Difficulty.PEACEFUL) {
+		// 26.1: getCurrentDifficultyAt only exists on ServerLevel
+		if (this.level() instanceof ServerLevel serverLevel && (this.tickCount > 300 || serverLevel.getCurrentDifficultyAt(this.blockPosition()).getDifficulty() == Difficulty.PEACEFUL)) {
 			this.discard();
 		}
 		if (this.tickCount < 250 && this.scaleOfPortal < 1.0F) {
@@ -144,17 +152,12 @@ public class LaserPortal extends Entity {
 
 	protected void readAdditionalSaveData(ValueInput compound) {
 		this.tickCount = compound.getIntOr("Age", 0);
-		if (compound.hasUUID("OwnerUUID")) {
-			this.ownerUniqueId = compound.getUUID("OwnerUUID");
-		}
+		this.ownerUniqueId = compound.read("OwnerUUID", UUIDUtil.CODEC).orElse(null);
 	}
 
 	protected void addAdditionalSaveData(ValueOutput compound) {
 		compound.putInt("Age", this.tickCount);
-
-		if (this.ownerUniqueId != null) {
-			compound.putUUID("OwnerUUID", this.ownerUniqueId);
-		}
+		compound.storeNullable("OwnerUUID", UUIDUtil.CODEC, this.ownerUniqueId);
 	}
 
 	public PushReaction getPistonPushReaction() {

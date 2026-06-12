@@ -14,6 +14,7 @@ import net.minecraft.network.Connection;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.Containers;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -28,6 +29,19 @@ public class RatTrapBlockEntity extends BlockEntity {
 
 	public RatTrapBlockEntity(BlockPos pos, BlockState state) {
 		super(RatsBlockEntityRegistry.RAT_TRAP.get(), pos, state);
+	}
+
+	// 26.1: replaces RatTrapBlock.onRemove - drops the bait and updates comparators when the block changes.
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		Level level = this.getLevel();
+		if (level != null) {
+			if (!this.getBait().isEmpty()) {
+				Containers.dropItemStack(level, pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D, this.getBait());
+			}
+			level.updateNeighbourForOutputSignal(pos, state.getBlock());
+		}
+		super.preRemoveSideEffects(pos, state);
 	}
 
 	public static void tick(Level level, BlockPos pos, BlockState state, RatTrapBlockEntity te) {
@@ -64,31 +78,31 @@ public class RatTrapBlockEntity extends BlockEntity {
 
 	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
-		return ClientboundBlockEntityDataPacket.create(this, BlockEntity::getUpdateTag);
+		return ClientboundBlockEntityDataPacket.create(this);
 	}
 
 	@Override
-	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet, HolderLookup.Provider registries) {
-		this.handleUpdateTag(packet.getTag(), registries);
+	public void onDataPacket(Connection net, ValueInput valueInput) {
+		this.loadAdditional(valueInput);
 	}
 
 	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-		return this.saveWithId(registries);
+		return this.saveWithoutMetadata(registries);
 	}
 
 	@Override
-	public void saveAdditional(ValueOutput compound) {
-		ContainerHelper.saveAllItems(compound, this.baitStack, registries);
+	protected void saveAdditional(ValueOutput compound) {
+		super.saveAdditional(compound);
+		ContainerHelper.saveAllItems(compound, this.baitStack);
 		compound.putFloat("ShutProgress", this.shutProgress);
-		super.saveAdditional(compound, registries);
 	}
 
 	@Override
 	protected void loadAdditional(ValueInput compound) {
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(compound);
 		this.baitStack = NonNullList.withSize(1, ItemStack.EMPTY);
-		ContainerHelper.loadAllItems(compound, this.baitStack, registries);
+		ContainerHelper.loadAllItems(compound, this.baitStack);
 		this.shutProgress = compound.getFloatOr("ShutProgress", 0.0F);
 	}
 

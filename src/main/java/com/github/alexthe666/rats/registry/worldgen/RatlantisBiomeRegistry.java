@@ -55,7 +55,7 @@ public class RatlantisBiomeRegistry {
 						.addSpawn(RatsMod.RATS, 10, new MobSpawnSettings.SpawnerData(RatsEntityRegistry.RAT.get(), 2, 4))
 						.build())
 				.generationSettings(new BiomeGenerationSettings.Builder(features, carvers)
-						.addCarver(GenerationStep.Carving.AIR, RatlantisDimensionRegistry.RATLANTIS_CAVES)
+						.addCarver(RatlantisDimensionRegistry.RATLANTIS_CAVES)
 						.addFeature(GenerationStep.Decoration.FLUID_SPRINGS, MiscOverworldPlacements.SPRING_WATER)
 						.addFeature(GenerationStep.Decoration.FLUID_SPRINGS, MiscOverworldPlacements.SPRING_LAVA)
 						.addFeature(GenerationStep.Decoration.SURFACE_STRUCTURES, RatlantisPlacedFeatureRegistry.SMALL_RUINS)

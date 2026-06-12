@@ -78,10 +78,8 @@ public class PiratBoat extends Mob {
 		return true;
 	}
 
-	@Override
-	protected boolean shouldDespawnInPeaceful() {
-		return true;
-	}
+	// 26.1: Mob.shouldDespawnInPeaceful() was removed; peaceful despawning is now driven by
+	// EntityType.isAllowedInPeaceful() (set via the EntityType builder's notAllowedInPeaceful flag).
 
 	public static AttributeSupplier.Builder createAttributes() {
 		return Mob.createMobAttributes()
@@ -394,7 +392,7 @@ public class PiratBoat extends Mob {
 						if (j2 <= 0 || k2 != k && k2 != l - 1) {
 							blockpos$mutableblockpos.set(l1, k2, i2);
 							BlockState blockstate = this.level().getBlockState(blockpos$mutableblockpos);
-							if (!(blockstate.getBlock() instanceof WaterlilyBlock) && Shapes.joinIsNotEmpty(blockstate.getCollisionShape(this.level(), blockpos$mutableblockpos).move(l1, k2, i2), voxelshape, BooleanOp.AND)) {
+							if (!(blockstate.getBlock() instanceof LilyPadBlock) && Shapes.joinIsNotEmpty(blockstate.getCollisionShape(this.level(), blockpos$mutableblockpos).move(l1, k2, i2), voxelshape, BooleanOp.AND)) {
 								f += blockstate.getFriction(this.level(), blockpos$mutableblockpos, this);
 								++k1;
 							}

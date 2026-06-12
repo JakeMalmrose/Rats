@@ -6,6 +6,7 @@ import com.github.alexthe666.rats.server.entity.rat.AbstractRat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.RandomSource;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.*;
@@ -47,9 +48,14 @@ public class GhostPirat extends AbstractRat implements Enemy {
 		this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true, false));
 	}
 
+	// 26.1: shouldDespawnInPeaceful() was removed in favor of an EntityType property, so despawn manually
 	@Override
-	protected boolean shouldDespawnInPeaceful() {
-		return true;
+	public void checkDespawn() {
+		if (this.level().getDifficulty() == Difficulty.PEACEFUL) {
+			this.discard();
+		} else {
+			super.checkDespawn();
+		}
 	}
 
 	public double getMyRidingOffset() {

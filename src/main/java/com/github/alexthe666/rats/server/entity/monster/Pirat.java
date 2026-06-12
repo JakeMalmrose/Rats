@@ -34,8 +34,6 @@ import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Blocks;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-
 public class Pirat extends AbstractRat implements RangedAttackMob, Enemy {
 
 	private final RangedAttackGoal fireCannonballGoal = new RangedAttackGoal(this, 1.0D, 32, 70, 16.0F);
@@ -44,8 +42,12 @@ public class Pirat extends AbstractRat implements RangedAttackMob, Enemy {
 
 	public Pirat(EntityType<? extends AbstractRat> type, Level level) {
 		super(type, level);
-		Arrays.fill(this.armorDropChances, 0.1F);
-		Arrays.fill(this.handDropChances, 0.1F);
+		// 26.1: per-slot drop chance arrays were replaced by setDropChance
+		for (EquipmentSlot slot : EquipmentSlot.values()) {
+			if (slot.isArmor() || slot.getType() == EquipmentSlot.Type.HAND) {
+				this.setDropChance(slot, 0.1F);
+			}
+		}
 		this.navigation = new PiratNavigation(this, this.level());
 		this.setCombatTask();
 	}
@@ -102,9 +104,14 @@ public class Pirat extends AbstractRat implements RangedAttackMob, Enemy {
 		return true;
 	}
 
+	// 26.1: shouldDespawnInPeaceful() was removed in favor of an EntityType property, so despawn manually
 	@Override
-	protected boolean shouldDespawnInPeaceful() {
-		return true;
+	public void checkDespawn() {
+		if (this.level().getDifficulty() == Difficulty.PEACEFUL) {
+			this.discard();
+		} else {
+			super.checkDespawn();
+		}
 	}
 
 	@Override
@@ -124,7 +131,7 @@ public class Pirat extends AbstractRat implements RangedAttackMob, Enemy {
 			if (!this.level().isClientSide()) {
 				this.level().addFreshEntity(boat);
 			}
-			this.startRiding(boat, true);
+			this.startRiding(boat, true, true);
 		}
 		this.setCombatTask();
 		return data;
@@ -153,8 +160,8 @@ public class Pirat extends AbstractRat implements RangedAttackMob, Enemy {
 	}
 
 	@Override
-	public boolean startRiding(Entity entity, boolean force) {
-		boolean flag = super.startRiding(entity, force);
+	public boolean startRiding(Entity entity, boolean force, boolean sendEventAndTriggers) {
+		boolean flag = super.startRiding(entity, force, sendEventAndTriggers);
 		this.setCombatTask();
 		return flag;
 	}

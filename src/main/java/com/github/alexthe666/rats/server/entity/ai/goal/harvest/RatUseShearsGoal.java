@@ -57,13 +57,11 @@ public class RatUseShearsGoal extends BaseRatHarvestGoal {
 		if (this.getTargetEntity() != null && this.getTargetEntity().isAlive() && this.rat.getMainHandItem().isEmpty()) {
 			this.rat.getNavigation().moveTo(this.getTargetEntity(), 1.25D);
 			if (this.rat.distanceToSqr(this.getTargetEntity()) < this.rat.getRatHarvestDistance(0.0D)) {
-				if (this.getTargetEntity() instanceof IShearable shearable) {
-					List<ItemStack> drops = this.rat.level() instanceof ServerLevel sl
-							? shearable.onSheared(null, SHEAR_STACK, sl, this.getTargetEntity().blockPosition())
-							: java.util.Collections.emptyList();
+				if (this.getTargetEntity() instanceof IShearable shearable && this.rat.level() instanceof ServerLevel serverLevel) {
+					List<ItemStack> drops = shearable.onSheared(null, SHEAR_STACK, serverLevel, this.getTargetEntity().blockPosition());
 					this.rat.gameEvent(GameEvent.ENTITY_INTERACT);
 					for (ItemStack stack : drops) {
-						this.getTargetEntity().spawnAtLocation(stack, 0.0F);
+						this.getTargetEntity().spawnAtLocation(serverLevel, stack, 0.0F);
 					}
 				}
 				this.stop();
@@ -73,7 +71,10 @@ public class RatUseShearsGoal extends BaseRatHarvestGoal {
 			if (this.rat.getRatDistanceCenterSq(this.getTargetBlock().getX(), this.getTargetBlock().getY(), this.getTargetBlock().getZ()) < this.rat.getRatHarvestDistance(0.0D)) {
 				BlockState state = this.rat.level().getBlockState(this.getTargetBlock());
 				this.rat.level().playSound(null, this.rat.blockPosition(), SoundEvents.BEEHIVE_SHEAR, SoundSource.BLOCKS, 1.0F, 1.0F);
-				BeehiveBlock.dropHoneycomb(this.rat.level(), this.getTargetBlock());
+				//26.1: dropHoneycomb now rolls the harvest loot table and needs the full block-interact context
+				if (this.rat.level() instanceof ServerLevel serverLevel) {
+					BeehiveBlock.dropHoneycomb(serverLevel, SHEAR_STACK, state, serverLevel.getBlockEntity(this.getTargetBlock()), this.rat, this.getTargetBlock());
+				}
 				this.rat.gameEvent(GameEvent.SHEAR);
 
 				if (!CampfireBlock.isSmokeyPos(this.rat.level(), this.getTargetBlock())) {

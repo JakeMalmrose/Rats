@@ -64,10 +64,8 @@ public class RatlanteanSpirit extends Monster implements IAnimatedEntity {
 	}
 
 
-	public void move(MoverType type, Vec3 pos) {
-		super.move(type, pos);
-		this.checkInsideBlocks();
-	}
+	// 26.1: checkInsideBlocks() was removed; block effects are applied automatically each tick,
+	// so the old Vex-style move() override is no longer needed.
 
 	public void tick() {
 		this.noPhysics = true;
