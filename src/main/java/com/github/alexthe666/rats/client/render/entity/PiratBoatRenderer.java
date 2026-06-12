@@ -4,72 +4,37 @@ import com.github.alexthe666.rats.client.model.entity.PiratBoatModel;
 import com.github.alexthe666.rats.client.render.entity.layer.PiratBoatSailLayer;
 import com.github.alexthe666.rats.server.entity.misc.PiratBoat;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
-import net.minecraft.client.renderer.entity.layers.RenderLayer;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
 
-import java.util.Objects;
-
-public class PiratBoatRenderer<T extends PiratBoat, M extends PiratBoatModel<T>> extends MobRenderer<T, M> {
+// 26.1: MobRenderer is render-state based and applies the standard living transforms (yaw flip,
+// hurt tint, -1.501 translate) itself; the boat model is authored sideways, so the extra 90° yaw
+// and 1.2 scale are applied in scale().
+public class PiratBoatRenderer extends MobRenderer<PiratBoat, LivingEntityRenderState, PiratBoatModel> {
 
 	private static final Identifier TEXTURE = Identifier.parse("textures/entity/boat/spruce.png");
 
-	public PiratBoatRenderer(EntityRendererProvider.Context context, M model) {
+	public PiratBoatRenderer(EntityRendererProvider.Context context, PiratBoatModel model) {
 		super(context, model, 0.0F);
-		this.addLayer(new PiratBoatSailLayer<>(this));
+		this.addLayer(new PiratBoatSailLayer(this));
 	}
 
 	@Override
-	protected boolean isShaking(T entity) {
-		return super.isShaking(entity);
-	}
-
-	@Override
-	public void render(T entity, float yaw, float partialTicks, PoseStack stack, MultiBufferSource buffer, int light) {
-		stack.pushPose();
-		stack.mulPose(Axis.YP.rotationDegrees(180.0F - yaw));
-		stack.scale(-1.0F, -1.0F, 1.0F);
+	protected void scale(LivingEntityRenderState state, PoseStack stack) {
 		stack.scale(1.2F, 1.2F, 1.2F);
-		stack.translate(0.0D, -1.501F, 0.0D);
 		stack.mulPose(Axis.YP.rotationDegrees(90.0F));
-		this.getModel().prepareMobModel(entity, 0.0F, 0.0F, partialTicks);
-		this.getModel().setupAnim(entity, 0.0F, 0.0F, entity.tickCount + partialTicks, 0.0F, 0.0F);
-		float f = (float) entity.hurtTime - partialTicks;
-		float f1 = Mth.abs(entity.getHealth() - entity.getMaxHealth()) - partialTicks;
-
-		if (f > 0.0F) {
-			stack.mulPose(Axis.YP.rotationDegrees(Mth.sin(f) * f * f1 / 10.0F));
-		}
-		Minecraft minecraft = Minecraft.getInstance();
-		boolean flag = !entity.isInvisible();
-		boolean flag1 = !flag && !entity.isInvisibleTo(Objects.requireNonNull(minecraft.player));
-		boolean flag2 = minecraft.shouldEntityAppearGlowing(entity);
-		RenderType rendertype = this.getRenderType(entity, flag, flag1, flag2);
-		if (rendertype != null) {
-			VertexConsumer vertexconsumer = buffer.getBuffer(rendertype);
-			this.getModel().renderToBuffer(stack, vertexconsumer, light, OverlayTexture.pack(entity.deathTime > 0 ? entity.deathTime + 1 : 0, false), net.minecraft.util.FastColor.ARGB32.colorFromFloat(flag1 ? 0.15F : 1.0F, 1.0F, 1.0F, 1.0F));
-		}
-		VertexConsumer vertexconsumer1 = buffer.getBuffer(RenderTypes.waterMask());
-		this.getModel().getWaterPatch().render(stack, vertexconsumer1, light, OverlayTexture.NO_OVERLAY);
-
-		if (!entity.isSpectator()) {
-			for (RenderLayer<T, M> renderlayer : this.layers) {
-				renderlayer.render(stack, buffer, light, entity, 0.0F, 0.0F, partialTicks, entity.tickCount + partialTicks, 0.0F, 0.0F);
-			}
-		}
-		stack.popPose();
 	}
 
-	public Identifier getTextureLocation(PiratBoat entity) {
+	@Override
+	public LivingEntityRenderState createRenderState() {
+		return new LivingEntityRenderState();
+	}
+
+	@Override
+	public Identifier getTextureLocation(LivingEntityRenderState state) {
 		return TEXTURE;
 	}
 }

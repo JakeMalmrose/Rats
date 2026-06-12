@@ -27,8 +27,7 @@ import com.github.alexthe666.rats.server.items.*;
 import com.github.alexthe666.rats.server.items.upgrades.DemonRatUpgradeItem;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.BoatModel;
-import net.minecraft.client.model.ChestBoatModel;
+import net.minecraft.client.model.object.boat.BoatModel;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.LayerDefinitions;
@@ -127,8 +126,8 @@ public class ModClientEvents {
 	@SubscribeEvent
 	public static void registerRenderers(EntityRenderersEvent.RegisterLayerDefinitions event) {
 		for (PiratWoodBoat.Type boatType : PiratWoodBoat.Type.values()) {
-			event.registerLayerDefinition(PiratWoodBoatRenderer.createBoatModelName(boatType), BoatModel::createBodyModel);
-			event.registerLayerDefinition(PiratWoodBoatRenderer.createChestBoatModelName(boatType), ChestBoatModel::createBodyModel);
+			event.registerLayerDefinition(PiratWoodBoatRenderer.createBoatModelName(boatType), BoatModel::createBoatModel);
+			event.registerLayerDefinition(PiratWoodBoatRenderer.createChestBoatModelName(boatType), BoatModel::createChestBoatModel);
 		}
 
 		event.registerLayerDefinition(RatsModelLayers.BLACK_DEATH, BlackDeathModel::create);

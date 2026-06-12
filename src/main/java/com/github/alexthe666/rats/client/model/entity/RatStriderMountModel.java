@@ -1,17 +1,19 @@
 package com.github.alexthe666.rats.client.model.entity;
 
+import com.github.alexthe666.rats.client.render.RatsClientKeys;
 import com.github.alexthe666.rats.server.entity.mount.RatStriderMount;
-import net.minecraft.client.model.HierarchicalModel;
+import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.util.Mth;
 
-public class RatStriderMountModel<T extends RatStriderMount> extends HierarchicalModel<T> {
-	private final ModelPart root;
+// 26.1: HierarchicalModel is gone; EntityModel renders the root's children from a render state.
+public class RatStriderMountModel extends EntityModel<LivingEntityRenderState> {
 	private final ModelPart rightLeg;
 	private final ModelPart leftLeg;
 	private final ModelPart body;
@@ -23,7 +25,7 @@ public class RatStriderMountModel<T extends RatStriderMount> extends Hierarchica
 	private final ModelPart leftBottomBristle;
 
 	public RatStriderMountModel(ModelPart root) {
-		this.root = root;
+		super(root);
 		this.rightLeg = root.getChild("right_leg");
 		this.leftLeg = root.getChild("left_leg");
 		this.body = root.getChild("body");
@@ -50,11 +52,16 @@ public class RatStriderMountModel<T extends RatStriderMount> extends Hierarchica
 		return LayerDefinition.create(meshdefinition, 64, 128);
 	}
 
-	public void setupAnim(RatStriderMount mount, float limbSwing, float limbSwingAmount, float ageInTicks, float headYaw, float headPitch) {
-		limbSwingAmount = Math.min(0.25F, limbSwingAmount);
-		if (!mount.isVehicle()) {
-			this.body.xRot = headPitch * ((float) Math.PI / 180F);
-			this.body.yRot = headYaw * ((float) Math.PI / 180F);
+	@Override
+	public void setupAnim(LivingEntityRenderState state) {
+		super.setupAnim(state);
+		float limbSwing = state.walkAnimationPos;
+		float limbSwingAmount = Math.min(0.25F, state.walkAnimationSpeed);
+		float ageInTicks = state.ageInTicks;
+		boolean vehicle = RatsClientKeys.getLiving(state) instanceof RatStriderMount mount && mount.isVehicle();
+		if (!vehicle) {
+			this.body.xRot = state.xRot * ((float) Math.PI / 180F);
+			this.body.yRot = state.yRot * ((float) Math.PI / 180F);
 		} else {
 			this.body.xRot = 0.0F;
 			this.body.yRot = 0.0F;
@@ -88,9 +95,5 @@ public class RatStriderMountModel<T extends RatStriderMount> extends Hierarchica
 		this.leftTopBristle.zRot += 0.1F * Mth.sin(ageInTicks * 1.0F * 0.4F);
 		this.leftMiddleBristle.zRot += 0.1F * Mth.sin(ageInTicks * 1.0F * 0.2F);
 		this.leftBottomBristle.zRot += 0.05F * Mth.sin(ageInTicks * 1.0F * -0.4F);
-	}
-
-	public ModelPart root() {
-		return this.root;
 	}
 }
