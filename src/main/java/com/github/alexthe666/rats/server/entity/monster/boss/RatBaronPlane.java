@@ -13,12 +13,10 @@ import com.github.alexthe666.rats.server.entity.projectile.RattlingGunBullet;
 import com.github.alexthe666.rats.server.entity.rat.AbstractRat;
 import com.github.alexthe666.rats.server.misc.PlaneRotationUtil;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.DoubleTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
@@ -78,8 +76,10 @@ public class RatBaronPlane extends Mob implements Plane, AdjustsRatTail {
 		this.getEntityData().set(PLANE_PITCH, this.getPlanePitch() - pitch);
 	}
 
-	public boolean isAlliedTo(Entity entity) {
-		return super.isAlliedTo(entity) || entity instanceof RatBaron;
+	// 26.1: isAlliedTo(Entity) is final; considersEntityAsAlly is the overridable hook.
+	@Override
+	protected boolean considersEntityAsAlly(Entity entity) {
+		return super.considersEntityAsAlly(entity) || entity instanceof RatBaron;
 	}
 
 	public void setTarget(@Nullable LivingEntity living) {
@@ -119,9 +119,9 @@ public class RatBaronPlane extends Mob implements Plane, AdjustsRatTail {
 			float distX = (float) (this.startPreyVec.x() - this.startAttackVec.x());
 			float distY = 1.5F;
 			float distZ = (float) (this.startPreyVec.z() - this.startAttackVec.z());
-			this.setFlightTarget(new Vec3(this.getTarget().getX() + distX, this.level().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, this.getRestrictCenter()).getY() + 5 + this.getRandom().nextInt(16) + distY, this.getTarget().getZ() + distZ));
+			this.setFlightTarget(new Vec3(this.getTarget().getX() + distX, this.level().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, this.getHomePosition()).getY() + 5 + this.getRandom().nextInt(16) + distY, this.getTarget().getZ() + distZ));
 			if (this.distanceToSqr(this.getFlightTarget().x(), this.getFlightTarget().y(), this.getFlightTarget().z()) < 100) {
-				this.setFlightTarget(new Vec3(this.getTarget().getX() - distX, this.level().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, this.getRestrictCenter()).getY() + 5 + this.getRandom().nextInt(16) + distY, this.getTarget().getZ() - distZ));
+				this.setFlightTarget(new Vec3(this.getTarget().getX() - distX, this.level().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, this.getHomePosition()).getY() + 5 + this.getRandom().nextInt(16) + distY, this.getTarget().getZ() - distZ));
 			}
 		}
 		if (this.getTarget() != null && this.hasLineOfSight(this.getTarget())) {
@@ -153,7 +153,7 @@ public class RatBaronPlane extends Mob implements Plane, AdjustsRatTail {
 		}
 		if (this.getTarget() == null || this.getFlightTarget() == null || this.distanceToSqr(this.getFlightTarget().x(), this.getFlightTarget().y(), this.getFlightTarget().z()) < 9 || !this.level().isEmptyBlock(BlockPos.containing(this.getFlightTarget()))) {
 			if (this.escortPosition == null) {
-				this.escortPosition = this.level().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, this.getRestrictCenter()).above(RatConfig.ratBaronYFlight + this.getRandom().nextInt(10));
+				this.escortPosition = this.level().getHeightmapPos(Heightmap.Types.WORLD_SURFACE, this.getHomePosition()).above(RatConfig.ratBaronYFlight + this.getRandom().nextInt(10));
 			}
 			this.setFlightTarget(this.getBlockInViewEscort());
 		}
@@ -189,39 +189,16 @@ public class RatBaronPlane extends Mob implements Plane, AdjustsRatTail {
 		}
 	}
 
+	// 26.1: vanilla Mob now persists the home position/radius itself ("home_pos"/"home_radius"), so the custom "Home" list is gone.
+
+	// 26.1: shouldDespawnInPeaceful() was removed (now an EntityType flag); replicate it via checkDespawn.
 	@Override
-	public void addAdditionalSaveData(ValueOutput tag) {
-		super.addAdditionalSaveData(tag);
-		if (this.getRestrictCenter() != BlockPos.ZERO) {
-			BlockPos home = this.getRestrictCenter();
-			tag.put("Home", this.makeDoubleList(home.getX(), home.getY(), home.getZ()));
+	public void checkDespawn() {
+		if (this.level().getDifficulty() == net.minecraft.world.Difficulty.PEACEFUL) {
+			this.discard();
+		} else {
+			super.checkDespawn();
 		}
-	}
-
-	@Override
-	public void readAdditionalSaveData(ValueInput tag) {
-		super.readAdditionalSaveData(tag);
-		if (tag.contains("Home")) {
-			ListTag nbttaglist = tag.getListOrEmpty("Home");
-			int hx = (int) nbttaglist.getDoubleOr(0, 0.0D);
-			int hy = (int) nbttaglist.getDoubleOr(1, 0.0D);
-			int hz = (int) nbttaglist.getDoubleOr(2, 0.0D);
-			this.restrictTo(new BlockPos(hx, hy, hz), 16);
-		}
-	}
-
-	private ListTag makeDoubleList(double... pNumbers) {
-		ListTag listtag = new ListTag();
-		for (double d0 : pNumbers) {
-			listtag.add(DoubleTag.valueOf(d0));
-		}
-
-		return listtag;
-	}
-
-	@Override
-	protected boolean shouldDespawnInPeaceful() {
-		return true;
 	}
 
 	@Override
@@ -229,11 +206,12 @@ public class RatBaronPlane extends Mob implements Plane, AdjustsRatTail {
 		return false;
 	}
 
-	public boolean hurt(DamageSource source, float amount) {
+	@Override
+	public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
 		if (this.getControllingPassenger() != null) {
-			return this.getControllingPassenger().hurt(source, amount);
+			return this.getControllingPassenger().hurtServer(level, source, amount);
 		} else {
-			return super.hurt(source, amount);
+			return super.hurtServer(level, source, amount);
 		}
 	}
 
@@ -325,7 +303,7 @@ public class RatBaronPlane extends Mob implements Plane, AdjustsRatTail {
 	}
 
 	@Override
-	public boolean canChangeDimensions(net.minecraft.world.level.Level from, net.minecraft.world.level.Level to) {
+	public boolean canTeleport(net.minecraft.world.level.Level from, net.minecraft.world.level.Level to) {
 		return false;
 	}
 

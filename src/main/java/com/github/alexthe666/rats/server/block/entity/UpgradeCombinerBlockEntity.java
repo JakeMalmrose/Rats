@@ -173,9 +173,9 @@ public class UpgradeCombinerBlockEntity extends BaseContainerBlockEntity impleme
 
 	@Override
 	protected void loadAdditional(ValueInput compound) {
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(compound);
 		this.combinerStacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-		ContainerHelper.loadAllItems(compound, this.combinerStacks, registries);
+		ContainerHelper.loadAllItems(compound, this.combinerStacks);
 		this.burnTime = compound.getIntOr("BurnTime", 0);
 		this.cookTime = compound.getIntOr("CookTime", 0);
 		this.totalCookTime = compound.getIntOr("CookTimeTotal", 0);
@@ -184,11 +184,11 @@ public class UpgradeCombinerBlockEntity extends BaseContainerBlockEntity impleme
 
 	@Override
 	public void saveAdditional(ValueOutput compound) {
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(compound);
 		compound.putInt("BurnTime", (short) this.burnTime);
 		compound.putInt("CookTime", (short) this.cookTime);
 		compound.putInt("CookTimeTotal", (short) this.totalCookTime);
-		ContainerHelper.saveAllItems(compound, this.combinerStacks, registries);
+		ContainerHelper.saveAllItems(compound, this.combinerStacks);
 	}
 
 	@Override
@@ -260,8 +260,9 @@ public class UpgradeCombinerBlockEntity extends BaseContainerBlockEntity impleme
 						fuel.shrink(1);
 
 						if (fuel.isEmpty()) {
-							ItemStack item1 = item.getCraftingRemainingItem(fuel);
-							te.combinerStacks.set(1, item1);
+							// 26.1: crafting remainders are ItemStackTemplates now.
+							net.minecraft.world.item.ItemStackTemplate remainder = item.getCraftingRemainder();
+							te.combinerStacks.set(1, remainder != null ? remainder.create() : ItemStack.EMPTY);
 						}
 					}
 				}
@@ -304,7 +305,8 @@ public class UpgradeCombinerBlockEntity extends BaseContainerBlockEntity impleme
 		NonNullList<ItemStack> nonnulllist = NonNullList.withSize(27, ItemStack.EMPTY);
 		net.minecraft.core.HolderLookup.Provider provider = this.getLevel() != null ? this.getLevel().registryAccess() : null;
 		if (tag.contains("Items") && provider != null) {
-			ContainerHelper.loadAllItems(tag, nonnulllist, provider);
+			// 26.1: ContainerHelper reads from a ValueInput, so bridge the item's CompoundTag.
+			ContainerHelper.loadAllItems(net.minecraft.world.level.storage.TagValueInput.create(net.minecraft.util.ProblemReporter.DISCARDING, provider, tag), nonnulllist);
 		}
 		int addIndex = -1;
 		for (int i = 0; i < nonnulllist.size(); i++) {
@@ -317,7 +319,12 @@ public class UpgradeCombinerBlockEntity extends BaseContainerBlockEntity impleme
 			return combiner.copy();
 		}
 		nonnulllist.set(addIndex, stack.copy());
-		if (provider != null) ContainerHelper.saveAllItems(tag, nonnulllist, provider);
+		if (provider != null) {
+			// 26.1: ContainerHelper writes to a ValueOutput, so bridge back into the CompoundTag.
+			net.minecraft.world.level.storage.TagValueOutput output = net.minecraft.world.level.storage.TagValueOutput.createWithContext(net.minecraft.util.ProblemReporter.DISCARDING, provider);
+			ContainerHelper.saveAllItems(output, nonnulllist, true);
+			tag.put("Items", output.buildResult().get("Items"));
+		}
 		combiner.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.of(tag));
 		return combiner.copy();
 	}

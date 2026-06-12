@@ -87,7 +87,8 @@ public class Rat extends DiggingRat {
 		});
 		this.targetSelector.addGoal(0, new WildRatTargetFoodGoal(this));
 		this.targetSelector.addGoal(1, new WildRatDefendPlagueDoctorGoal(this));
-		this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true, entity -> {
+		// 26.1: NearestAttackableTargetGoal takes a TargetingConditions.Selector (target, level) instead of a Predicate.
+		this.targetSelector.addGoal(1, new NearestAttackableTargetGoal<>(this, Player.class, true, (entity, level) -> {
 			if (!EntitySelector.NO_CREATIVE_OR_SPECTATOR.test(entity) || !Rat.this.hasPlague()) return false;
 			return !entity.isAlliedTo(Rat.this) && !entity.getItemBySlot(EquipmentSlot.HEAD).is(RatsItemRegistry.BLACK_DEATH_MASK.get()) && entity.level().getDifficulty() != Difficulty.PEACEFUL;
 		}));
@@ -104,10 +105,14 @@ public class Rat extends DiggingRat {
 	@Override
 	public void addAdditionalSaveData(ValueOutput compound) {
 		super.addAdditionalSaveData(compound);
-		if (this.getRestrictCenter() != BlockPos.ZERO) {
-			BlockPos home = this.getRestrictCenter();
-			compound.put("Home", this.makeDoubleList(home.getX(), home.getY(), home.getZ()));
-			compound.putFloat("HomeDistance", this.getRestrictRadius());
+		// 26.1: restrictTo/getRestrictCenter became setHomeTo/getHomePosition on Mob.
+		if (this.getHomePosition() != BlockPos.ZERO) {
+			BlockPos home = this.getHomePosition();
+			ValueOutput.TypedOutputList<Double> homeList = compound.list("Home", Codec.DOUBLE);
+			homeList.add((double) home.getX());
+			homeList.add((double) home.getY());
+			homeList.add((double) home.getZ());
+			compound.putFloat("HomeDistance", (float) this.getHomeRadius());
 		}
 
 		compound.putInt("CheeseFeedings", this.cheeseFeedings);
@@ -119,12 +124,9 @@ public class Rat extends DiggingRat {
 	@Override
 	public void readAdditionalSaveData(ValueInput compound) {
 		super.readAdditionalSaveData(compound);
-		if (compound.contains("Home")) {
-			ListTag nbttaglist = compound.getListOrEmpty("Home");
-			int hx = (int) nbttaglist.getDoubleOr(0, 0.0D);
-			int hy = (int) nbttaglist.getDoubleOr(1, 0.0D);
-			int hz = (int) nbttaglist.getDoubleOr(2, 0.0D);
-			this.restrictTo(new BlockPos(hx, hy, hz), (int) compound.getFloatOr("HomeDistance", 0.0F));
+		List<Double> home = compound.listOrEmpty("Home", Codec.DOUBLE).stream().toList();
+		if (home.size() >= 3) {
+			this.setHomeTo(new BlockPos(home.get(0).intValue(), home.get(1).intValue(), home.get(2).intValue()), (int) compound.getFloatOr("HomeDistance", 0.0F));
 		}
 		this.wildTrust = compound.getIntOr("WildTrust", 0);
 		this.cheeseFeedings = compound.getIntOr("CheeseFeedings", 0);
@@ -137,7 +139,8 @@ public class Rat extends DiggingRat {
 		super.aiStep();
 
 		if (this.getOwner() == null || !this.getOwner().isAlive()) {
-			this.setOwnerUUID(null);
+			// 26.1: owners are stored as EntityReferences now.
+			this.setOwnerReference(null);
 		}
 
 		if (this.hasPlague() && this.getRandom().nextFloat() < 0.3F) {

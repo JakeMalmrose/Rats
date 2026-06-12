@@ -13,6 +13,7 @@ import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
@@ -45,7 +46,7 @@ public class RatlanteanAutomaton extends Monster implements IAnimatedEntity, Ran
 
 	public static final Animation ANIMATION_MELEE = Animation.create(15);
 	public static final Animation ANIMATION_RANGED = Animation.create(15);
-	private final ServerBossEvent bossInfo = (new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.YELLOW, BossEvent.BossBarOverlay.PROGRESS));
+	private final ServerBossEvent bossInfo = (new ServerBossEvent(Mth.createInsecureUUID(this.random), this.getDisplayName(), BossEvent.BossBarColor.YELLOW, BossEvent.BossBarOverlay.PROGRESS));
 	private int blockBreakCounter;
 	private int animationTick;
 	private boolean useRangedAttack = false;
@@ -96,8 +97,8 @@ public class RatlanteanAutomaton extends Monster implements IAnimatedEntity, Ran
 	}
 
 	@Override
-	protected void customServerAiStep() {
-		super.customServerAiStep();
+	protected void customServerAiStep(ServerLevel level) {
+		super.customServerAiStep(level);
 		this.bossInfo.setProgress(this.getHealth() / this.getMaxHealth());
 		if (this.blockBreakCounter > 0) {
 			--this.blockBreakCounter;
@@ -132,12 +133,12 @@ public class RatlanteanAutomaton extends Monster implements IAnimatedEntity, Ran
 	}
 
 	@Override
-	public boolean canChangeDimensions(net.minecraft.world.level.Level from, net.minecraft.world.level.Level to) {
+	public boolean canTeleport(net.minecraft.world.level.Level from, net.minecraft.world.level.Level to) {
 		return false;
 	}
 
 	@Override
-	public boolean doHurtTarget(Entity entity) {
+	public boolean doHurtTarget(ServerLevel level, Entity entity) {
 		if (this.getAnimation() == NO_ANIMATION) {
 			this.setAnimation(this.useRangedAttack ? ANIMATION_MELEE : ANIMATION_RANGED);
 		}
@@ -145,14 +146,14 @@ public class RatlanteanAutomaton extends Monster implements IAnimatedEntity, Ran
 	}
 
 	@Override
-	public boolean hurt(DamageSource source, float amount) {
-		if (this.isInvulnerableTo(source)) {
+	public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+		if (this.isInvulnerableTo(level, source)) {
 			return false;
 		} else if (!(source.getEntity() instanceof RatlanteanAutomaton)) {
 			if (this.blockBreakCounter <= 0) {
 				this.blockBreakCounter = 20;
 			}
-			return super.hurt(source, amount);
+			return super.hurtServer(level, source, amount);
 		} else {
 			return false;
 		}

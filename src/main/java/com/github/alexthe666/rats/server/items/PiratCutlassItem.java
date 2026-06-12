@@ -5,19 +5,20 @@ import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.SwordItem;
-import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
 
-public class PiratCutlassItem extends SwordItem {
+// 26.1: SwordItem is gone — sword behavior comes from Properties.sword(material, damage, speed);
+// the trailing .attributes(...) overrides the generated modifiers with our absolute values.
+public class PiratCutlassItem extends Item {
 	private final boolean ghost;
 
 	public PiratCutlassItem(Item.Properties properties, boolean ghost) {
-		super(tierFor(ghost), properties.attributes(buildAttributes(ghost)));
+		super(properties.sword(materialFor(ghost), 3.0F, -2.4F).attributes(buildAttributes(ghost)));
 		this.ghost = ghost;
 	}
 
-	private static Tier tierFor(boolean ghost) {
+	private static ToolMaterial materialFor(boolean ghost) {
 		return ghost ? RatsToolMaterialRegistry.GHOST_CUTLASS : RatsToolMaterialRegistry.CUTLASS;
 	}
 

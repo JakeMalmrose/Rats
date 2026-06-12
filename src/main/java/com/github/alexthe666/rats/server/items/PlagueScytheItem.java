@@ -8,18 +8,20 @@ import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.SwordItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.ItemAbility;
 import net.neoforged.neoforge.common.ItemAbilities;
 
-import java.util.List;
+import java.util.function.Consumer;
 
-public class PlagueScytheItem extends SwordItem {
+// 26.1: SwordItem is gone — sword behavior comes from Properties.sword(material, damage, speed);
+// the trailing .attributes(...) overrides the generated modifiers with our absolute values.
+public class PlagueScytheItem extends Item {
 	public PlagueScytheItem(Item.Properties properties) {
-		super(RatsToolMaterialRegistry.PLAGUE_SCYTHE, properties.attributes(BUILT_ATTRIBUTES));
+		super(properties.sword(RatsToolMaterialRegistry.PLAGUE_SCYTHE, 3.0F, -2.4F).attributes(BUILT_ATTRIBUTES));
 	}
 
 	// 1.21: +12 damage, -0.5 speed via ItemAttributeModifiers (replaces legacy getAttributeModifiers override).
@@ -33,8 +35,8 @@ public class PlagueScytheItem extends SwordItem {
 			.build();
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		tooltip.add(Component.translatable(this.getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+		tooltip.accept(Component.translatable(this.getDescriptionId() + ".desc").withStyle(ChatFormatting.GRAY));
 	}
 
 	@Override
@@ -48,8 +50,9 @@ public class PlagueScytheItem extends SwordItem {
 		return false;
 	}
 
+	// 26.1: IItemExtension#canPerformAction takes ItemInstance instead of ItemStack.
 	@Override
-	public boolean canPerformAction(ItemStack stack, ItemAbility toolAction) {
+	public boolean canPerformAction(net.minecraft.world.item.ItemInstance stack, ItemAbility toolAction) {
 		return toolAction == ItemAbilities.SWORD_SWEEP;
 	}
 }

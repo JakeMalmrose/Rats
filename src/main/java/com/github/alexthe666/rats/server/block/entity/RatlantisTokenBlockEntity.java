@@ -28,11 +28,11 @@ public class RatlantisTokenBlockEntity extends BlockEntity {
 
 	public void saveAdditional(ValueOutput compound) {
 		compound.putInt("TicksExisted", tickCount);
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(compound);
 	}
 
 	protected void loadAdditional(ValueInput compound) {
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(compound);
 		tickCount = compound.getIntOr("TicksExisted", 0);
 	}
 

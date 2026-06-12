@@ -11,6 +11,7 @@ import com.github.alexthe666.rats.server.misc.RatsLangConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Difficulty;
@@ -49,7 +50,7 @@ public class DutchratBellBlockEntity extends BlockEntity {
 	}
 
 	public static void tick(Level level, BlockPos pos, BlockState state, DutchratBellBlockEntity te) {
-		if (level.getCurrentDifficultyAt(pos).getDifficulty() == Difficulty.PEACEFUL) {
+		if (level instanceof ServerLevel serverLevel && serverLevel.getCurrentDifficultyAt(pos).getDifficulty() == Difficulty.PEACEFUL) {
 			te.ticksToExplode = -1;
 		}
 
@@ -63,22 +64,22 @@ public class DutchratBellBlockEntity extends BlockEntity {
 		}
 
 		if (te.ticks >= 5 && te.ticksToExplode == -1) {
-			if (!level.isClientSide()) {
+			if (level instanceof ServerLevel serverLevel) {
 				if (RatConfig.summonDutchratOnlyInRatlantis && !level.dimension().equals(RatlantisDimensionRegistry.DIMENSION_KEY)) {
 					for (Player player : level.getEntitiesOfClass(Player.class, new AABB(pos).inflate(16.0D))) {
-						player.displayClientMessage(Component.translatable(RatsLangConstants.DUTCHRAT_RATLANTIS_ONLY), true);
+						player.sendOverlayMessage(Component.translatable(RatsLangConstants.DUTCHRAT_RATLANTIS_ONLY));
 					}
-				} else if (level.isDay()) {
+				} else if (level.isBrightOutside()) {
 					for (Player players : level.getEntitiesOfClass(Player.class, new AABB(pos).inflate(16.0D))) {
-						players.displayClientMessage(Component.translatable(RatsLangConstants.DUTCHRAT_SPAWNS_AT_NIGHT), true);
+						players.sendOverlayMessage(Component.translatable(RatsLangConstants.DUTCHRAT_SPAWNS_AT_NIGHT));
 					}
-				} else if (level.getCurrentDifficultyAt(pos).getDifficulty() != Difficulty.PEACEFUL) {
+				} else if (serverLevel.getCurrentDifficultyAt(pos).getDifficulty() != Difficulty.PEACEFUL) {
 					te.ticksToExplode = 0;
 					Dutchrat dutchrat = new Dutchrat(RatlantisEntityRegistry.DUTCHRAT.get(), level);
 					dutchrat.setPos(pos.getX() + 0.5D, pos.getY() + 10.0D, pos.getZ() + 0.5D);
 					dutchrat.setBellSummoned();
-					EventHooks.finalizeMobSpawn(dutchrat, (ServerLevelAccessor) level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.MOB_SUMMONED, null);
-					dutchrat.restrictTo(pos, RatConfig.dutchratRestrictionRadius);
+					EventHooks.finalizeMobSpawn(dutchrat, serverLevel, serverLevel.getCurrentDifficultyAt(pos), EntitySpawnReason.MOB_SUMMONED, null);
+					dutchrat.setHomeTo(pos, RatConfig.dutchratRestrictionRadius);
 					level.addFreshEntity(dutchrat);
 					level.blockEvent(pos, state.getBlock(), 2, Direction.NORTH.get2DDataValue());
 				}

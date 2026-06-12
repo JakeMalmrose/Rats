@@ -139,30 +139,10 @@ public class RatsMod {
 
 	//despite being a builtin datapack, this is still necessary because without it the Ratlantis pack doesn't show up. Whatever.
 	public void addRatlantisDatapack(AddPackFindersEvent event) {
-		if (event.getPackType() == PackType.SERVER_DATA) {
-			var resourcePath = ModList.get().getModFileById(MODID).getFile().findResource("data", "minecraft", "datapacks", "ratlantis");
-			var location = new net.minecraft.server.packs.PackLocationInfo("ratlantis",
-				Component.literal("Ratlantis"), PackSource.FEATURE, java.util.Optional.empty());
-			var resources = new PathPackResources(location, resourcePath);
-			var metadata = Pack.readPackMetadata(location, fixedSupplier(resources), net.minecraft.SharedConstants.getCurrentVersion().getPackVersion(PackType.SERVER_DATA));
-			if (metadata != null) {
-				var pack = new Pack(location, fixedSupplier(resources), metadata, new net.minecraft.server.packs.PackSelectionConfig(RatConfig.ratlantisEnabledByDefault, Pack.Position.TOP, false));
-				event.addRepositorySource(packConsumer -> packConsumer.accept(pack));
-			}
-		}
-	}
-
-	private static Pack.ResourcesSupplier fixedSupplier(PathPackResources resources) {
-		return new Pack.ResourcesSupplier() {
-			@Override
-			public net.minecraft.server.packs.PackResources openPrimary(net.minecraft.server.packs.PackLocationInfo info) {
-				return resources;
-			}
-			@Override
-			public net.minecraft.server.packs.PackResources openFull(net.minecraft.server.packs.PackLocationInfo info, Pack.Metadata metadata) {
-				return resources;
-			}
-		};
+		// 26.1: NeoForge's addPackFinders convenience replaces the manual PathPackResources/Pack wiring.
+		event.addPackFinders(Identifier.fromNamespaceAndPath(MODID, "data/minecraft/datapacks/ratlantis"),
+				PackType.SERVER_DATA, Component.literal("Ratlantis"), PackSource.FEATURE,
+				RatConfig.ratlantisEnabledByDefault, Pack.Position.TOP);
 	}
 
 	public void reloadConfigs(ModConfigEvent event) {
@@ -181,12 +161,13 @@ public class RatsMod {
 		RatsUpgradeConflictRegistry.init();
 		event.enqueueWork(() -> {
 			com.github.alexthe666.rats.compat.RatsCompatBootstrap.init();
-			RatsCauldronRegistry.init();
 			RatsDispenserRegistry.init();
 
-			GiveGiftToHero.GIFTS.put(RatsVillagerRegistry.PET_SHOP_OWNER.get(), RatsLootRegistry.PET_SHOP_HOTV);
+			// 26.1: hero-of-the-village gifts are data-driven via the neoforge:raid_hero_gifts data map
+			// (data/neoforge/data_maps/villager_profession/raid_hero_gifts.json).
 
-			CauldronInteraction.WATER.map().put(RatsItemRegistry.PARTY_HAT.get(), CauldronInteraction.DYED_ITEM);
+			// 26.1: CauldronInteraction.DYED_ITEM was removed (dyed-item washing is component-driven);
+			// party hat washing is handled by the vanilla dyed-item path when the component is present.
 
 			FlowerPotBlock pot = (FlowerPotBlock) Blocks.FLOWER_POT;
 			pot.addPlant(RatlantisBlockRegistry.RATGLOVE_FLOWER.getId(), RatlantisBlockRegistry.POTTED_RATGLOVE_FLOWER);
@@ -216,8 +197,8 @@ public class RatsMod {
 	//code take from TelepathicGrunt's gist: https://gist.github.com/TelepathicGrunt/4fdbc445ebcbcbeb43ac748f4b18f342
 	//1.18.2 version used and modified so it works in 1.19.4
 	public void addPetShops(ServerAboutToStartEvent event) {
-		Registry<StructureTemplatePool> templatePoolRegistry = event.getServer().registryAccess().registry(Registries.TEMPLATE_POOL).orElseThrow();
-		Registry<StructureProcessorList> processorListRegistry = event.getServer().registryAccess().registry(Registries.PROCESSOR_LIST).orElseThrow();
+		Registry<StructureTemplatePool> templatePoolRegistry = event.getServer().registryAccess().lookupOrThrow(Registries.TEMPLATE_POOL);
+		Registry<StructureProcessorList> processorListRegistry = event.getServer().registryAccess().lookupOrThrow(Registries.PROCESSOR_LIST);
 
 		if (RatConfig.villagePetShops) {
 			this.addBuildingToPool(templatePoolRegistry, processorListRegistry, Identifier.parse("minecraft:village/plains/houses"), "rats:pet_shops/plains", RatConfig.villagePetShopWeight, ProcessorLists.MOSSIFY_10_PERCENT);
@@ -252,9 +233,9 @@ public class RatsMod {
 	//1.18.2 version used, and modified, so it works in 1.19.4
 	//additions: a StructureProcessorList parameter to allow us to add a processor. (original code always used an empty processor, but some houses actually use processors)
 	private void addBuildingToPool(Registry<StructureTemplatePool> templatePoolRegistry, Registry<StructureProcessorList> processorListRegistry, Identifier poolRL, String nbtPieceRL, int weight, ResourceKey<StructureProcessorList> processor) {
-		Holder<StructureProcessorList> emptyProcessorList = processorListRegistry.getHolderOrThrow(processor);
+		Holder<StructureProcessorList> emptyProcessorList = processorListRegistry.getOrThrow(processor);
 
-		StructureTemplatePool pool = templatePoolRegistry.get(poolRL);
+		StructureTemplatePool pool = templatePoolRegistry.getValue(poolRL);
 		if (pool == null) return;
 
 		SinglePoolElement piece = SinglePoolElement.legacy(nbtPieceRL, emptyProcessorList).apply(StructureTemplatePool.Projection.RIGID);
@@ -274,12 +255,12 @@ public class RatsMod {
 			List<Pair<String, Component>> unsortedCache = new ArrayList<>();
 			for (var entry : BuiltInRegistries.ENTITY_TYPE.entrySet()) {
 				try {
-					Entity entity = entry.getValue().create(level);
+					Entity entity = entry.getValue().create(level, net.minecraft.world.entity.EntitySpawnReason.LOAD);
 					if (entry.getValue() == EntityType.PLAYER || entity instanceof Mob) {
-						unsortedCache.add(Pair.of(entry.getKey().location().toString(), entry.getValue().getDescription()));
+						unsortedCache.add(Pair.of(entry.getKey().identifier().toString(), entry.getValue().getDescription()));
 					}
 				} catch (NullPointerException e) {
-					RatsMod.LOGGER.error("Couldnt cache an instance of the mob {}", entry.getKey().location(), e);
+					RatsMod.LOGGER.error("Couldnt cache an instance of the mob {}", entry.getKey().identifier(), e);
 				}
 			}
 			MOB_CACHE.addAll(unsortedCache.stream().sorted(Comparator.comparing(o -> o.getSecond().getString())).toList());

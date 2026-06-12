@@ -1,7 +1,7 @@
 package com.github.alexthe666.rats.registry;
 
 import com.github.alexthe666.rats.RatsMod;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.network.chat.Component;
@@ -29,7 +29,7 @@ public class RatlantisTrimRegistry {
 	}
 
 	private static void register(BootstrapContext<TrimMaterial> context, ResourceKey<TrimMaterial> trimKey, Style color) {
-		Component description = Component.translatable(Util.makeDescriptionId("trim_material", trimKey.location())).withStyle(color);
-		context.register(trimKey, new TrimMaterial(MaterialAssetGroup.create(trimKey.location().getPath()), description));
+		Component description = Component.translatable(Util.makeDescriptionId("trim_material", trimKey.identifier())).withStyle(color);
+		context.register(trimKey, new TrimMaterial(MaterialAssetGroup.create(trimKey.identifier().getPath()), description));
 	}
 }

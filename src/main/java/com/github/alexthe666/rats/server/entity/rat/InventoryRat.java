@@ -12,10 +12,6 @@ import com.github.alexthe666.rats.server.message.OpenRatScreenPacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.GlobalPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtOps;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -42,7 +38,8 @@ import java.util.List;
 import java.util.Optional;
 import net.minecraft.network.syncher.SynchedEntityData;
 
-public abstract class InventoryRat extends DiggingRat implements ContainerListener {
+// 26.1: SimpleContainer no longer supports ContainerListeners; RatContainer#setItem performs the upgrade-change callbacks itself.
+public abstract class InventoryRat extends DiggingRat {
 
 	private static final EntityDataAccessor<Integer> COMMAND = SynchedEntityData.defineId(InventoryRat.class, EntityDataSerializers.INT);
 	private static final EntityDataAccessor<Optional<GlobalPos>> RADIUS_CENTER = SynchedEntityData.defineId(InventoryRat.class, EntityDataSerializers.OPTIONAL_GLOBAL_POS);
@@ -74,70 +71,48 @@ public abstract class InventoryRat extends DiggingRat implements ContainerListen
 	@Override
 	public void addAdditionalSaveData(ValueOutput tag) {
 		super.addAdditionalSaveData(tag);
-		ListTag listtag = new ListTag();
+		// 26.1: slot-tagged item lists are written through the ItemStackWithSlot codec (same "Items"/"Slot" keys as before).
+		ValueOutput.TypedOutputList<ItemStackWithSlot> items = tag.list("Items", ItemStackWithSlot.CODEC);
 		for (int i = 0; i < this.getInventory().getContainerSize(); ++i) {
 			ItemStack itemstack = this.getInventory().getItem(i);
 			if (!itemstack.isEmpty()) {
-				CompoundTag compoundtag = new CompoundTag();
-				compoundtag.putByte("Slot", (byte) i);
-				// 1.21: ItemStack.save now requires a HolderLookup.Provider; use registry access from level (or wrap as needed).
-				Tag saved = itemstack.save(this.level().registryAccess(), compoundtag);
-				if (saved instanceof CompoundTag c) compoundtag = c;
-				listtag.add(compoundtag);
+				items.add(new ItemStackWithSlot(i, itemstack));
 			}
 		}
-		tag.put("Items", listtag);
 		tag.putByte("InvisibleSlots", this.getEntityData().get(VISIBILITY_FLAGS));
 
-		this.getHomePoint().flatMap(pos -> GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).resultOrPartial(RatsMod.LOGGER::error)).ifPresent(tag1 -> tag.put("HomePos", tag1));
+		this.getHomePoint().ifPresent(pos -> tag.store("HomePos", GlobalPos.CODEC, pos));
 
-		this.getRadiusCenter().flatMap(pos -> GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).resultOrPartial(RatsMod.LOGGER::error)).ifPresent(tag1 -> tag.put("RadiusPos", tag1));
+		this.getRadiusCenter().ifPresent(pos -> tag.store("RadiusPos", GlobalPos.CODEC, pos));
 		tag.putInt("SearchRadius", this.getRadius());
 
 		if (!this.getPatrolNodes().isEmpty()) {
-			ListTag listTag = new ListTag();
-			this.getPatrolNodes().forEach(pos -> GlobalPos.CODEC.encodeStart(NbtOps.INSTANCE, pos).resultOrPartial(RatsMod.LOGGER::error).ifPresent(listTag::add));
-			tag.put("PatrolNodesTag", listTag);
+			ValueOutput.TypedOutputList<GlobalPos> nodes = tag.list("PatrolNodesTag", GlobalPos.CODEC);
+			this.getPatrolNodes().forEach(nodes::add);
 		}
 	}
 
 	@Override
 	public void readAdditionalSaveData(ValueInput tag) {
 		super.readAdditionalSaveData(tag);
-		ListTag listtag = tag.getListOrEmpty("Items");
-
-		for (int i = 0; i < listtag.size(); ++i) {
-			CompoundTag compoundtag = listtag.getCompoundOrEmpty(i);
-			int j = compoundtag.getByteOr("Slot", (byte) 0) & 255;
-			if (j < this.getInventory().getContainerSize()) {
-				// 1.21: ItemStack.of(CompoundTag) replaced with parse-with-registries.
-				this.getInventory().setItem(j, ItemStack.parseOptional(this.level().registryAccess(), compoundtag));
+		for (ItemStackWithSlot slotStack : tag.listOrEmpty("Items", ItemStackWithSlot.CODEC)) {
+			if (slotStack.isValidInContainer(this.getInventory().getContainerSize())) {
+				this.getInventory().setItem(slotStack.slot(), slotStack.stack());
 			}
 		}
 
 		this.getEntityData().set(VISIBILITY_FLAGS, tag.getByteOr("InvisibleSlots", (byte) 0));
-		if (tag.contains("HomePos")) {
-			this.setHomePoint(GlobalPos.CODEC.parse(NbtOps.INSTANCE, tag.get("HomePos")).resultOrPartial(RatsMod.LOGGER::error).orElse(null));
-		}
-		if (tag.contains("RadiusPos")) {
-			this.setRadiusCenter(GlobalPos.CODEC.parse(NbtOps.INSTANCE, tag.get("RadiusPos")).resultOrPartial(RatsMod.LOGGER::error).orElse(null));
-		}
+		this.setHomePoint(tag.read("HomePos", GlobalPos.CODEC).orElse(null));
+		this.setRadiusCenter(tag.read("RadiusPos", GlobalPos.CODEC).orElse(null));
 		this.setRadius(tag.getIntOr("SearchRadius", 0));
 
-		if (tag.contains("PatrolNodesTag")) {
-			ListTag listTag = tag.getList("PatrolNodesTag", Tag.TAG_COMPOUND);
-
-			for (Tag pos : listTag) {
-				GlobalPos.CODEC.parse(NbtOps.INSTANCE, pos).resultOrPartial(RatsMod.LOGGER::error).ifPresent(globalPos -> this.getPatrolNodes().add(globalPos));
-			}
-		}
+		tag.listOrEmpty("PatrolNodesTag", GlobalPos.CODEC).forEach(globalPos -> this.getPatrolNodes().add(globalPos));
 	}
 
 	private void createInventory() {
 		SimpleContainer simplecontainer = this.getInventory();
 		this.inventory = new RatContainer(this, 6);
 		if (simplecontainer != null) {
-			simplecontainer.removeListener(this);
 			int i = Math.min(simplecontainer.getContainerSize(), this.getInventory().getContainerSize());
 
 			for (int j = 0; j < i; ++j) {
@@ -148,7 +123,6 @@ public abstract class InventoryRat extends DiggingRat implements ContainerListen
 			}
 		}
 
-		this.getInventory().addListener(this);
 		this.itemHandler = new InvWrapper(this.getInventory());
 	}
 
@@ -324,11 +298,6 @@ public abstract class InventoryRat extends DiggingRat implements ContainerListen
 
 	public List<GlobalPos> getPatrolNodes() {
 		return this.getEntityData().get(PATROL_NODES);
-	}
-
-	@Override
-	public void containerChanged(Container container) {
-
 	}
 
 	public boolean isSlotVisible(EquipmentSlot slot) {

@@ -1,16 +1,16 @@
 package com.github.alexthe666.rats.client.model;
 
-import net.minecraft.client.model.HierarchicalModel;
+import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
-import net.minecraft.world.entity.Entity;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 
-public class CubeModel<T extends Entity> extends HierarchicalModel<T> {
-	public final ModelPart root;
+// 26.1: HierarchicalModel was removed; this static cube needs no per-entity animation, so Model.Simple fits.
+public class CubeModel extends Model.Simple {
 
 	public CubeModel(ModelPart root) {
-		this.root = root;
+		super(root, RenderTypes::entityCutout);
 	}
 
 	public static LayerDefinition create() {
@@ -23,15 +23,5 @@ public class CubeModel<T extends Entity> extends HierarchicalModel<T> {
 				PartPose.ZERO);
 
 		return LayerDefinition.create(mesh, 16, 128);
-	}
-
-	@Override
-	public ModelPart root() {
-		return this.root;
-	}
-
-	@Override
-	public void setupAnim(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-
 	}
 }

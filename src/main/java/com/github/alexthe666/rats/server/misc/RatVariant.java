@@ -1,6 +1,7 @@
 package com.github.alexthe666.rats.server.misc;
 
 import com.github.alexthe666.rats.registry.RatVariantRegistry;
+import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 
@@ -58,8 +59,8 @@ public class RatVariant {
 	}
 
 	public static RatVariant getVariant(String id) {
-		// 1.21: Registry.getValue removed; use get(Identifier).
-		return Optional.ofNullable(RatVariantRegistry.RAT_VARIANT_REGISTRY.get(Identifier.parse(id))).orElse(RatVariantRegistry.BLUE.get());
+		// 26.1: Registry.get(Identifier) returns Optional<Holder.Reference<T>>.
+		return RatVariantRegistry.RAT_VARIANT_REGISTRY.get(Identifier.parse(id)).map(Holder::value).orElse(RatVariantRegistry.BLUE.get());
 	}
 
 	public static String getVariantId(RatVariant variant) {

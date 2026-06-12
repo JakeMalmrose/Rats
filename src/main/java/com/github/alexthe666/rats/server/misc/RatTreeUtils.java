@@ -96,7 +96,11 @@ public class RatTreeUtils {
 	@Nullable
 	public static Block getSaplingFromLeaves(ServerLevel level, Block leaves) {
 		try {
-			LootTable loot = level.getServer().reloadableRegistries().getLootTable(leaves.getLootTable());
+			// 26.1: Block#getLootTable returns Optional<ResourceKey<LootTable>> now.
+			LootTable loot = leaves.getLootTable().map(key -> level.getServer().reloadableRegistries().getLootTable(key)).orElse(null);
+			if (loot == null) {
+				return null;
+			}
 			LootParams.Builder context = new LootParams.Builder(level).withParameter(LootContextParams.TOOL, createMaxHoe(level)).withParameter(LootContextParams.BLOCK_STATE, leaves.defaultBlockState()).withParameter(LootContextParams.ORIGIN, Vec3.ZERO).withLuck(Float.MAX_VALUE);
 			for (int i = 0; i < 25; i++) {
 				ObjectArrayList<ItemStack> lootStacks = loot.getRandomItems(context.create(LootContextParamSets.BLOCK));

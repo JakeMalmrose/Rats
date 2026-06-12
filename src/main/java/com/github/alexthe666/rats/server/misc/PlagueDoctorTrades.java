@@ -7,7 +7,6 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.item.trading.VillagerTrades;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -19,17 +18,27 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Optional;
 
-// 1.21: VillagerTrades.ItemListing implementations re-authored against ItemCost / MerchantOffer's new
+// 1.21: ItemListing implementations re-authored against ItemCost / MerchantOffer's new
 // constructors. Trade table contents recovered from the 1.20.1 source.
 public class PlagueDoctorTrades {
-	public static final Int2ObjectMap<VillagerTrades.ItemListing[]> PLAGUE_DOCTOR_TRADES;
-	public static final VillagerTrades.ItemListing COMBINER_TRADE = new ItemsAndEmeraldsToItems(RatsItemRegistry.RAT_UPGRADE_GOD.get(), 1, 40, RatsBlockRegistry.UPGRADE_COMBINER.get().asItem(), 1, 1, 30);
-	public static final VillagerTrades.ItemListing SEPARATOR_TRADE = new ItemsAndEmeraldsToItems(RatsItemRegistry.RAT_UPGRADE_JURY_RIGGED.get(), 1, 4, RatsBlockRegistry.UPGRADE_SEPARATOR.get().asItem(), 1, 1, 30);
-	public static final VillagerTrades.ItemListing UPGRADE_COMBINED_TRADE = new ItemsForEmeralds(RatsItemRegistry.RAT_UPGRADE_COMBINED.get(), 6, 1, 1);
+
+	// 26.1: vanilla's VillagerTrades.ItemListing was removed in favor of data-driven TradeSets.
+	// The plague doctor is a custom merchant, so we keep code-side listings via this local interface
+	// (same shape vanilla's old one had: (trader, random) -> offer).
+	@FunctionalInterface
+	public interface ItemListing {
+		@Nullable
+		MerchantOffer getOffer(Entity entity, RandomSource random);
+	}
+
+	public static final Int2ObjectMap<ItemListing[]> PLAGUE_DOCTOR_TRADES;
+	public static final ItemListing COMBINER_TRADE = new ItemsAndEmeraldsToItems(RatsItemRegistry.RAT_UPGRADE_GOD.get(), 1, 40, RatsBlockRegistry.UPGRADE_COMBINER.get().asItem(), 1, 1, 30);
+	public static final ItemListing SEPARATOR_TRADE = new ItemsAndEmeraldsToItems(RatsItemRegistry.RAT_UPGRADE_JURY_RIGGED.get(), 1, 4, RatsBlockRegistry.UPGRADE_SEPARATOR.get().asItem(), 1, 1, 30);
+	public static final ItemListing UPGRADE_COMBINED_TRADE = new ItemsForEmeralds(RatsItemRegistry.RAT_UPGRADE_COMBINED.get(), 6, 1, 1);
 
 	static {
 		PLAGUE_DOCTOR_TRADES = createTrades(ImmutableMap.of(1,
-				new VillagerTrades.ItemListing[]{
+				new ItemListing[]{
 						new EmeraldForItems(RatsItemRegistry.RAW_RAT.get(), 10, 15, 1),
 						new ItemsForEmeralds(Items.BONE, 3, 8, 9, 1),
 						new ItemsForEmeralds(Items.ROTTEN_FLESH, 2, 10, 9, 2),
@@ -46,7 +55,7 @@ public class PlagueDoctorTrades {
 						new ItemsForEmeralds(RatsItemRegistry.RAT_SKULL.get(), 3, 1, 15, 5),
 				},
 				// Only 3 of these appear per plague doctor (selected randomly in PlagueDoctor.updateTrades).
-				2, new VillagerTrades.ItemListing[]{
+				2, new ItemListing[]{
 						new ItemsForEmeralds(RatsItemRegistry.PLAGUE_LEECH.get(), 3, 1, 10, 5),
 						new ItemsForEmeralds(RatsItemRegistry.PLAGUE_STEW.get(), 7, 1, 8, 6),
 						new ItemsForEmeralds(RatsItemRegistry.RAT_SACK.get(), 2, 1, 5, 5),
@@ -62,12 +71,12 @@ public class PlagueDoctorTrades {
 				}));
 	}
 
-	private static Int2ObjectMap<VillagerTrades.ItemListing[]> createTrades(ImmutableMap<Integer, VillagerTrades.ItemListing[]> map) {
+	private static Int2ObjectMap<ItemListing[]> createTrades(ImmutableMap<Integer, ItemListing[]> map) {
 		return new Int2ObjectOpenHashMap<>(map);
 	}
 
 	// Player gives <fromItem * fromCount> + <emeraldCost> emeralds, receives <toItem * toCount>.
-	public static class ItemsAndEmeraldsToItems implements VillagerTrades.ItemListing {
+	public static class ItemsAndEmeraldsToItems implements ItemListing {
 		private final ItemLike fromItem;
 		private final int fromCount;
 		private final int emeraldCost;
@@ -100,7 +109,7 @@ public class PlagueDoctorTrades {
 	}
 
 	// Player gives <emeraldCost> emeralds, receives <item * amount>.
-	public static class ItemsForEmeralds implements VillagerTrades.ItemListing {
+	public static class ItemsForEmeralds implements ItemListing {
 		private final ItemStack itemStack;
 		private final int emeraldCost;
 		private final int numberOfItems;
@@ -135,7 +144,7 @@ public class PlagueDoctorTrades {
 	}
 
 	// Player gives <item * amount>, receives 1 emerald.
-	public static class EmeraldForItems implements VillagerTrades.ItemListing {
+	public static class EmeraldForItems implements ItemListing {
 		private final ItemLike item;
 		private final int amount;
 		private final int maxUses;

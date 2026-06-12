@@ -9,17 +9,17 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.DyedItemColor;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.component.TooltipDisplay;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public class PartyHatItem extends Item {
 
 	private static final int DEFAULT_COLOR = 0x25C9E7;
 
 	public PartyHatItem(Properties properties) {
-		super(properties.component(DataComponents.DYED_COLOR, new DyedItemColor(DEFAULT_COLOR, false)));
+		super(properties.component(DataComponents.DYED_COLOR, new DyedItemColor(DEFAULT_COLOR)));
 	}
 
 	public int getColor(ItemStack stack) {
@@ -27,10 +27,10 @@ public class PartyHatItem extends Item {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
 		DyedItemColor color = stack.get(DataComponents.DYED_COLOR);
 		if (color == null || color.rgb() == DEFAULT_COLOR) {
-			tooltip.add(Component.translatable("item.rats.party_hat.desc").withStyle(ChatFormatting.GRAY));
+			tooltip.accept(Component.translatable("item.rats.party_hat.desc").withStyle(ChatFormatting.GRAY));
 		}
 	}
 

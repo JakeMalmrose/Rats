@@ -2,9 +2,10 @@ package com.github.alexthe666.rats.client.render.entity;
 
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.client.events.ModClientEvents;
-import com.github.alexthe666.rats.client.model.entity.AbstractRatModel;
 import com.github.alexthe666.rats.client.model.entity.PinkieModel;
 import com.github.alexthe666.rats.client.model.entity.RatModel;
+import com.github.alexthe666.rats.client.render.RatsClientKeys;
+import com.github.alexthe666.rats.client.render.RatsEntityModelBridge;
 import com.github.alexthe666.rats.client.render.entity.layer.TamedRatEyesLayer;
 import com.github.alexthe666.rats.client.render.entity.layer.TamedRatOverlayLayer;
 import com.github.alexthe666.rats.registry.RatsItemRegistry;
@@ -14,29 +15,27 @@ import com.github.alexthe666.rats.server.misc.RatUpgradeUtils;
 import com.google.common.collect.ImmutableMap;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import net.minecraft.util.Util;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.client.ClientHooks;
-import org.joml.Matrix4f;
 
 import java.util.Locale;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class TamedRatRenderer extends AbstractRatRenderer<TamedRat, AbstractRatModel<TamedRat>> {
+public class TamedRatRenderer extends AbstractRatRenderer<TamedRat> {
 
-	private static final RatModel<TamedRat> RAT_MODEL = new RatModel<>();
-	private static final PinkieModel<TamedRat> PINKIE_MODEL = new PinkieModel<>();
 	private static final Identifier PINKIE_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/baby.png");
 	private static final String[] FISHING_PROGRESS = new String[] {".", "..", "..."};
 
@@ -58,82 +57,89 @@ public class TamedRatRenderer extends AbstractRatRenderer<TamedRat, AbstractRatM
 		.put("zura", Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/patreon_skins/zura.png"))
 		.build();
 
+	private final RatsEntityModelBridge<TamedRat> ratBridge;
+	private final RatsEntityModelBridge<TamedRat> pinkieBridge;
+
+	@SuppressWarnings("unchecked")
 	public TamedRatRenderer(EntityRendererProvider.Context context) {
 		super(context, new RatModel<>());
+		this.ratBridge = (RatsEntityModelBridge<TamedRat>) (Object) this.model;
+		this.pinkieBridge = new RatsEntityModelBridge<>(new PinkieModel<>());
 		this.addLayer(new TamedRatOverlayLayer(this));
 		this.addLayer(new TamedRatEyesLayer(this));
 	}
 
 	@Override
-	protected boolean shouldShowName(TamedRat entity) {
-		return ModClientEvents.shouldRenderNameplates() && super.shouldShowName(entity);
+	protected boolean shouldShowName(TamedRat entity, double distanceToCameraSq) {
+		return ModClientEvents.shouldRenderNameplates() && super.shouldShowName(entity, distanceToCameraSq);
 	}
 
 	@Override
-	public void render(TamedRat entity, float entityYaw, float partialTicks, PoseStack stack, MultiBufferSource buffer, int light) {
-		if (entity.isBaby()) {
-			this.model = PINKIE_MODEL;
-		} else {
-			this.model = RAT_MODEL;
+	protected void scale(LivingEntityRenderState state, PoseStack stack) {
+		// 26.1: baby/adult model swap moved from render() to scale() (mirrors AM RenderBison).
+		this.model = state.isBaby ? this.pinkieBridge : this.ratBridge;
+		super.scale(state, stack);
+	}
+
+	@Override
+	public void submit(LivingEntityRenderState state, PoseStack stack, SubmitNodeCollector collector, CameraRenderState camera) {
+		super.submit(state, stack, collector, camera);
+		if (!(RatsClientKeys.getLiving(state) instanceof TamedRat entity)) {
+			return;
 		}
-		super.render(entity, entityYaw, partialTicks, stack, buffer, light);
 		if (ModClientEvents.shouldRenderNameplates() && entity.crafting && RatUpgradeUtils.hasUpgrade(entity, RatsItemRegistry.RAT_UPGRADE_FISHERMAN.get())) {
-			boolean hasName = this.shouldShowName(entity);
+			boolean hasName = this.shouldShowName(entity, state.distanceToCameraSq);
 			stack.pushPose();
 			stack.translate(0.0F, hasName ? 1.3F : 1.05F, 0.0F);
-			stack.mulPose(this.entityRenderDispatcher.cameraOrientation());
+			stack.mulPose(camera.orientation);
 			stack.scale(0.25F, 0.25F, 0.25F);
 			stack.mulPose(Axis.YP.rotationDegrees(180));
-			stack.mulPose(Axis.ZP.rotationDegrees(Mth.sin((entity.tickCount + partialTicks) / 5) * 20));
-			Minecraft.getInstance().getItemRenderer().renderStatic(new ItemStack(Items.FISHING_ROD), ItemDisplayContext.GUI, light, OverlayTexture.NO_OVERLAY, stack, buffer, null, entity.getId());
+			stack.mulPose(Axis.ZP.rotationDegrees(Mth.sin(state.ageInTicks / 5) * 20));
+			Minecraft.getInstance().getEntityRenderDispatcher().getItemInHandRenderer().renderItem(entity, new ItemStack(Items.FISHING_ROD), ItemDisplayContext.GUI, stack, collector, state.lightCoords);
 			stack.popPose();
 
 			stack.pushPose();
 			stack.translate(0.0F, entity.getBbHeight() + 0.5F, 0.0F);
-			stack.mulPose(this.entityRenderDispatcher.cameraOrientation());
+			stack.mulPose(camera.orientation);
 			stack.scale(-0.025F, -0.025F, 0.025F);
-			String dots = FISHING_PROGRESS[(int)(Util.getMillis() / 300L % (long)FISHING_PROGRESS.length)];
-			this.getFont().drawInBatch(dots, -this.getFont().width(dots) / 2, hasName ? -10 : 0, 0xFFFFFF, false, stack.last().pose(), buffer, Font.DisplayMode.NORMAL, 0, 15728880, this.getFont().isBidirectional());
+			String dots = FISHING_PROGRESS[(int) (Util.getMillis() / 300L % (long) FISHING_PROGRESS.length)];
+			collector.submitText(stack, -this.getFont().width(dots) / 2.0F, hasName ? -10 : 0, Component.literal(dots).getVisualOrderText(), false, Font.DisplayMode.NORMAL, 15728880, 0xFFFFFFFF, 0, 0);
 			stack.popPose();
 		}
 //		if (ForgeClientEvents.isRatSelectedOnStaff(entity)) {
-//			this.renderAdditionalInfo(entity, stack, buffer, light);
+//			this.renderAdditionalInfo(entity, state, stack, collector, camera, state.lightCoords);
 //		}
 	}
 
-	protected void renderAdditionalInfo(TamedRat entity, PoseStack stack, MultiBufferSource source, int light) {
-		double d0 = this.entityRenderDispatcher.distanceToSqr(entity);
-		if (ClientHooks.isNameplateInRenderDistance(entity, d0)) {
+	protected void renderAdditionalInfo(TamedRat entity, LivingEntityRenderState state, PoseStack stack, SubmitNodeCollector collector, CameraRenderState camera, int light) {
+		if (ClientHooks.isNameplateInRenderDistance(entity, state.distanceToCameraSq)) {
 			// 1.21: Entity.getNameTagOffsetY was removed in favour of EntityAttachments.NAME_TAG.
 			// We compute the nameplate Y by hand here (BbHeight + small offset) so the additional rat
 			// info (RF / status text) layers above the rat's head consistently across baby/adult sizes.
 			float f = entity.getBbHeight() + 0.5F;
 			stack.pushPose();
 			stack.translate(0.0F, f, 0.0F);
-			stack.mulPose(this.entityRenderDispatcher.cameraOrientation());
+			stack.mulPose(camera.orientation);
 			stack.scale(-0.025F, -0.025F, 0.025F);
-			Matrix4f matrix4f = stack.last().pose();
 			float f1 = Minecraft.getInstance().options.getBackgroundOpacity(0.25F);
 			int j = (int) (f1 * 255.0F) << 24;
 			Font font = this.getFont();
 
 			Component rf = Component.literal("RF: " + entity.getHeldRF());
 			float f2 = (float) (-font.width(rf) / 2);
-			font.drawInBatch(rf, f2, -20, 553648127, false, matrix4f, source, Font.DisplayMode.NORMAL, j, light);
+			collector.submitText(stack, f2, -20, rf.getVisualOrderText(), false, Font.DisplayMode.NORMAL, light, 553648127, j, 0);
 			Component fluid = Component.literal("Fluid: " + entity.transportingFluid.getAmount());
-			f2 = (float) (-font.width(rf) / 2);
-			font.drawInBatch(fluid, f2, -10, 553648127, false, matrix4f, source, Font.DisplayMode.NORMAL, j, light);
+			collector.submitText(stack, f2, -10, fluid.getVisualOrderText(), false, Font.DisplayMode.NORMAL, light, 553648127, j, 0);
 			Component pickupSides = Component.literal("Deposit: " + entity.depositFacing.getName() + ", Pickup: " + entity.pickupFacing.getName());
-			f2 = (float) (-font.width(rf) / 2);
-			font.drawInBatch(pickupSides, f2, 0, 553648127, false, matrix4f, source, Font.DisplayMode.NORMAL, j, light);
+			collector.submitText(stack, f2, 0, pickupSides.getVisualOrderText(), false, Font.DisplayMode.NORMAL, light, 553648127, j, 0);
 
 			stack.popPose();
 		}
 	}
 
 	@Override
-	public Identifier getTextureLocation(TamedRat entity) {
-		if (entity.isBaby()) {
+	public Identifier getTextureLocation(LivingEntityRenderState state) {
+		if (!(RatsClientKeys.getLiving(state) instanceof TamedRat entity) || entity.isBaby()) {
 			return PINKIE_TEXTURE;
 		} else {
 			AtomicReference<String> upgradeTex = new AtomicReference<>(null);
@@ -155,7 +161,7 @@ public class TamedRatRenderer extends AbstractRatRenderer<TamedRat, AbstractRatM
 				}
 			}
 
-			return super.getTextureLocation(entity);
+			return super.getTextureLocation(state);
 		}
 	}
 }

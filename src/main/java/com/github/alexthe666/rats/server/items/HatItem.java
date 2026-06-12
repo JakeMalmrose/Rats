@@ -8,51 +8,47 @@ import com.github.alexthe666.rats.registry.RatlantisItemRegistry;
 import com.github.alexthe666.rats.registry.RatsItemRegistry;
 import com.github.alexthe666.rats.server.entity.monster.GhostPirat;
 import com.github.alexthe666.rats.server.entity.rat.AbstractRat;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.EntityModelSet;
+import net.minecraft.client.resources.model.EquipmentClientInfo;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.monster.EnderMan;
-import net.minecraft.core.Holder;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.*;
-import net.minecraft.world.level.Level;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
-import net.neoforged.neoforge.registries.NeoForgeRegistries;
-import com.github.alexthe666.rats.registry.RatsArmorMaterialRegistry;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.function.Consumer;
 
-public class HatItem extends ArmorItem {
+// 26.1: ArmorItem is gone — armor is a plain Item with Properties.humanoidArmor(material, type),
+// which applies durability, attributes, enchantability, repair tag and the EQUIPPABLE component.
+public class HatItem extends Item {
 
 	private final int loreLines;
 
-	public HatItem(Item.Properties properties, Holder<ArmorMaterial> material, int loreLines) {
-		super(material, Type.HELMET, properties.durability(RatsArmorMaterialRegistry.durabilityFor(material, Type.HELMET)));
+	public HatItem(Item.Properties properties, ArmorMaterial material, int loreLines) {
+		super(properties.humanoidArmor(material, ArmorType.HELMET));
 		this.loreLines = loreLines;
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
 		if (stack.is(RatsItemRegistry.BLACK_DEATH_MASK.get())) {
-			tooltip.add(Component.translatable("item.rats.plague_doctor_mask.desc").withStyle(ChatFormatting.GRAY));
+			tooltip.accept(Component.translatable("item.rats.plague_doctor_mask.desc").withStyle(ChatFormatting.GRAY));
 		}
 		if (this.loreLines > 0) {
 			for (int i = 0; i < this.loreLines; i++) {
-				tooltip.add(Component.translatable(this.getDescriptionId() + ".desc" + (this.loreLines == 1 ? "" : i)).withStyle(ChatFormatting.GRAY));
+				tooltip.accept(Component.translatable(this.getDescriptionId() + ".desc" + (this.loreLines == 1 ? "" : i)).withStyle(ChatFormatting.GRAY));
 			}
 		}
 	}
@@ -62,8 +58,9 @@ public class HatItem extends ArmorItem {
 		return stack.is(RatsItemRegistry.RAT_KING_CROWN.get());
 	}
 
+	// 26.1: IItemExtension#isEnderMask was generalized into isGazeDisguise.
 	@Override
-	public boolean isEnderMask(ItemStack stack, Player player, EnderMan enderMan) {
+	public boolean isGazeDisguise(ItemStack stack, Player player, @Nullable LivingEntity entity) {
 		return stack.is(RatsItemRegistry.BLACK_DEATH_MASK.get()) || stack.is(RatsItemRegistry.PLAGUE_DOCTOR_MASK.get());
 	}
 
@@ -90,7 +87,8 @@ public class HatItem extends ArmorItem {
 		if (this == RatlantisItemRegistry.GHOST_PIRAT_HAT.get()) {
 			float piratScale = rat instanceof GhostPirat ? 1.1F : 1.425F;
 			float piratTranslate = rat instanceof GhostPirat ? 0.05F : -0.125F;
-			RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.3F);
+			// 26.1: RenderSystem.setShaderColor is gone with the global shader-color state; the ghostly
+			// tint now has to come from the render layer's buffer/color, so the old 1.3F alpha boost is dropped.
 			stack.mulPose(Axis.XN.rotationDegrees(5.0F));
 			stack.translate(0.0F, piratTranslate, 0.0F);
 			stack.scale(piratScale, piratScale, piratScale);
@@ -149,19 +147,6 @@ public class HatItem extends ArmorItem {
 		return 0.0F;
 	}
 
-	// 1.21: vanilla HumanoidArmorLayer derives the texture from ArmorMaterial.Layer.assetId(),
-	// not from any per-item override. NeoForge re-introduces a per-stack hook on IItemExtension —
-	// we use it to point each hat at its real texture under model/hat/, regardless of which shared
-	// ArmorMaterial (e.g. GENERIC_HAT) the hat was registered with.
-	@Override
-	public Identifier getArmorTexture(ItemStack stack, Entity entity, EquipmentSlot slot, ArmorMaterial.Layer layer, boolean innerModel) {
-		String item = BuiltInRegistries.ITEM.getKey(this).getPath();
-		if (!item.equals("air")) {
-			return Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/model/hat/" + item + ".png");
-		}
-		return Identifier.withDefaultNamespace("textures/particle/flea_0.png");
-	}
-
 	@Override
 	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
 		// A separate @OnlyIn class (not an anonymous one) keeps client-only types out of this
@@ -177,8 +162,20 @@ public class HatItem extends ArmorItem {
 			this.hat = hat;
 		}
 
+		// 26.1: vanilla derives armor textures from equipment assets; the per-stack hook moved from
+		// IItemExtension to IClientItemExtensions. We use it to point each hat at its real texture
+		// under model/hat/, regardless of which shared ArmorMaterial (e.g. GENERIC_HAT) it registered with.
 		@Override
-		public @NotNull HumanoidModel<?> getHumanoidArmorModel(LivingEntity livingEntity, ItemStack itemStack, EquipmentSlot equipmentSlot, HumanoidModel<?> original) {
+		public Identifier getArmorTexture(ItemStack stack, EquipmentClientInfo.LayerType type, EquipmentClientInfo.Layer layer, Identifier _default) {
+			String item = BuiltInRegistries.ITEM.getKey(this.hat).getPath();
+			if (!item.equals("air")) {
+				return Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/model/hat/" + item + ".png");
+			}
+			return Identifier.withDefaultNamespace("textures/particle/flea_0.png");
+		}
+
+		@Override
+		public Model getHumanoidArmorModel(ItemStack itemStack, EquipmentClientInfo.LayerType layerType, Model original) {
 			EntityModelSet models = Minecraft.getInstance().getEntityModels();
 			return switch (BuiltInRegistries.ITEM.getKey(this.hat).getPath()) {
 				case "chef_toque" -> new ChefToqueModel(models.bakeLayer(RatsModelLayers.CHEF_TOQUE));

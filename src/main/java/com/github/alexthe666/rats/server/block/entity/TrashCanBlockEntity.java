@@ -10,6 +10,7 @@ import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
 
 public class TrashCanBlockEntity extends BlockEntity {
 	public float lidProgress;
@@ -30,16 +31,16 @@ public class TrashCanBlockEntity extends BlockEntity {
 
 	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
-		return ClientboundBlockEntityDataPacket.create(this, BlockEntity::getUpdateTag);
+		return ClientboundBlockEntityDataPacket.create(this);
 	}
 
 	@Override
-	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet, HolderLookup.Provider registries) {
-		this.handleUpdateTag(packet.getTag(), registries);
+	public void onDataPacket(Connection net, ValueInput valueInput) {
+		this.handleUpdateTag(valueInput);
 	}
 
 	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-		return this.saveWithId(registries);
+		return this.saveWithoutMetadata(registries);
 	}
 }

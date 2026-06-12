@@ -9,8 +9,10 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.WorldGenLevel;
@@ -24,6 +26,8 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructurePlaceSettings;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplate;
 import net.minecraft.world.level.levelgen.structure.templatesystem.StructureTemplateManager;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.loot.LootTable;
 
 import java.lang.reflect.Field;
@@ -72,14 +76,14 @@ public class RatlantisRuinFeature extends Feature<RatlantisRuinConfiguration> {
 			structuretemplate = structuretemplatemanager.getOrCreate(chosenRuin);
 		}
 
-		ChunkPos chunkpos = new ChunkPos(blockpos);
-		BoundingBox boundingbox = new BoundingBox(chunkpos.getMinBlockX() - 16, level.getMinBuildHeight(), chunkpos.getMinBlockZ() - 16, chunkpos.getMaxBlockX() + 16, level.getMaxBuildHeight(), chunkpos.getMaxBlockZ() + 16);
+		ChunkPos chunkpos = ChunkPos.containing(blockpos);
+		BoundingBox boundingbox = new BoundingBox(chunkpos.getMinBlockX() - 16, level.getMinY(), chunkpos.getMinBlockZ() - 16, chunkpos.getMaxBlockX() + 16, level.getMaxY(), chunkpos.getMaxBlockZ() + 16);
 		StructurePlaceSettings structureplacesettings = new StructurePlaceSettings().setRotation(rotation).setBoundingBox(boundingbox).setRandom(random);
 		Vec3i vec3i = structuretemplate.getSize(rotation);
 		BlockPos blockpos1 = blockpos.offset(-vec3i.getX() / 2, 0, -vec3i.getZ() / 2);
 		BlockPos blockpos2 = structuretemplate.getZeroPositionWithTransform(blockpos1, Mirror.NONE, rotation);
 
-		if (!level.getBlockState(blockpos2.below()).isSolidRender(level, blockpos2)) return false;
+		if (!level.getBlockState(blockpos2.below()).isSolidRender()) return false;
 
 		structureplacesettings.clearProcessors();
 		if (config.processor() != null) {
@@ -128,11 +132,13 @@ public class RatlantisRuinFeature extends Feature<RatlantisRuinConfiguration> {
 			for (StructureTemplate.StructureEntityInfo entityInfo : StructureTemplate.processEntityInfos(template, level, origin, settings, rawList)) {
 				CompoundTag nbt = entityInfo.nbt.copy();
 				nbt.remove("UUID");
-				EntityType.by(nbt).ifPresent(type -> {
-					Entity entity = type.create(level);
+				// 26.1: EntityType.by/Entity#load read from ValueInput now; wrap the template's CompoundTag.
+				ValueInput input = TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), nbt);
+				EntityType.by(input).ifPresent(type -> {
+					Entity entity = type.create(level, EntitySpawnReason.STRUCTURE);
 					if (entity != null) {
-						entity.load(nbt);
-						entity.moveTo(entityInfo.pos.x, entityInfo.pos.y, entityInfo.pos.z, entity.getYRot(), entity.getXRot());
+						entity.load(input);
+						entity.snapTo(entityInfo.pos.x, entityInfo.pos.y, entityInfo.pos.z, entity.getYRot(), entity.getXRot());
 						level.addFreshEntity(entity);
 					}
 				});

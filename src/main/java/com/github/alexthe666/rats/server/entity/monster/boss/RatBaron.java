@@ -7,11 +7,9 @@ import com.github.alexthe666.rats.registry.RatlantisEntityRegistry;
 import com.github.alexthe666.rats.registry.RatlantisItemRegistry;
 import com.github.alexthe666.rats.registry.RatsSoundRegistry;
 import com.github.alexthe666.rats.server.entity.rat.AbstractRat;
-import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.BossEvent;
@@ -32,15 +30,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class RatBaron extends AbstractRat implements Enemy {
 
-	private final ServerBossEvent bossInfo = new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
+	private final ServerBossEvent bossInfo = new ServerBossEvent(net.minecraft.util.Mth.createInsecureUUID(this.random), this.getDisplayName(), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS);
 
 	public RatBaron(EntityType<? extends AbstractRat> type, Level level) {
 		super(type, level);
 	}
 
 	@Override
-	protected void customServerAiStep() {
-		super.customServerAiStep();
+	protected void customServerAiStep(ServerLevel level) {
+		super.customServerAiStep(level);
 		this.bossInfo.setProgress(this.getHealth() / this.getMaxHealth());
 	}
 
@@ -66,27 +64,12 @@ public class RatBaron extends AbstractRat implements Enemy {
 				.add(Attributes.FOLLOW_RANGE, 64.0D);
 	}
 
-	@Override
-	public void addAdditionalSaveData(ValueOutput tag) {
-		super.addAdditionalSaveData(tag);
-		if (this.getRestrictCenter() != BlockPos.ZERO) {
-			BlockPos home = this.getRestrictCenter();
-			tag.put("Home", this.makeDoubleList(home.getX(), home.getY(), home.getZ()));
-		}
-	}
-
+	// 26.1: vanilla Mob now persists the home position/radius itself ("home_pos"/"home_radius"), so the custom "Home" list is gone.
 	@Override
 	public void readAdditionalSaveData(ValueInput tag) {
 		super.readAdditionalSaveData(tag);
 		if (this.hasCustomName()) {
 			this.bossInfo.setName(this.getDisplayName());
-		}
-		if (tag.contains("Home")) {
-			ListTag nbttaglist = tag.getListOrEmpty("Home");
-			int hx = (int) nbttaglist.getDoubleOr(0, 0.0D);
-			int hy = (int) nbttaglist.getDoubleOr(1, 0.0D);
-			int hz = (int) nbttaglist.getDoubleOr(2, 0.0D);
-			this.restrictTo(new BlockPos(hx, hy, hz), 16);
 		}
 	}
 
@@ -95,10 +78,7 @@ public class RatBaron extends AbstractRat implements Enemy {
 		return RatsSoundRegistry.RAT_HURT.get();
 	}
 
-	@Override
-	protected boolean shouldDespawnInPeaceful() {
-		return true;
-	}
+	// 26.1: shouldDespawnInPeaceful() was removed (now an EntityType flag); the checkDespawn override below handles peaceful.
 
 	@Override
 	public boolean removeWhenFarAway(double dist) {
@@ -108,8 +88,8 @@ public class RatBaron extends AbstractRat implements Enemy {
 	@Override
 	public void checkDespawn() {
 		if (this.level().getDifficulty() == Difficulty.PEACEFUL) {
-			if (this.hasRestriction()) {
-				this.level().setBlockAndUpdate(this.getRestrictCenter(), RatlantisBlockRegistry.AIR_RAID_SIREN.get().defaultBlockState());
+			if (this.hasHome()) {
+				this.level().setBlockAndUpdate(this.getHomePosition(), RatlantisBlockRegistry.AIR_RAID_SIREN.get().defaultBlockState());
 			}
 			this.discard();
 		} else {
@@ -142,22 +122,22 @@ public class RatBaron extends AbstractRat implements Enemy {
 		this.setItemSlot(EquipmentSlot.HEAD, new ItemStack(RatlantisItemRegistry.AVIATOR_HAT.get()));
 		this.setGuaranteedDrop(EquipmentSlot.HEAD);
 		if (type != EntitySpawnReason.MOB_SUMMONED) {
-			this.restrictTo(this.blockPosition(), 16);
+			this.setHomeTo(this.blockPosition(), 16);
 		}
 		if (!this.isPassenger()) {
 			RatBaronPlane plane = new RatBaronPlane(RatlantisEntityRegistry.RAT_BARON_PLANE.get(), this.level());
 			plane.copyPosition(this);
-			plane.restrictTo(this.blockPosition(), 16);
+			plane.setHomeTo(this.blockPosition(), 16);
 			if (!this.level().isClientSide()) {
 				this.level().addFreshEntity(plane);
 			}
-			this.startRiding(plane, true);
+			this.startRiding(plane, true, true);
 		}
 		return data;
 	}
 
 	@Override
-	public boolean canChangeDimensions(net.minecraft.world.level.Level from, net.minecraft.world.level.Level to) {
+	public boolean canTeleport(net.minecraft.world.level.Level from, net.minecraft.world.level.Level to) {
 		return false;
 	}
 

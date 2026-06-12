@@ -10,6 +10,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.*;
@@ -21,13 +22,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.neoforged.neoforge.common.CommonHooks;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.util.BlockSnapshot;
@@ -61,10 +63,10 @@ public class RatUtils {
 		BlockPos pos;
 		BlockPos topY = BlockPos.containing(x, rat.getY(), z);
 		BlockPos bottomY = BlockPos.containing(x, rat.getY(), z);
-		while (level.getBlockState(topY).is(Blocks.WATER) && topY.getY() < level.getMaxBuildHeight()) {
+		while (level.getBlockState(topY).is(Blocks.WATER) && topY.getY() <= level.getMaxY()) {
 			topY = topY.above();
 		}
-		while (level.getBlockState(bottomY).is(Blocks.WATER) && bottomY.getY() > level.getMinBuildHeight()) {
+		while (level.getBlockState(bottomY).is(Blocks.WATER) && bottomY.getY() > level.getMinY()) {
 			bottomY = bottomY.below();
 		}
 		for (int tries = 0; tries < 5; tries++) {
@@ -166,7 +168,7 @@ public class RatUtils {
 			BlockPos blockpos;
 			do {
 				blockpos = pos.below();
-			} while (blockpos.getY() > rat.level().getMinBuildHeight() && rat.level().getBlockState(blockpos).is(Blocks.WATER));
+			} while (blockpos.getY() > rat.level().getMinY() && rat.level().getBlockState(blockpos).is(Blocks.WATER));
 			return blockpos;
 		}
 	}
@@ -177,7 +179,7 @@ public class RatUtils {
 			return false;
 		}
 		float hardness = blockState.getDestroySpeed(level, pos);
-		return hardness >= 0.0F && hardness <= RatConfig.ratStrengthThreshold && CommonHooks.canEntityDestroy(level, pos, rat);
+		return hardness >= 0.0F && hardness <= RatConfig.ratStrengthThreshold && level instanceof ServerLevel serverLevel && CommonHooks.canEntityDestroy(serverLevel, pos, rat);
 	}
 
 	public static boolean canRatPlaceBlock(Level level, BlockPos pos, DiggingRat rat) {
@@ -263,16 +265,20 @@ public class RatUtils {
 
 	public static TamedRat tameRat(Rat rat, Level level) {
 		TamedRat newRat = new TamedRat(RatsEntityRegistry.TAMED_RAT.get(), level);
-		CompoundTag tag = new CompoundTag();
-		rat.addAdditionalSaveData(tag);
+		// 26.1: entity save data goes through ValueOutput/ValueInput, bridged via TagValueOutput/TagValueInput
+		TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, rat.registryAccess());
+		rat.addAdditionalSaveData(output);
+		CompoundTag tag = output.buildResult();
 		newRat.setToga(rat.hasToga());
-		newRat.moveTo(rat.blockPosition(), rat.getYRot(), rat.getXRot());
+		newRat.snapTo(rat.blockPosition(), rat.getYRot(), rat.getXRot());
 		if (rat.getLeashHolder() != null) {
 			newRat.setLeashedTo(rat.getLeashHolder(), true);
 			rat.setLeashedTo(null, true);
 		}
-		EventHooks.finalizeMobSpawn(newRat, (ServerLevelAccessor) level, level.getCurrentDifficultyAt(rat.blockPosition()), EntitySpawnReason.EVENT, null);
-		newRat.readAdditionalSaveData(tag);
+		if (level instanceof ServerLevel serverLevel) {
+			EventHooks.finalizeMobSpawn(newRat, serverLevel, serverLevel.getCurrentDifficultyAt(rat.blockPosition()), EntitySpawnReason.EVENT, null);
+		}
+		newRat.readAdditionalSaveData(TagValueInput.create(ProblemReporter.DISCARDING, rat.registryAccess(), tag));
 		newRat.setColorVariant(rat.getColorVariant());
 		for (EquipmentSlot slot : EquipmentSlot.values()) {
 			newRat.setItemSlot(slot, rat.getItemBySlot(slot));

@@ -8,7 +8,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.sounds.SoundEvents;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.ContainerHelper;
+import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -40,7 +42,8 @@ public class UpgradeSeparatorBlockEntity extends BlockEntity {
 				int spawnedItem = 0;
 				if (CompoundNBT1.contains("Items")) {
 					NonNullList<ItemStack> nonnulllist = NonNullList.withSize(27, ItemStack.EMPTY);
-					ContainerHelper.loadAllItems(CompoundNBT1, nonnulllist, net.minecraft.core.RegistryAccess.EMPTY);
+					// 26.1: ContainerHelper reads from a ValueInput, so bridge the item's CompoundTag.
+					ContainerHelper.loadAllItems(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), CompoundNBT1), nonnulllist);
 					for (ItemStack itemstack : nonnulllist) {
 						if (!itemstack.isEmpty()) {
 							ItemEntity splitEntity = new ItemEntity(level, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), itemstack.copy());
@@ -52,8 +55,8 @@ public class UpgradeSeparatorBlockEntity extends BlockEntity {
 					}
 				}
 				if (spawnedItem > 0) {
-					itemEntity.playSound(SoundEvents.ITEM_BREAK, 1, 1);
-					itemEntity.kill();
+					itemEntity.playSound(SoundEvents.ITEM_BREAK.value(), 1, 1);
+					itemEntity.discard();
 					ItemEntity splitEntity = new ItemEntity(level, itemEntity.getX(), itemEntity.getY(), itemEntity.getZ(), new ItemStack(getFuel(), spawnedItem));
 					if (!level.isClientSide()) {
 						level.addFreshEntity(splitEntity);

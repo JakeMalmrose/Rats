@@ -6,11 +6,9 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.level.LevelReader;
-import net.minecraft.world.level.LevelSimulatedReader;
+import net.minecraft.world.level.WorldGenLevel;
 import net.minecraft.world.level.block.RotatedPillarBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.configurations.TreeConfiguration;
 import net.minecraft.world.level.levelgen.feature.foliageplacers.FoliagePlacer;
 import net.minecraft.world.level.levelgen.feature.trunkplacers.TrunkPlacer;
@@ -48,7 +46,7 @@ public class ThickBranchingTrunkPlacer extends TrunkPlacer {
 	}
 
 	@Override
-	public List<FoliagePlacer.FoliageAttachment> placeTrunk(LevelSimulatedReader reader, BiConsumer<BlockPos, BlockState> consumer, RandomSource random, int treeHeight, BlockPos pos, TreeConfiguration config) {
+	public List<FoliagePlacer.FoliageAttachment> placeTrunk(WorldGenLevel level, BiConsumer<BlockPos, BlockState> consumer, RandomSource random, int treeHeight, BlockPos pos, TreeConfiguration config) {
 		List<FoliagePlacer.FoliageAttachment> attachments = new ArrayList<>();
 		//normal tree:
 		// trunk is 1x1, base is 3x3
@@ -65,11 +63,12 @@ public class ThickBranchingTrunkPlacer extends TrunkPlacer {
 			for (int baseZ = -this.baseRadius; baseZ <= this.baseRadius; baseZ++) {
 				if (baseX * baseX + baseZ * baseZ <= this.baseRadius * this.baseRadius) {
 					BlockPos basePos = pos.offset(baseX, 0, baseZ);
-					consumer.accept(basePos, config.trunkProvider.getState(random, basePos));
+					consumer.accept(basePos, config.trunkProvider.getState(level, random, basePos));
 					for (int baseHeight = 0; baseHeight <= random.nextInt(this.baseRadius + 1); baseHeight++) {
-						consumer.accept(basePos.above(baseHeight), config.trunkProvider.getState(random, basePos.above(baseHeight)));
+						consumer.accept(basePos.above(baseHeight), config.trunkProvider.getState(level, random, basePos.above(baseHeight)));
 					}
-					this.setDirtIfNeeded(reader, consumer, random, basePos.below(), config);
+					// 26.1: dirtProvider/Feature.isDirt are gone; vanilla's placeBelowTrunkBlock covers the same job via belowTrunkProvider.
+					placeBelowTrunkBlock(level, consumer, random, basePos.below(), config);
 				}
 			}
 		}
@@ -77,7 +76,7 @@ public class ThickBranchingTrunkPlacer extends TrunkPlacer {
 		for (int currentHeight = 0; currentHeight < treeHeight; currentHeight++) {
 			for (int xWidth = 0; xWidth < this.trunkWidth; xWidth++) {
 				for (int zWidth = 0; zWidth < this.trunkWidth; zWidth++) {
-					this.placeLog(reader, consumer, random, pos.offset(xWidth, currentHeight, zWidth), config);
+					this.placeLog(level, consumer, random, pos.offset(xWidth, currentHeight, zWidth), config);
 				}
 			}
 		}
@@ -86,13 +85,13 @@ public class ThickBranchingTrunkPlacer extends TrunkPlacer {
 		for (Direction dir : Direction.Plane.HORIZONTAL) {
 			int branchIterations = random.nextInt(this.branchDepth);
 			int branchHeight = treeHeight - 1 + random.nextInt(3);
-			attachments.addAll(this.generateRecursiveBranch(reader, consumer, random, pos, config, dir, branchHeight, new BlockPos.MutableBlockPos(), branchIterations, new ArrayList<>()));
+			attachments.addAll(this.generateRecursiveBranch(level, consumer, random, pos, config, dir, branchHeight, new BlockPos.MutableBlockPos(), branchIterations, new ArrayList<>()));
 		}
 
 		return attachments;
 	}
 
-	private List<FoliagePlacer.FoliageAttachment> generateRecursiveBranch(LevelSimulatedReader reader, BiConsumer<BlockPos, BlockState> consumer, RandomSource random, BlockPos pos, TreeConfiguration config, Direction genDir, int initialBranchHeight, BlockPos.MutableBlockPos mutablePos, int branchDepth, List<FoliagePlacer.FoliageAttachment> attachments) {
+	private List<FoliagePlacer.FoliageAttachment> generateRecursiveBranch(WorldGenLevel level, BiConsumer<BlockPos, BlockState> consumer, RandomSource random, BlockPos pos, TreeConfiguration config, Direction genDir, int initialBranchHeight, BlockPos.MutableBlockPos mutablePos, int branchDepth, List<FoliagePlacer.FoliageAttachment> attachments) {
 		Function<BlockState, BlockState> function = state -> state.trySetValue(RotatedPillarBlock.AXIS, genDir.getAxis());
 		mutablePos.set(pos).move(Direction.UP, initialBranchHeight);
 		int branchLength = random.nextInt(2) + 3;
@@ -100,7 +99,7 @@ public class ThickBranchingTrunkPlacer extends TrunkPlacer {
 		int k = random.nextBoolean() ? 2 : 1;
 
 		for (int l = 0; l < k; ++l) {
-			this.placeLog(reader, consumer, random, mutablePos.move(genDir), config, function);
+			this.placeLog(level, consumer, random, mutablePos.move(genDir), config, function);
 		}
 
 		Direction direction = Direction.UP;
@@ -112,20 +111,14 @@ public class ThickBranchingTrunkPlacer extends TrunkPlacer {
 				if (branchDepth <= 0) {
 					return attachments;
 				} else {
-					return this.generateRecursiveBranch(reader, consumer, random, mutablePos.immutable(), config, random.nextBoolean() ? genDir.getClockWise() : genDir.getCounterClockWise(), 0, new BlockPos.MutableBlockPos(), branchDepth - 1, attachments);
+					return this.generateRecursiveBranch(level, consumer, random, mutablePos.immutable(), config, random.nextBoolean() ? genDir.getClockWise() : genDir.getCounterClockWise(), 0, new BlockPos.MutableBlockPos(), branchDepth - 1, attachments);
 				}
 			}
 
 			float f = (float) Math.abs(blockpos.getY() - mutablePos.getY()) / (float) i1;
 			boolean flag1 = random.nextFloat() < f;
 			mutablePos.move(flag1 ? direction : genDir);
-			this.placeLog(reader, consumer, random, mutablePos, config, flag1 ? Function.identity() : function);
-		}
-	}
-
-	private void setDirtIfNeeded(LevelSimulatedReader reader, BiConsumer<BlockPos, BlockState> consumer, RandomSource random, BlockPos pos, TreeConfiguration config) {
-		if (!(((LevelReader) reader).getBlockState(pos).onTreeGrow((LevelReader) reader, consumer, random, pos, config)) && Feature.isDirt(((LevelReader) reader).getBlockState(pos))) {
-			consumer.accept(pos, config.dirtProvider.getState(random, pos));
+			this.placeLog(level, consumer, random, mutablePos, config, flag1 ? Function.identity() : function);
 		}
 	}
 }

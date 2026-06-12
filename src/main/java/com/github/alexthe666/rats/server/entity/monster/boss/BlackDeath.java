@@ -18,6 +18,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerBossEvent;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
@@ -48,13 +49,13 @@ import net.minecraft.network.syncher.SynchedEntityData;
 
 public class BlackDeath extends Monster implements RatSummoner {
 
-	private static final Predicate<LivingEntity> NOT_PLAGUE = entity -> entity.isAlive() && !entity.getType().is(RatsEntityTags.PLAGUE_LEGION);
+	private static final Predicate<LivingEntity> NOT_PLAGUE = entity -> entity.isAlive() && !entity.is(RatsEntityTags.PLAGUE_LEGION);
 	private static final EntityDataAccessor<Boolean> IS_SUMMONING = SynchedEntityData.defineId(BlackDeath.class, EntityDataSerializers.BOOLEAN);
 	private static final EntityDataAccessor<Boolean> MELEE_ATTACKING = SynchedEntityData.defineId(BlackDeath.class, EntityDataSerializers.BOOLEAN);
 	private static final EntityDataAccessor<Integer> RAT_COUNT = SynchedEntityData.defineId(BlackDeath.class, EntityDataSerializers.INT);
 	private static final EntityDataAccessor<Integer> CLOUD_COUNT = SynchedEntityData.defineId(BlackDeath.class, EntityDataSerializers.INT);
 	private static final EntityDataAccessor<Integer> BEAST_COUNT = SynchedEntityData.defineId(BlackDeath.class, EntityDataSerializers.INT);
-	private final ServerBossEvent bossInfo = (new ServerBossEvent(this.getDisplayName(), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS));
+	private final ServerBossEvent bossInfo = (new ServerBossEvent(Mth.createInsecureUUID(this.random), this.getDisplayName(), BossEvent.BossBarColor.RED, BossEvent.BossBarOverlay.PROGRESS));
 	private int summonTicks = 0;
 
 	public BlackDeath(EntityType<? extends Monster> type, Level level) {
@@ -100,10 +101,10 @@ public class BlackDeath extends Monster implements RatSummoner {
 		this.targetSelector.addGoal(1, new HurtByTargetGoal(this) {
 			@Override
 			public boolean canUse() {
-				return this.mob.getLastHurtByMob() != null && !this.mob.getLastHurtByMob().getType().is(RatsEntityTags.PLAGUE_LEGION) && super.canUse();
+				return this.mob.getLastHurtByMob() != null && !this.mob.getLastHurtByMob().is(RatsEntityTags.PLAGUE_LEGION) && super.canUse();
 			}
 		});
-		this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, true, entity -> NOT_PLAGUE.and(EntitySelector.NO_CREATIVE_OR_SPECTATOR).and(living -> !living.getType().is(net.minecraft.tags.EntityTypeTags.UNDEAD)).test(entity)));
+		this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, LivingEntity.class, 10, true, false, (entity, level) -> NOT_PLAGUE.and(EntitySelector.NO_CREATIVE_OR_SPECTATOR).and(living -> !living.is(net.minecraft.tags.EntityTypeTags.UNDEAD)).test(entity)));
 	}
 
 	protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -152,7 +153,7 @@ public class BlackDeath extends Monster implements RatSummoner {
 			for (Rat rat : this.level().getEntitiesOfClass(Rat.class, new AABB(this.getX() - dist, this.getY() - dist, this.getZ() - dist, this.getX() + dist, this.getY() + dist, this.getZ() + dist))) {
 				if (rat.isOwnedBy(this)) {
 					rat.setTame(false, true);
-					rat.setOwnerUUID(null);
+					rat.setOwnerReference(null);
 					rat.setFleePos(rat.blockPosition());
 					rat.setTarget(null);
 					rat.setLastHurtByMob(null);
@@ -172,8 +173,8 @@ public class BlackDeath extends Monster implements RatSummoner {
 	}
 
 	@Override
-	protected void customServerAiStep() {
-		super.customServerAiStep();
+	protected void customServerAiStep(ServerLevel level) {
+		super.customServerAiStep(level);
 		this.bossInfo.setProgress(this.getHealth() / this.getMaxHealth());
 
 		if (this.summonTicks > 0 && this.getTarget() != null) {
@@ -181,9 +182,9 @@ public class BlackDeath extends Monster implements RatSummoner {
 		}
 	}
 
-	// 1.21: signature is now canChangeDimensions(Level from, Level to). Bosses are pinned to their summon dim.
+	// 26.1: canChangeDimensions is now canTeleport(Level from, Level to). Bosses are pinned to their summon dim.
 	@Override
-	public boolean canChangeDimensions(net.minecraft.world.level.Level from, net.minecraft.world.level.Level to) {
+	public boolean canTeleport(net.minecraft.world.level.Level from, net.minecraft.world.level.Level to) {
 		return false;
 	}
 

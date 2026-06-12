@@ -126,14 +126,15 @@ public class RatKing extends Monster implements RatSummoner {
 		if (!this.isRemoved() && !this.dead) {
 			Entity entity = source.getEntity();
 			LivingEntity livingentity = this.getKillCredit();
-			if (this.deathScore >= 0 && livingentity != null) {
-				livingentity.awardKillScore(this, this.deathScore, source);
+			// 26.1: deathScore field removed; awardKillScore is now (Entity, DamageSource).
+			if (livingentity != null) {
+				livingentity.awardKillScore(this, source);
 			}
 
 			this.dead = true;
 			this.getCombatTracker().recheckStatus();
 			if (this.level() instanceof ServerLevel server) {
-				if (entity == null || entity.killedEntity(server, this)) {
+				if (entity == null || entity.killedEntity(server, this, source)) {
 					this.gameEvent(GameEvent.ENTITY_DIE);
 					//this.dropAllDeathLoot(source);
 					this.createWitherRose(livingentity);
@@ -247,7 +248,7 @@ public class RatKing extends Monster implements RatSummoner {
 	}
 
 	@Override
-	public boolean canChangeDimensions(net.minecraft.world.level.Level from, net.minecraft.world.level.Level to) {
+	public boolean canTeleport(net.minecraft.world.level.Level from, net.minecraft.world.level.Level to) {
 		return false;
 	}
 

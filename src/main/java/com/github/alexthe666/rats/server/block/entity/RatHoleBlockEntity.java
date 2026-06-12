@@ -26,30 +26,30 @@ public class RatHoleBlockEntity extends BlockEntity {
 
 	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
-		return ClientboundBlockEntityDataPacket.create(this, BlockEntity::getUpdateTag);
+		return ClientboundBlockEntityDataPacket.create(this);
 	}
 
 	@Override
-	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet, HolderLookup.Provider registries) {
-		this.handleUpdateTag(packet.getTag(), registries);
+	public void onDataPacket(Connection net, ValueInput valueInput) {
+		this.handleUpdateTag(valueInput);
 	}
 
 	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-		return this.saveWithId(registries);
+		return this.saveWithoutMetadata(registries);
 	}
 
 	@Override
 	public void saveAdditional(ValueOutput tag) {
-		super.saveAdditional(tag, registries);
-		ContainerHelper.saveAllItems(tag, this.imitationStack, registries);
+		super.saveAdditional(tag);
+		ContainerHelper.saveAllItems(tag, this.imitationStack);
 	}
 
 	@Override
 	protected void loadAdditional(ValueInput tag) {
-		super.loadAdditional(tag, registries);
+		super.loadAdditional(tag);
 		this.imitationStack = NonNullList.withSize(1, ItemStack.EMPTY);
-		ContainerHelper.loadAllItems(tag, this.imitationStack, registries);
+		ContainerHelper.loadAllItems(tag, this.imitationStack);
 	}
 
 	public BlockState getImitatedBlockState() {

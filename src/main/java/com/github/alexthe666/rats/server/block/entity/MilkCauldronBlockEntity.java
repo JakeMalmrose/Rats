@@ -42,12 +42,12 @@ public class MilkCauldronBlockEntity extends BlockEntity {
 	@Override
 	public void saveAdditional(ValueOutput compound) {
 		compound.putInt("TicksExisted", tickCount);
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(compound);
 	}
 
 	@Override
 	protected void loadAdditional(ValueInput compound) {
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(compound);
 		tickCount = compound.getIntOr("TicksExisted", 0);
 	}
 

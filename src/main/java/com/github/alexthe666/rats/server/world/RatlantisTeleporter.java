@@ -3,11 +3,11 @@ package com.github.alexthe666.rats.server.world;
 import com.github.alexthe666.rats.registry.RatlantisBlockRegistry;
 import com.github.alexthe666.rats.registry.RatsBlockRegistry;
 import com.github.alexthe666.rats.registry.RatsVillagerRegistry;
-import net.minecraft.BlockUtil;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.TicketType;
+import net.minecraft.util.BlockUtil;
 import net.minecraft.world.entity.ai.village.poi.PoiManager;
 import net.minecraft.world.entity.ai.village.poi.PoiRecord;
 import net.minecraft.world.level.ChunkPos;
@@ -42,7 +42,8 @@ public class RatlantisTeleporter {
 				this.level.getBlockState(poi.getPos()).is(RatlantisBlockRegistry.RATLANTIS_PORTAL.get())).findFirst();
 		return optional.map(poi -> {
 			BlockPos blockpos = poi.getPos();
-			this.level.getChunkSource().addRegionTicket(TicketType.PORTAL, new ChunkPos(blockpos), 3, blockpos);
+			// 26.1: addRegionTicket(type, pos, radius, key) -> addTicketWithRadius(type, pos, radius)
+			this.level.getChunkSource().addTicketWithRadius(TicketType.PORTAL, ChunkPos.containing(blockpos), 3);
 			BlockState blockstate = this.level.getBlockState(blockpos);
 			return BlockUtil.getLargestRectangleAround(blockpos, Direction.Axis.Y, 21, Direction.Axis.Y, 21, (posIn) ->
 					this.level.getBlockState(posIn) == blockstate);
@@ -50,9 +51,9 @@ public class RatlantisTeleporter {
 	}
 
 	public Optional<BlockUtil.FoundRectangle> makePortal(BlockPos pos) {
-		ChunkPos chunkPos = new ChunkPos(pos);
-		if (!this.level.hasChunk(chunkPos.x, chunkPos.z)) {
-			this.level.getChunk(chunkPos.x, chunkPos.z);
+		ChunkPos chunkPos = ChunkPos.containing(pos);
+		if (!this.level.hasChunk(chunkPos.x(), chunkPos.z())) {
+			this.level.getChunk(chunkPos.x(), chunkPos.z());
 		}
 		pos = this.level.getHeightmapPos(Heightmap.Types.WORLD_SURFACE_WG, pos).above();
 

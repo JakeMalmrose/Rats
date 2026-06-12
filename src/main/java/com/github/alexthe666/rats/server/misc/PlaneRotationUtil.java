@@ -228,7 +228,7 @@ public class PlaneRotationUtil {
 
 	@OnlyIn(Dist.CLIENT)
 	public void applyChainSwingBuffer(BasicModelPart... boxes) {
-		this.applyChainSwingBuffer(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), boxes);
+		this.applyChainSwingBuffer(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true), boxes);
 	}
 
 	/**
@@ -245,7 +245,7 @@ public class PlaneRotationUtil {
 
 	@OnlyIn(Dist.CLIENT)
 	public void applyChainWaveBuffer(BasicModelPart... boxes) {
-		this.applyChainWaveBuffer(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), boxes);
+		this.applyChainWaveBuffer(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true), boxes);
 	}
 
 	/**
@@ -262,7 +262,7 @@ public class PlaneRotationUtil {
 
 	@OnlyIn(Dist.CLIENT)
 	public void applyChainFlapBuffer(BasicModelPart... boxes) {
-		this.applyChainFlapBuffer(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), boxes);
+		this.applyChainFlapBuffer(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true), boxes);
 	}
 
 	/**
@@ -279,7 +279,7 @@ public class PlaneRotationUtil {
 
 	@OnlyIn(Dist.CLIENT)
 	public void applyChainFlapBufferReverse(BasicModelPart... boxes) {
-		this.applyChainFlapBufferReverse(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), boxes);
+		this.applyChainFlapBufferReverse(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true), boxes);
 	}
 
 	public void applyChainSwingBufferReverse(float partialTick, BasicModelPart... boxes) {
@@ -291,7 +291,7 @@ public class PlaneRotationUtil {
 
 	@OnlyIn(Dist.CLIENT)
 	public void applyChainSwingBufferReverse(BasicModelPart... boxes) {
-		this.applyChainSwingBufferReverse(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), boxes);
+		this.applyChainSwingBufferReverse(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true), boxes);
 	}
 
 	public void applyChainWaveBufferReverse(float partialTick, BasicModelPart... boxes) {
@@ -303,7 +303,7 @@ public class PlaneRotationUtil {
 
 	@OnlyIn(Dist.CLIENT)
 	public void applyChainWaveBufferReverse(BasicModelPart... boxes) {
-		this.applyChainWaveBufferReverse(Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true), boxes);
+		this.applyChainWaveBufferReverse(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true), boxes);
 	}
 
 }

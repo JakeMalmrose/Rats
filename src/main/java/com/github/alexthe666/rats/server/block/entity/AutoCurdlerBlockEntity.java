@@ -152,23 +152,23 @@ public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements 
 
 	@Override
 	protected void loadAdditional(ValueInput compound) {
-		super.loadAdditional(compound, registries);
-		// 1.21: FluidTank.readFromNBT now requires HolderLookup.Provider.
-		this.tank.readFromNBT(registries, compound);
+		super.loadAdditional(compound);
+		// 26.1: FluidTank is ValueIOSerializable; it reads its "Fluid" entry from the input.
+		this.tank.deserialize(compound);
 		this.curdlerStacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-		ContainerHelper.loadAllItems(compound, this.curdlerStacks, registries);
+		ContainerHelper.loadAllItems(compound, this.curdlerStacks);
 		this.cookTime = compound.getIntOr("CookTime", 0);
 		this.totalCookTime = compound.getIntOr("CookTimeTotal", 0);
 	}
 
 	@Override
 	public void saveAdditional(ValueOutput compound) {
-		super.saveAdditional(compound, registries);
-		// 1.21: FluidTank.writeToNBT now requires HolderLookup.Provider.
-		this.tank.writeToNBT(registries, compound);
+		super.saveAdditional(compound);
+		// 26.1: FluidTank is ValueIOSerializable; it writes its "Fluid" entry into the output.
+		this.tank.serialize(compound);
 		compound.putInt("CookTime", (short) this.cookTime);
 		compound.putInt("CookTimeTotal", (short) this.totalCookTime);
-		ContainerHelper.saveAllItems(compound, this.curdlerStacks, registries);
+		ContainerHelper.saveAllItems(compound, this.curdlerStacks);
 	}
 
 	@Override

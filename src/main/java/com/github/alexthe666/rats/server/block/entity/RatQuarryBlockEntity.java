@@ -137,14 +137,14 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 	}
 
 	protected void loadAdditional(ValueInput compound) {
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(compound);
 		this.inventory = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
-		ContainerHelper.loadAllItems(compound, this.inventory, registries);
+		ContainerHelper.loadAllItems(compound, this.inventory);
 	}
 
 	public void saveAdditional(ValueOutput compound) {
-		super.saveAdditional(compound, registries);
-		ContainerHelper.saveAllItems(compound, this.inventory, registries);
+		super.saveAdditional(compound);
+		ContainerHelper.saveAllItems(compound, this.inventory);
 	}
 
 	@Override
@@ -170,16 +170,17 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 
 	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
-		return ClientboundBlockEntityDataPacket.create(this, BlockEntity::getUpdateTag);
+		return ClientboundBlockEntityDataPacket.create(this);
 	}
 
 	@Override
-	public void onDataPacket(Connection net, ClientboundBlockEntityDataPacket packet, HolderLookup.Provider registries) {
-		this.handleUpdateTag(packet.getTag(), registries);
+	public void onDataPacket(Connection net, ValueInput valueInput) {
+		this.handleUpdateTag(valueInput);
 	}
 
+	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-		return this.saveWithId(registries);
+		return this.saveWithoutMetadata(registries);
 	}
 
 	public int getRadius() {
@@ -190,7 +191,7 @@ public class RatQuarryBlockEntity extends BaseContainerBlockEntity implements Wo
 		int yLevel = this.getBlockPos().getY() - 1;
 		BlockPos stairPos = this.getBlockPos().offset(-this.getRadius(), -1, -this.getRadius());
 		int passedLevels = 0;
-		while (yLevel > this.getLevel().getMinBuildHeight() + 1) {
+		while (yLevel > this.getLevel().getMinY() + 1) {
 			if (yLevel == this.getBlockPos().getY() - 1) {
 				BlockPos checkingPos = this.getBlockPos().below();
 				for (int i = 0; i < this.getRadius(); i++) {

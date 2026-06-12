@@ -46,11 +46,12 @@ public class RatTubeBlockEntity extends BlockEntity {
 
 	@Override
 	public ClientboundBlockEntityDataPacket getUpdatePacket() {
-		return ClientboundBlockEntityDataPacket.create(this, BlockEntity::getUpdateTag);
+		return ClientboundBlockEntityDataPacket.create(this);
 	}
 
+	@Override
 	public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
-		return this.saveWithId(registries);
+		return this.saveWithoutMetadata(registries);
 	}
 
 	private void updateRat(Rat rat) {
@@ -90,11 +91,11 @@ public class RatTubeBlockEntity extends BlockEntity {
 		compound.putBoolean("RatNode", isNode);
 		compound.putInt("OpenSide", opening == null ? -1 : opening.ordinal());
 		compound.putInt("TubeColor", color);
-		super.saveAdditional(compound, registries);
+		super.saveAdditional(compound);
 	}
 
 	protected void loadAdditional(ValueInput compound) {
-		super.loadAdditional(compound, registries);
+		super.loadAdditional(compound);
 		isNode = compound.getBooleanOr("RatNode", false);
 		int i = compound.getIntOr("OpenSide", 0);
 		if (i == -1) {
