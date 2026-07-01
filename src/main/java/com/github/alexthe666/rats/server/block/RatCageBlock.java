@@ -12,6 +12,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Util;
 import net.minecraft.world.InteractionHand;
@@ -205,14 +206,20 @@ public class RatCageBlock extends Block {
 					ratCount++;
 				}
 			}
-			player.displayClientMessage(Component.translatable(RatsLangConstants.CAGE_DEPOSIT, ratCount), true);
+			// 26.1: displayClientMessage was removed; send an overlay message from the server instead.
+			if (player instanceof ServerPlayer serverPlayer) {
+				serverPlayer.sendSystemMessage(Component.translatable(RatsLangConstants.CAGE_DEPOSIT, ratCount), true);
+			}
 		} else {
 			List<TamedRat> list = level.getEntitiesOfClass(TamedRat.class, new AABB(pos.getX(), pos.getY(), pos.getZ(), pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1), rat -> !rat.isBaby() && rat.isOwnedBy(player));
 			for (TamedRat rat : list) {
 				rat.setPos(player.getX(), player.getY(), player.getZ());
 				ratCount++;
 			}
-			player.displayClientMessage(Component.translatable(RatsLangConstants.CAGE_WITHDRAW, ratCount), true);
+			// 26.1: displayClientMessage was removed; send an overlay message from the server instead.
+			if (player instanceof ServerPlayer serverPlayer) {
+				serverPlayer.sendSystemMessage(Component.translatable(RatsLangConstants.CAGE_WITHDRAW, ratCount), true);
+			}
 			this.onRatsRemoved(state, level, pos, player);
 		}
 		return InteractionResult.SUCCESS;

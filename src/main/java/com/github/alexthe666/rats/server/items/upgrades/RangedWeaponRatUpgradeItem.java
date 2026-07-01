@@ -6,7 +6,7 @@ import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.ChangesAIUpgrade;
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.HoldsItemUpgrade;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -31,10 +31,10 @@ public class RangedWeaponRatUpgradeItem extends BaseRatUpgradeItem implements Ho
 	}
 
 	@Override
-	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, MultiBufferSource buffer, int light, float ageInTicks) {
+	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, SubmitNodeCollector collector, int light, float ageInTicks) {
 		this.translateToHand(model, false, stack);
 		stack.translate(0.01D, 0.1D, -0.02D);
 		stack.scale(0.5F, 0.5F, 0.5F);
-		context.getItemRenderer().renderStatic(new ItemStack(this.crossbow ? Items.CROSSBOW : Items.BOW), ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, light, OverlayTexture.NO_OVERLAY, stack, buffer, null, rat.getId());
+		this.submitItem(new ItemStack(this.crossbow ? Items.CROSSBOW : Items.BOW), rat, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, stack, collector, light);
 	}
 }

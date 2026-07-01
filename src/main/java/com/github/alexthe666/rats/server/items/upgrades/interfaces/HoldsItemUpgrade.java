@@ -4,8 +4,13 @@ import com.github.alexthe666.rats.client.model.entity.RatModel;
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import com.github.alexthe666.rats.server.items.upgrades.BaseFlightRatUpgradeItem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.world.item.ItemDisplayContext;
+import net.minecraft.world.item.ItemStack;
 
 public interface HoldsItemUpgrade {
 	/**
@@ -16,11 +21,21 @@ public interface HoldsItemUpgrade {
 	 * @param rat        the rat that is currently has this upgrade
 	 * @param model      the rat's model, allows you to move the item to a specific body part if needed
 	 * @param stack      the renderer's PoseStack. Allows you to move, scale, and rotate the item as needed.
-	 * @param buffer     the MultiBufferSource used in the renderer. Allows you to define RenderTypes for your items, and is also used in Minecraft's item renderer itself.
+	 * @param collector  the SubmitNodeCollector used in the renderer. Allows you to submit custom geometry with your own RenderTypes for your items.
 	 * @param light      the brightness the item should render at
 	 * @param ageInTicks the rat's current age, in ticks. You can use this to move your item on a timer. To see this used in action, check out {@link BaseFlightRatUpgradeItem}
 	 */
-	void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, MultiBufferSource buffer, int light, float ageInTicks);
+	void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, SubmitNodeCollector collector, int light, float ageInTicks);
+
+	/**
+	 * a helper that replaces the removed ItemRenderer.renderStatic (26.1 port): resolves the stack's
+	 * model for the given rat and submits it to the collector.
+	 */
+	default void submitItem(ItemStack itemStack, TamedRat rat, ItemDisplayContext displayContext, PoseStack stack, SubmitNodeCollector collector, int light) {
+		ItemStackRenderState renderState = new ItemStackRenderState();
+		Minecraft.getInstance().getItemModelResolver().updateForLiving(renderState, itemStack, displayContext, rat);
+		renderState.submit(stack, collector, light, OverlayTexture.NO_OVERLAY, 0);
+	}
 
 	/**
 	 * a helper method that moves the item to render on the rat's hand.

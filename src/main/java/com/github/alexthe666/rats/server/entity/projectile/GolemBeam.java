@@ -2,7 +2,6 @@ package com.github.alexthe666.rats.server.entity.projectile;
 
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 
 public class GolemBeam extends ArrowlikeProjectile {
@@ -21,9 +20,8 @@ public class GolemBeam extends ArrowlikeProjectile {
 		float sqrt = (float) this.getDeltaMovement().length();
 		if (sqrt < 0.3F || this.inGround || this.horizontalCollision) {
 			this.discard();
-			Explosion explosion = this.level().explode(this.getOwner(), this.getX(), this.getY(), this.getZ(), 0.0F, Level.ExplosionInteraction.MOB);
-			explosion.explode();
-			explosion.finalizeExplosion(true);
+			// 26.1: Level.explode runs and finalizes the explosion itself and returns void.
+			this.level().explode(this.getOwner(), this.getX(), this.getY(), this.getZ(), 0.0F, Level.ExplosionInteraction.MOB);
 		}
 		super.tick();
 	}

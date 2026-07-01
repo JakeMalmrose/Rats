@@ -10,7 +10,7 @@ import com.github.alexthe666.rats.server.items.upgrades.interfaces.DamageImmunit
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.HoldsItemUpgrade;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -32,17 +32,17 @@ public class LumberjackRatUpgradeItem extends BaseRatUpgradeItem implements Dama
 
 	@Override
 	public RenderType getOverlayTexture(ItemStack stack, TamedRat rat, float partialTicks) {
-		return RenderTypes.entitySmoothCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/lumberjack.png"));
+		return RenderTypes.entityCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/lumberjack.png"));
 	}
 
 	@Override
-	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, MultiBufferSource buffer, int light, float ageInTicks) {
+	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, SubmitNodeCollector collector, int light, float ageInTicks) {
 		stack.pushPose();
 		this.translateToHand(model, false, stack);
 		stack.mulPose(Axis.ZP.rotationDegrees(180F));
 		stack.translate(0.0F, -0.075F, -0.1F);
 		stack.scale(0.65F, 0.65F, 0.65F);
-		context.getItemRenderer().renderStatic(new ItemStack(Items.IRON_AXE), ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, light, OverlayTexture.NO_OVERLAY, stack, buffer, null, rat.getId());
+		this.submitItem(new ItemStack(Items.IRON_AXE), rat, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, stack, collector, light);
 		stack.popPose();
 	}
 

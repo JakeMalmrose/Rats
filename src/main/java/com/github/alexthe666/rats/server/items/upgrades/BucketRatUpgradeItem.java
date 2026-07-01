@@ -8,7 +8,7 @@ import com.github.alexthe666.rats.server.items.upgrades.interfaces.ChangesAIUpgr
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.HoldsItemUpgrade;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -42,9 +42,9 @@ public class BucketRatUpgradeItem extends BaseRatUpgradeItem implements HoldsIte
 	}
 
 	@Override
-	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, MultiBufferSource buffer, int light, float ageInTicks) {
+	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, SubmitNodeCollector collector, int light, float ageInTicks) {
 		stack.pushPose();
-		if (model.young) {
+		if (rat.isBaby()) {
 			stack.translate(0.0F, 0.625F, 0.0F);
 			stack.mulPose(Axis.XP.rotationDegrees(20));
 			stack.scale(0.5F, 0.5F, 0.5F);
@@ -56,7 +56,7 @@ public class BucketRatUpgradeItem extends BaseRatUpgradeItem implements HoldsIte
 
 		stack.translate(-0.155F, -0.25F, 0.0F);
 		stack.scale(1.25F, 1.25F, 1.25F);
-		context.getItemRenderer().renderStatic(getBucketFromFluid(rat.transportingFluid), ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, light, OverlayTexture.NO_OVERLAY, stack, buffer, null, rat.getId());
+		this.submitItem(getBucketFromFluid(rat.transportingFluid), rat, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, stack, collector, light);
 		stack.popPose();
 	}
 

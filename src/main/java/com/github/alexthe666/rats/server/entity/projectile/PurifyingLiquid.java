@@ -6,9 +6,13 @@ import com.github.alexthe666.rats.registry.RatsEntityRegistry;
 import com.github.alexthe666.rats.registry.RatsItemRegistry;
 import com.github.alexthe666.rats.server.entity.rat.DemonRat;
 import com.github.alexthe666.rats.server.entity.rat.Rat;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EntitySpawnReason;
@@ -17,7 +21,8 @@ import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrowableIt
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
 import net.neoforged.neoforge.event.EventHooks;
@@ -34,12 +39,13 @@ public class PurifyingLiquid extends ThrowableItemProjectile {
 	}
 
 	public PurifyingLiquid(Level level, LivingEntity thrower, boolean nether) {
-		super(RatsEntityRegistry.PURIFYING_LIQUID.get(), thrower, level);
+		// 26.1: the owner-based ThrowableItemProjectile constructor now also takes the rendered ItemStack.
+		super(RatsEntityRegistry.PURIFYING_LIQUID.get(), thrower, level, new ItemStack(nether ? RatsItemRegistry.CRIMSON_FLUID.get() : RatsItemRegistry.PURIFYING_LIQUID.get()));
 		this.getEntityData().set(NETHER, nether);
 	}
 
 	public PurifyingLiquid(Level level, double x, double y, double z, boolean nether) {
-		super(RatsEntityRegistry.PURIFYING_LIQUID.get(), x, y, z, level);
+		super(RatsEntityRegistry.PURIFYING_LIQUID.get(), x, y, z, level, new ItemStack(nether ? RatsItemRegistry.CRIMSON_FLUID.get() : RatsItemRegistry.PURIFYING_LIQUID.get()));
 		this.getEntityData().set(NETHER, nether);
 	}
 
@@ -51,7 +57,7 @@ public class PurifyingLiquid extends ThrowableItemProjectile {
 
 	@Override
 	protected void onHit(HitResult result) {
-		if (!this.level().isClientSide()) {
+		if (this.level() instanceof ServerLevel serverLevel) {
 			AABB aabb = this.getBoundingBox().inflate(4.0D, 2.0D, 4.0D);
 			List<LivingEntity> list = this.level().getEntitiesOfClass(LivingEntity.class, aabb);
 			if (!list.isEmpty()) {
@@ -63,11 +69,10 @@ public class PurifyingLiquid extends ThrowableItemProjectile {
 								if (living instanceof DemonRat) {
 									Rat rat = new Rat(RatsEntityRegistry.RAT.get(), this.level());
 									rat.copyPosition(living);
-									if (!this.level().isClientSide()) {
-										EventHooks.finalizeMobSpawn(rat, (ServerLevelAccessor) this.level(), this.level().getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.CONVERSION, null);
-									}
+									EventHooks.finalizeMobSpawn(rat, serverLevel, serverLevel.getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.CONVERSION, null);
 									rat.setTame(false, true);
-									rat.setOwnerUUID(null);
+									// 26.1: owner UUIDs are stored as EntityReferences now.
+									rat.setOwner(null);
 									this.level().addFreshEntity(rat);
 									living.discard();
 								}
@@ -78,11 +83,20 @@ public class PurifyingLiquid extends ThrowableItemProjectile {
 								if (living.hasEffect(RatsEffectRegistry.PLAGUE)) {
 									living.removeEffect(RatsEffectRegistry.PLAGUE);
 								}
-								if (living.getType().is(RatsEntityTags.PLAGUE_LEGION)) {
-									living.hurt(this.damageSources().magic(), 10);
+								if (living.is(RatsEntityTags.PLAGUE_LEGION)) {
+									living.hurtServer(serverLevel, this.damageSources().magic(), 10);
 								}
 								if (living instanceof ZombieVillager zomb && !zomb.isConverting()) {
-									zomb.startConverting(this.getOwner() != null ? this.getOwner().getUUID() : null, 200);
+									// 26.1 port: ZombieVillager#startConverting is private now; round-trip the zombie's
+									// save data with ConversionTime set, which starts the conversion on load.
+									TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, zomb.registryAccess());
+									zomb.saveWithoutId(output);
+									CompoundTag tag = output.buildResult();
+									tag.putInt("ConversionTime", 200);
+									if (this.getOwner() != null) {
+										tag.store("ConversionPlayer", UUIDUtil.CODEC, this.getOwner().getUUID());
+									}
+									zomb.load(TagValueInput.create(ProblemReporter.DISCARDING, zomb.registryAccess(), tag));
 								}
 							}
 						}

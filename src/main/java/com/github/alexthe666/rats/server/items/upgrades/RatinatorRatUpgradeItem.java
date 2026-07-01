@@ -25,7 +25,7 @@ public class RatinatorRatUpgradeItem extends StatBoostingRatUpgradeItem implemen
 
 	@Override
 	public RenderType getOverlayTexture(ItemStack stack, TamedRat rat, float partialTicks) {
-		return RenderTypes.entitySmoothCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/ratinator.png"));
+		return RenderTypes.entityCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/ratinator.png"));
 	}
 
 	@Override

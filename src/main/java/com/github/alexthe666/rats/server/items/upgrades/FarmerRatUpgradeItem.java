@@ -7,7 +7,7 @@ import com.github.alexthe666.rats.server.items.upgrades.interfaces.ChangesAIUpgr
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.HoldsItemUpgrade;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.ai.goal.Goal;
@@ -34,13 +34,13 @@ public class FarmerRatUpgradeItem extends BaseRatUpgradeItem implements ChangesA
 	}
 
 	@Override
-	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, MultiBufferSource buffer, int light, float ageInTicks) {
+	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, SubmitNodeCollector collector, int light, float ageInTicks) {
 		stack.pushPose();
 		this.translateToHand(model, false, stack);
 		stack.mulPose(Axis.ZP.rotationDegrees(180F));
 		stack.translate(0.0F, -0.075F, -0.1F);
 		stack.scale(0.65F, 0.65F, 0.65F);
-		context.getItemRenderer().renderStatic(new ItemStack(Items.IRON_HOE), ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, light, OverlayTexture.NO_OVERLAY, stack, buffer, null, rat.getId());
+		this.submitItem(new ItemStack(Items.IRON_HOE), rat, ItemDisplayContext.THIRD_PERSON_RIGHT_HAND, stack, collector, light);
 		stack.popPose();
 	}
 

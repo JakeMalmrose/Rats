@@ -71,8 +71,7 @@ public class RatlanteanFlame extends Fireball {
 				result.getEntity().igniteForSeconds(10);
 			}
 			net.minecraft.world.damagesource.DamageSource source = this.damageSources().fireball(this, this.getOwner());
-			boolean flag = result.getEntity().hurt(source, 2.0F);
-			if (flag && this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+			if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel && result.getEntity().hurtServer(serverLevel, source, 2.0F)) {
 				net.minecraft.world.item.enchantment.EnchantmentHelper.doPostAttackEffects(serverLevel, result.getEntity(), source);
 			}
 		}

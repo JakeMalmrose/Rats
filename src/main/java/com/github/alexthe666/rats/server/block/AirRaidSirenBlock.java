@@ -98,7 +98,8 @@ public class AirRaidSirenBlock extends Block implements CustomItemRarity {
 			// 26.1: Mob.restrictTo was renamed to setHomeTo.
 			baron.setHomeTo(pos, 16);
 
-			if (level.getGameRules().get(GameRules.BLOCK_DROPS)) {
+			// 26.1: getGameRules is ServerLevel-only.
+			if (serverLevel.getGameRules().get(GameRules.BLOCK_DROPS)) {
 				for (int i = 0; i < 2; i++) {
 					RandomSource rand = level.getRandom();
 					level.addFreshEntity(new ItemEntity(level, pos.getX() + 0.5D + (rand.nextFloat() - 0.5D) * 3, pos.getY() - 1, pos.getZ() + 0.5D + (rand.nextFloat() - 0.5D) * 3, new ItemStack(Items.IRON_INGOT)));

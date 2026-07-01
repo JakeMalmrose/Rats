@@ -10,7 +10,7 @@ import com.github.alexthe666.rats.server.misc.RatsDateFetcher;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -19,8 +19,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.util.context.ContextKeySet;
 import net.minecraft.world.level.storage.loot.LootParams;
-import net.minecraft.world.level.storage.loot.parameters.LootContextParamSet;
 
 import java.util.List;
 
@@ -51,7 +51,8 @@ public class ChristmasRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 		if (!rat.level().isClientSide()) {
 			LootParams.Builder builder = new LootParams.Builder((ServerLevel) rat.level());
 			builder.withLuck(1.0F);
-			LootContextParamSet.Builder lootparameterset$builder = new LootContextParamSet.Builder();
+			// 26.1: LootContextParamSet became ContextKeySet.
+			ContextKeySet.Builder lootparameterset$builder = new ContextKeySet.Builder();
 			List<ItemStack> result = rat.level().getServer().reloadableRegistries().getLootTable(RatsLootRegistry.CHRISTMAS_GIFTS).getRandomItems(builder.create(lootparameterset$builder.build()));
 			if (RatsDateFetcher.isChristmasDay()) {
 				for (int i = 0; i < 5; i++) {
@@ -64,8 +65,8 @@ public class ChristmasRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 						rat.setItemInHand(InteractionHand.MAIN_HAND, stack.copy());
 					} else {
 						if (!rat.tryDepositItemInContainers(stack.copy())) {
-							if (!rat.level().isClientSide()) {
-								rat.spawnAtLocation(stack.copy(), 0.25F);
+							if (rat.level() instanceof ServerLevel serverLevel) {
+								rat.spawnAtLocation(serverLevel, stack.copy(), 0.25F);
 							}
 						}
 					}
@@ -76,7 +77,7 @@ public class ChristmasRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 	}
 
 	@Override
-	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, MultiBufferSource buffer, int light, float ageInTicks) {
+	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, SubmitNodeCollector collector, int light, float ageInTicks) {
 		stack.pushPose();
 		this.translateToHand(model, false, stack);
 		stack.mulPose(Axis.ZP.rotationDegrees(-10.0F));
@@ -85,8 +86,9 @@ public class ChristmasRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 		stack.pushPose();
 		stack.translate(-0.025F, -0.2F, -0.05F);
 		stack.scale(0.35F, 0.35F, 0.35F);
-		VertexConsumer consumer = buffer.getBuffer(RenderTypes.entityCutoutNoCull(Identifier.parse("textures/entity/chest/christmas.png")));
-		RatHeldItemLayer.CHRISTMAS_CHEST_MODEL.renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+		// 26.1: MultiBufferSource.getBuffer is gone here; custom model geometry is submitted through the collector.
+		collector.submitCustomGeometry(stack, RenderTypes.entityCutout(Identifier.parse("textures/entity/chest/christmas.png")), (pose, consumer) ->
+				RatHeldItemLayer.CHRISTMAS_CHEST_MODEL.renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));
 		stack.popPose();
 		stack.popPose();
 	}

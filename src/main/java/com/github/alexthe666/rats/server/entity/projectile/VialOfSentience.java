@@ -8,6 +8,7 @@ import com.github.alexthe666.rats.server.entity.monster.FeralRatlantean;
 import com.github.alexthe666.rats.server.entity.monster.boss.NeoRatlantean;
 import com.github.alexthe666.rats.server.misc.RatsLangConstants;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
@@ -29,7 +30,8 @@ public class VialOfSentience extends ThrowableItemProjectile {
 	}
 
 	public VialOfSentience(Level level, LivingEntity thrower) {
-		super(RatlantisEntityRegistry.VIAL_OF_SENTIENCE.get(), thrower, level);
+		// 26.1: the owner-based ThrowableItemProjectile constructor now also takes the rendered ItemStack.
+		super(RatlantisEntityRegistry.VIAL_OF_SENTIENCE.get(), thrower, level, new ItemStack(RatlantisItemRegistry.VIAL_OF_SENTIENCE.get()));
 	}
 
 	protected void onHit(HitResult result) {
@@ -44,8 +46,9 @@ public class VialOfSentience extends ThrowableItemProjectile {
 						if (d0 < 16.0D) {
 							if (living instanceof FeralRatlantean) {
 								if (RatConfig.summonNeoOnlyInRatlantis && !this.level().dimension().equals(RatlantisDimensionRegistry.DIMENSION_KEY)) {
-									if (this.getOwner() instanceof Player player) {
-										player.displayClientMessage(Component.translatable(RatsLangConstants.NEO_RATLANTIS_ONLY), true);
+									if (this.getOwner() instanceof ServerPlayer player) {
+										// 26.1: displayClientMessage was removed; send an overlay message from the server instead.
+										player.sendSystemMessage(Component.translatable(RatsLangConstants.NEO_RATLANTIS_ONLY), true);
 									}
 								} else {
 									NeoRatlantean ratlantean = new NeoRatlantean(RatlantisEntityRegistry.NEO_RATLANTEAN.get(), this.level());
@@ -57,7 +60,8 @@ public class VialOfSentience extends ThrowableItemProjectile {
 									}
 								}
 							} else {
-								living.addEffect(new MobEffectInstance(MobEffects.CONFUSION, 600, 4));
+								// 26.1: MobEffects.CONFUSION was renamed to NAUSEA.
+								living.addEffect(new MobEffectInstance(MobEffects.NAUSEA, 600, 4));
 								living.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 600));
 								living.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 600));
 							}

@@ -10,7 +10,7 @@ import com.github.alexthe666.rats.server.items.upgrades.interfaces.HoldsItemUpgr
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.TickRatUpgrade;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -23,17 +23,18 @@ public class BuccaneerRatUpgradeItem extends BaseRatUpgradeItem implements Holds
 	}
 
 	@Override
-	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, MultiBufferSource buffer, int light, float ageInTicks) {
+	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, SubmitNodeCollector collector, int light, float ageInTicks) {
 		stack.pushPose();
 		model.body1.translateRotate(stack);
 		stack.pushPose();
 		stack.translate(0, -0.925F, 0.2F);
 		stack.scale(0.5F, 0.5F, 0.5F);
-		VertexConsumer consumer = buffer.getBuffer(RenderTypes.entityCutoutNoCull(PiratBoatSailLayer.TEXTURE_PIRATE_CANNON));
-		VertexConsumer fireConsumer = buffer.getBuffer(RenderTypes.eyes(PiratBoatSailLayer.TEXTURE_PIRATE_CANNON_FIRE));
-		PiratBoatSailLayer.MODEL_PIRAT_CANNON.renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+		// 26.1: MultiBufferSource.getBuffer is gone here; custom model geometry is submitted through the collector.
+		collector.submitCustomGeometry(stack, RenderTypes.entityCutout(PiratBoatSailLayer.TEXTURE_PIRATE_CANNON), (pose, consumer) ->
+				PiratBoatSailLayer.MODEL_PIRAT_CANNON.renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));
 		if (rat.getVisualFlag()) {
-			PiratBoatSailLayer.MODEL_PIRAT_CANNON.renderToBuffer(stack, fireConsumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+			collector.submitCustomGeometry(stack, RenderTypes.eyes(PiratBoatSailLayer.TEXTURE_PIRATE_CANNON_FIRE), (pose, fireConsumer) ->
+					PiratBoatSailLayer.MODEL_PIRAT_CANNON.renderToBuffer(stack, fireConsumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));
 		}
 		stack.popPose();
 		stack.popPose();

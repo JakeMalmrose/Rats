@@ -157,9 +157,9 @@ public class ThrownBlock extends Entity {
 				}
 				this.discard();
 
-				// 26.1: doMobLoot game rule is now GameRules.MOB_DROPS.
-				if (this.level().getGameRules().get(GameRules.MOB_DROPS)) {
-					if (this.level() instanceof ServerLevel serverLevel && this.dropBlock) {
+				// 26.1: doMobLoot game rule is now GameRules.MOB_DROPS, and game rules are only reachable through ServerLevel.
+				if (this.level() instanceof ServerLevel serverLevel && serverLevel.getGameRules().get(GameRules.MOB_DROPS)) {
+					if (this.dropBlock) {
 						this.spawnAtLocation(serverLevel, new ItemStack(block, 1), 0.0F);
 					}
 					this.discard();

@@ -4,12 +4,12 @@ import com.github.alexthe666.rats.registry.RatlantisItemRegistry;
 import com.github.alexthe666.rats.registry.RatsItemRegistry;
 import net.minecraft.core.particles.ItemParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.ItemSupplier;
 import net.minecraft.world.entity.projectile.ThrowableProjectile;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -22,7 +22,9 @@ public class CheeseCannonball extends ThrowableProjectile implements ItemSupplie
 	}
 
 	public CheeseCannonball(EntityType<? extends ThrowableProjectile> type, Level level, LivingEntity thrower) {
-		super(type, thrower, level);
+		// 26.1: ThrowableProjectile lost its (type, owner, level) constructor; position and owner are set manually.
+		super(type, thrower.getX(), thrower.getEyeY() - 0.1D, thrower.getZ(), level);
+		this.setOwner(thrower);
 	}
 
 	@Override
@@ -33,7 +35,7 @@ public class CheeseCannonball extends ThrowableProjectile implements ItemSupplie
 	public void handleEntityEvent(byte id) {
 		if (id == 3) {
 			for (int i = 0; i < 18; ++i) {
-				this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(RatsItemRegistry.CHEESE.get())), this.getX(), this.getY(), this.getZ(), ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D);
+				this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, RatsItemRegistry.CHEESE.get()), this.getX(), this.getY(), this.getZ(), ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D);
 			}
 		}
 	}
@@ -43,18 +45,17 @@ public class CheeseCannonball extends ThrowableProjectile implements ItemSupplie
 			return;
 		}
 		super.onHit(result);
-		if (!this.level().isClientSide()) {
-			Explosion explosion = new Explosion(this.level(), this.getOwner() == null ? this : this.getOwner(), this.getX(), this.getY(), this.getZ(), 1.0F, false, Explosion.BlockInteraction.KEEP);
-			explosion.explode();
-			explosion.finalizeExplosion(true);
+		if (this.level() instanceof ServerLevel serverLevel) {
+			// 26.1: Explosion is abstract and Level.explode runs the whole explosion; NONE keeps blocks intact like BlockInteraction.KEEP did.
+			serverLevel.explode(this.getOwner() == null ? this : this.getOwner(), this.getX(), this.getY(), this.getZ(), 1.0F, false, Level.ExplosionInteraction.NONE);
 			this.discard();
 		}
 	}
 
 	@Override
 	protected void onHitEntity(EntityHitResult result) {
-		if ((this.getOwner() == null || !result.getEntity().isAlliedTo(this.getOwner())) && result.getEntity() instanceof LivingEntity) {
-			result.getEntity().hurt(this.damageSources().thrown(this, this.getOwner()), 8.0F);
+		if ((this.getOwner() == null || !result.getEntity().isAlliedTo(this.getOwner())) && result.getEntity() instanceof LivingEntity && this.level() instanceof ServerLevel serverLevel) {
+			result.getEntity().hurtServer(serverLevel, this.damageSources().thrown(this, this.getOwner()), 8.0F);
 		}
 	}
 

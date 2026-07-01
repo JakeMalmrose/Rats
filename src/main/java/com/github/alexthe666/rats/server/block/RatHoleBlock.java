@@ -4,12 +4,14 @@ import com.github.alexthe666.rats.server.block.entity.RatHoleBlockEntity;
 import com.github.alexthe666.rats.server.entity.rat.DiggingRat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.LevelReader;
+import net.minecraft.world.level.ScheduledTickAccess;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -139,7 +141,7 @@ public class RatHoleBlock extends BaseEntityBlock {
 	}
 
 	@Override
-	public BlockState updateShape(BlockState state, Direction facing, BlockState facingState, LevelAccessor level, BlockPos currentPos, BlockPos facingPos) {
+	protected BlockState updateShape(BlockState state, LevelReader level, ScheduledTickAccess ticks, BlockPos currentPos, Direction facing, BlockPos facingPos, BlockState facingState, RandomSource random) {
 		BooleanProperty connect = switch (facing) {
 			case NORTH -> NORTH;
 			case SOUTH -> SOUTH;
@@ -154,7 +156,7 @@ public class RatHoleBlock extends BaseEntityBlock {
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader level, BlockPos pos, BlockState state) {
+	protected ItemStack getCloneItemStack(LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
 		if (level.getBlockEntity(pos) instanceof RatHoleBlockEntity hole) {
 			return new ItemStack(hole.getImitatedBlockState().getBlock());
 		}

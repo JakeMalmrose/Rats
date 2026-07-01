@@ -362,7 +362,8 @@ public class Rat extends DiggingRat {
 			}
 			if (spawnRoll == 0 || accessor.getRandom().nextInt(spawnRoll) == 0) {
 				BlockState state = accessor.getBlockState(pos.below());
-				return isValidLightLevel(accessor, random, pos) && state.isValidSpawn(accessor, pos.below(), RatsEntityRegistry.RAT.get());
+				// 26.1: light-level checks need a ServerLevelAccessor.
+				return accessor instanceof ServerLevelAccessor server && isValidLightLevel(server, random, pos) && state.isValidSpawn(accessor, pos.below(), RatsEntityRegistry.RAT.get());
 			}
 		} else {
 			spawnRoll /= 2;
@@ -399,13 +400,11 @@ public class Rat extends DiggingRat {
 	}
 
 	@Override
-	public boolean doHurtTarget(Entity entity) {
-		boolean flag = entity.hurt(this.damageSources().mobAttack(this), (float) ((int) this.getAttributeValue(Attributes.ATTACK_DAMAGE)));
+	public boolean doHurtTarget(net.minecraft.server.level.ServerLevel serverLevel, Entity entity) {
+		// 26.1: doHurtTarget and hurt calls are server-side only now.
+		boolean flag = entity.hurtServer(serverLevel, this.damageSources().mobAttack(this), (float) ((int) this.getAttributeValue(Attributes.ATTACK_DAMAGE)));
 		if (flag && this.hasPlague()) {
-			// 1.21: doEnchantDamageEffects renamed to doEnchantDamageEffects (unchanged) but handled by EnchantmentHelper.doPostAttackEffects.
-			if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
-				net.minecraft.world.item.enchantment.EnchantmentHelper.doPostAttackEffects(serverLevel, entity, this.damageSources().mobAttack(this));
-			}
+			net.minecraft.world.item.enchantment.EnchantmentHelper.doPostAttackEffects(serverLevel, entity, this.damageSources().mobAttack(this));
 			if (entity instanceof LivingEntity living && this.rollForPlague(living)) {
 				living.addEffect(new MobEffectInstance(RatsEffectRegistry.PLAGUE, 6000));
 			}

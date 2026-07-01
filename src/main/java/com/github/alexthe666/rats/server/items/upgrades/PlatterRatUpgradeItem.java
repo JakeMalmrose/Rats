@@ -5,7 +5,7 @@ import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.HoldsItemUpgrade;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.item.ItemDisplayContext;
@@ -24,8 +24,8 @@ public class PlatterRatUpgradeItem extends BaseRatUpgradeItem implements HoldsIt
 	}
 
 	@Override
-	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, MultiBufferSource buffer, int light, float ageInTicks) {
-		if (model.young) {
+	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, SubmitNodeCollector collector, int light, float ageInTicks) {
+		if (rat.isBaby()) {
 			stack.translate(0.0F, 0.625F, 0.0F);
 			stack.mulPose(Axis.XP.rotationDegrees(20));
 			stack.scale(0.5F, 0.5F, 0.5F);
@@ -37,6 +37,6 @@ public class PlatterRatUpgradeItem extends BaseRatUpgradeItem implements HoldsIt
 
 		stack.translate(-0.155F, -0.225F, 0.2F);
 		stack.scale(2F, 2F, 2F);
-		context.getItemRenderer().renderStatic(new ItemStack(Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE), ItemDisplayContext.GROUND, light, OverlayTexture.NO_OVERLAY, stack, buffer, null, rat.getId());
+		this.submitItem(new ItemStack(Blocks.HEAVY_WEIGHTED_PRESSURE_PLATE), rat, ItemDisplayContext.GROUND, stack, collector, light);
 	}
 }

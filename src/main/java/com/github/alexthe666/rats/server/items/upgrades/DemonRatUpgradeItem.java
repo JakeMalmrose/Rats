@@ -58,8 +58,8 @@ public class DemonRatUpgradeItem extends StatBoostingRatUpgradeItem implements G
 	@Override
 	public @Nullable RenderType getOverlayTexture(ItemStack stack, TamedRat rat, float partialTicks) {
 		if (isSoulVersion(stack)) {
-			return RenderTypes.entitySmoothCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/demon_rat/soul_demon_rat.png"));
+			return RenderTypes.entityCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/demon_rat/soul_demon_rat.png"));
 		}
-		return RenderTypes.entitySmoothCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/demon_rat/demon_rat.png"));
+		return RenderTypes.entityCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/demon_rat/demon_rat.png"));
 	}
 }

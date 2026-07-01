@@ -8,22 +8,23 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class MobFilterUpgradeItem extends BaseRatUpgradeItem {
 	public MobFilterUpgradeItem(Properties properties) {
@@ -31,10 +32,10 @@ public class MobFilterUpgradeItem extends BaseRatUpgradeItem {
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+	public InteractionResult use(Level level, Player player, InteractionHand hand) {
 		if (level.isClientSide() && player.getItemInHand(hand).is(this)) {
 			ModClientEvents.openMobFilterScreen(hand);
-			return InteractionResultHolder.success(player.getItemInHand(hand));
+			return InteractionResult.SUCCESS;
 		}
 		return super.use(level, player, hand);
 	}
@@ -59,7 +60,7 @@ public class MobFilterUpgradeItem extends BaseRatUpgradeItem {
 
 	public static List<String> getSelectedMobs(ItemStack stack) {
 		List<String> mobs = new ArrayList<>();
-		ListTag tag = readTag(stack).getList("Mobs", Tag.TAG_STRING);
+		ListTag tag = readTag(stack).getListOrEmpty("Mobs");
 		for (int i = 0; i < tag.size(); ++i) {
 			mobs.add(tag.getStringOr(i, ""));
 		}
@@ -79,21 +80,21 @@ public class MobFilterUpgradeItem extends BaseRatUpgradeItem {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(stack, context, tooltip, flag);
-		tooltip.add(Component.translatable(RatsLangConstants.MOB_FILTER_MODE, Component.translatable(isWhitelist(stack) ? RatsLangConstants.MOB_FILTER_WHITELIST : RatsLangConstants.MOB_FILTER_BLACKLIST)).withStyle(ChatFormatting.GRAY));
-		tooltip.add(Component.translatable(RatsLangConstants.MOB_FILTER_SELECTED_MOBS).withStyle(ChatFormatting.GRAY));
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+		super.appendHoverText(stack, context, display, tooltip, flag);
+		tooltip.accept(Component.translatable(RatsLangConstants.MOB_FILTER_MODE, Component.translatable(isWhitelist(stack) ? RatsLangConstants.MOB_FILTER_WHITELIST : RatsLangConstants.MOB_FILTER_BLACKLIST)).withStyle(ChatFormatting.GRAY));
+		tooltip.accept(Component.translatable(RatsLangConstants.MOB_FILTER_SELECTED_MOBS).withStyle(ChatFormatting.GRAY));
 		if (!getSelectedMobs(stack).isEmpty()) {
 			List<String> mobs = getSelectedMobs(stack);
 			for (int i = 0; i < mobs.size(); i++) {
 				if (i < 3) {
-					tooltip.add(CommonComponents.space().append(Component.literal(mobs.get(i)).withStyle(ChatFormatting.GRAY)));
+					tooltip.accept(CommonComponents.space().append(Component.literal(mobs.get(i)).withStyle(ChatFormatting.GRAY)));
 				} else {
 					break;
 				}
 			}
 			if (mobs.size() > 3) {
-				tooltip.add(CommonComponents.space().append(Component.translatable(RatsLangConstants.AND_MORE, mobs.size() - 3).withStyle(ChatFormatting.GRAY)));
+				tooltip.accept(CommonComponents.space().append(Component.translatable(RatsLangConstants.AND_MORE, mobs.size() - 3).withStyle(ChatFormatting.GRAY)));
 			}
 		}
 	}

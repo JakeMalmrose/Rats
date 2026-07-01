@@ -26,7 +26,8 @@ public class RatCaptureNet extends ThrowableItemProjectile {
 	}
 
 	public RatCaptureNet(Level level, LivingEntity thrower) {
-		super(RatsEntityRegistry.RAT_CAPTURE_NET.get(), thrower, level);
+		// 26.1: the owner-based ThrowableItemProjectile constructor now also takes the rendered ItemStack.
+		super(RatsEntityRegistry.RAT_CAPTURE_NET.get(), thrower, level, new ItemStack(RatsItemRegistry.RAT_CAPTURE_NET.get()));
 	}
 
 	@Override

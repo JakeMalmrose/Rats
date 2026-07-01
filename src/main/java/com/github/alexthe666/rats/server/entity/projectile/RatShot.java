@@ -44,7 +44,9 @@ public class RatShot extends ThrowableProjectile {
 	}
 
 	public RatShot(EntityType<? extends ThrowableProjectile> type, Level level, LivingEntity thrower) {
-		super(type, thrower, level);
+		// 26.1: ThrowableProjectile lost its (type, owner, level) constructor; position and owner are set manually.
+		super(type, thrower.getX(), thrower.getEyeY() - 0.1D, thrower.getZ(), level);
+		this.setOwner(thrower);
 	}
 
 	public void addAdditionalSaveData(ValueOutput compound) {
@@ -60,7 +62,7 @@ public class RatShot extends ThrowableProjectile {
 	public void handleEntityEvent(byte id) {
 		if (id == 3) {
 			for (int i = 0; i < 18; ++i) {
-				this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(RatsItemRegistry.CHEESE.get())), this.getX(), this.getY(), this.getZ(), ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D);
+				this.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, RatsItemRegistry.CHEESE.get()), this.getX(), this.getY(), this.getZ(), ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D, ((double) this.random.nextFloat() - 0.5D) * 0.08D);
 			}
 		}
 	}
@@ -103,13 +105,15 @@ public class RatShot extends ThrowableProjectile {
 				} else if (thrower instanceof Mob mob) {
 					rat.setTarget(mob.getTarget());
 					rat.setTame(false, true);
-					rat.setOwnerUUID(mob.getUUID());
+					// 26.1: owner UUIDs are stored as EntityReferences now.
+					rat.setOwner(mob);
 				}
 				if (thrower instanceof RatSummoner ratter) {
 					ratter.setRatsSummoned(ratter.getRatsSummoned() + 1);
 				}
 				if (this.level() instanceof ServerLevelAccessor accessor) {
-					EventHooks.finalizeMobSpawn(rat, accessor, this.level().getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.REINFORCEMENT, null);
+					// 26.1: getCurrentDifficultyAt now only exists on ServerLevelAccessor.
+					EventHooks.finalizeMobSpawn(rat, accessor, accessor.getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.REINFORCEMENT, null);
 				}
 				rat.setColorVariant(this.getColorVariant());
 				if (rat instanceof Rat plagueable) {

@@ -67,8 +67,7 @@ public class RatDragonFire extends Fireball {
 		if (!entity.fireImmune()) {
 			entity.igniteForSeconds(10);
 			DamageSource source = this.damageSources().fireball(this, this.getOwner());
-			boolean flag = entity.hurt(source, 5.0F);
-			if (flag && this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+			if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel && entity.hurtServer(serverLevel, source, 5.0F)) {
 				net.minecraft.world.item.enchantment.EnchantmentHelper.doPostAttackEffects(serverLevel, entity, source);
 			}
 
@@ -89,7 +88,7 @@ public class RatDragonFire extends Fireball {
 	}
 
 	@Override
-	public boolean hurt(DamageSource source, float amount) {
+	public boolean hurtServer(net.minecraft.server.level.ServerLevel level, DamageSource source, float amount) {
 		return false;
 	}
 

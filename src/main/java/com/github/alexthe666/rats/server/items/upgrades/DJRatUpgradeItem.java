@@ -7,7 +7,9 @@ import com.github.alexthe666.rats.server.items.upgrades.interfaces.HoldsItemUpgr
 import com.github.alexthe666.rats.server.items.upgrades.interfaces.TickRatUpgrade;
 import com.github.alexthe666.rats.server.message.UpdateRatMusicPacket;
 import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.block.BlockModelRenderState;
+import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.component.DataComponents;
@@ -30,11 +32,14 @@ public class DJRatUpgradeItem extends BaseRatUpgradeItem implements HoldsItemUpg
 	}
 
 	@Override
-	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, MultiBufferSource buffer, int light, float ageInTicks) {
+	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, SubmitNodeCollector collector, int light, float ageInTicks) {
 		model.translateToBody(stack);
 		stack.scale(-0.35F, -0.35F, 0.35F);
 		stack.translate(-0.5F, -0.5F, -0.65F);
-		context.getBlockRenderDispatcher().renderSingleBlock(Blocks.JUKEBOX.defaultBlockState(), stack, buffer, light, OverlayTexture.NO_OVERLAY);
+		// 26.1: BlockRenderDispatcher.renderSingleBlock is gone; resolve a block model render state and submit it.
+		BlockModelRenderState blockRenderState = new BlockModelRenderState();
+		context.getBlockModelResolver().update(blockRenderState, Blocks.JUKEBOX.defaultBlockState(), BlockDisplayContext.create());
+		blockRenderState.submit(stack, collector, light, OverlayTexture.NO_OVERLAY, 0);
 	}
 
 	@Override

@@ -14,7 +14,7 @@ import com.github.alexthe666.rats.server.items.upgrades.interfaces.TickRatUpgrad
 import com.github.alexthe666.rats.server.message.SyncThrownBlockPacket;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
@@ -35,7 +35,7 @@ public class PsychicRatUpgradeItem extends StatBoostingRatUpgradeItem implements
 	}
 
 	@Override
-	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, MultiBufferSource buffer, int light, float ageInTicks) {
+	public void renderHeldItem(EntityRendererProvider.Context context, TamedRat rat, RatModel<?> model, PoseStack stack, SubmitNodeCollector collector, int light, float ageInTicks) {
 		if (!rat.hasItemInSlot(EquipmentSlot.HEAD)) {
 			stack.pushPose();
 			this.translateToHead(model, stack);
@@ -43,7 +43,7 @@ public class PsychicRatUpgradeItem extends StatBoostingRatUpgradeItem implements
 			stack.mulPose(Axis.XP.rotationDegrees(180F));
 			stack.mulPose(Axis.YP.rotationDegrees(180F));
 			stack.scale(0.9F, 0.9F, 0.9F);
-			context.getItemRenderer().renderStatic(new ItemStack(RatlantisBlockRegistry.BRAIN_BLOCK.get()), ItemDisplayContext.GROUND, light, OverlayTexture.NO_OVERLAY, stack, buffer, null, rat.getId());
+			this.submitItem(new ItemStack(RatlantisBlockRegistry.BRAIN_BLOCK.get()), rat, ItemDisplayContext.GROUND, stack, collector, light);
 			stack.popPose();
 		}
 	}
