@@ -36,19 +36,7 @@ public class RatCraftingTableBlock extends BaseEntityBlock {
 		super(properties);
 	}
 
-	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean isMoving) {
-		BlockEntity be = level.getBlockEntity(pos);
-		if (be instanceof RatCraftingTableBlockEntity table) {
-			// 1.21: bufferHandler is now a direct field on the BlockEntity.
-			var handler = table.bufferHandler;
-			for (int i = 0; i < handler.getSlots(); i++) {
-				Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), handler.getStackInSlot(i));
-			}
-			level.updateNeighbourForOutputSignal(pos, this);
-		}
-		super.onRemove(state, level, pos, newState, isMoving);
-	}
+	// 26.1: Block.onRemove is gone; the buffer drop moved to RatCraftingTableBlockEntity.preRemoveSideEffects.
 
 	@Override
 	public RenderShape getRenderShape(BlockState state) {

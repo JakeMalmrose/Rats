@@ -102,6 +102,19 @@ public class RatCraftingTableBlockEntity extends BlockEntity implements MenuProv
 		super(RatsBlockEntityRegistry.RAT_CRAFTING_TABLE.get(), pos, state);
 	}
 
+	// 26.1: replaces RatCraftingTableBlock.onRemove - drops the buffer contents and updates comparators when the block changes.
+	@Override
+	public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+		Level level = this.getLevel();
+		if (level != null) {
+			for (int i = 0; i < this.bufferHandler.getSlots(); i++) {
+				net.minecraft.world.Containers.dropItemStack(level, pos.getX(), pos.getY(), pos.getZ(), this.bufferHandler.getStackInSlot(i));
+			}
+			level.updateNeighbourForOutputSignal(pos, state.getBlock());
+		}
+		super.preRemoveSideEffects(pos, state);
+	}
+
 	public static void tick(Level level, BlockPos pos, BlockState state, RatCraftingTableBlockEntity te) {
 		te.hasRat = false;
 		te.totalCookTime = 200;
