@@ -20,7 +20,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.util.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HeadedModel;
 import net.minecraft.client.model.HumanoidModel;
@@ -73,7 +73,8 @@ public class ForgeClientEvents {
 	private static final Identifier RAT_DEPOSIT_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/rat_deposit.png");
 	private static final Identifier RAT_PICKUP_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/misc/rat_pickup.png");
 	private static final Identifier RAT_PATROL_NODE_TEXTURE = Identifier.parse("rats:textures/misc/rat_patrol.png");
-	private static final Identifier SYNESTHESIA = Identifier.fromNamespaceAndPath(RatsMod.MODID, "shaders/post/synesthesia.json");
+	// 26.1: post chains live at assets/<ns>/post_effect/<id>.json and are set by plain id.
+	private static final Identifier SYNESTHESIA = Identifier.fromNamespaceAndPath(RatsMod.MODID, "synesthesia");
 	private static float synesthesiaProgress = 0;
 	private static float prevSynesthesiaProgress = 0;
 	private static final float MAX_SYNESTESIA = 40;
@@ -83,7 +84,7 @@ public class ForgeClientEvents {
 	public static void adjustSynesthesiaFOV(ViewportEvent.ComputeFov event) {
 		if (RatConfig.synesthesiaShader) {
 			if (prevSynesthesiaProgress > 0) {
-				float prog = (prevSynesthesiaProgress + (synesthesiaProgress - prevSynesthesiaProgress) * Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true));
+				float prog = (prevSynesthesiaProgress + (synesthesiaProgress - prevSynesthesiaProgress) * Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true));
 				float renderProg;
 				if (prevSynesthesiaProgress <= synesthesiaProgress) {
 					renderProg = (float) Math.sin(prog / MAX_SYNESTESIA * Math.PI) * 40.0F;
@@ -107,10 +108,10 @@ public class ForgeClientEvents {
 		}
 	}
 
+	// 26.1: RenderHighlightEvent.Block was replaced by the extraction-phase outline event.
 	@SubscribeEvent
-	public static void removeAutomatonHeadOutline(RenderHighlightEvent.Block event) {
-		BlockState state = event.getCamera().getEntity().level().getBlockState(event.getTarget().getBlockPos());
-		if (state.is(RatlantisBlockRegistry.MARBLED_CHEESE_RAT_HEAD.get())) {
+	public static void removeAutomatonHeadOutline(ExtractBlockOutlineRenderStateEvent event) {
+		if (event.getBlockState().is(RatlantisBlockRegistry.MARBLED_CHEESE_RAT_HEAD.get())) {
 			event.setCanceled(true);
 		}
 	}
@@ -123,11 +124,11 @@ public class ForgeClientEvents {
 				GameRenderer renderer = Minecraft.getInstance().gameRenderer;
 				boolean active = ((net.minecraft.world.entity.LivingEntity) event.getEntity()).hasEffect(RatsEffectRegistry.SYNESTHESIA);
 				try {
-					if (active && renderer.currentEffect() == null) {
-						renderer.loadEffect(SYNESTHESIA);
+					if (active && renderer.currentPostEffect() == null) {
+						renderer.setPostEffect(SYNESTHESIA);
 					}
-					if (!active && renderer.currentEffect() != null && SYNESTHESIA.toString().equals(Objects.requireNonNull(renderer.currentEffect()).getName())) {
-						renderer.shutdownEffect();
+					if (!active && SYNESTHESIA.equals(renderer.currentPostEffect())) {
+						renderer.clearPostEffect();
 					}
 				} catch (Exception e) {
 					RatsMod.LOGGER.warn("Game tried to crash when applying shader");
@@ -150,8 +151,10 @@ public class ForgeClientEvents {
 	}
 
 	@SubscribeEvent
-	public static void unrenderHatLayerWithMask(RenderLivingEvent.Pre<?, ?> event) {
-		ItemStack stack = event.getEntity().getItemBySlot(EquipmentSlot.HEAD);
+	public static void unrenderHatLayerWithMask(RenderLivingEvent.Pre<?, ?, ?> event) {
+		// 26.1: the event carries the render state, not the entity.
+		if (!(com.github.alexthe666.rats.client.render.RatsClientKeys.getLiving(event.getRenderState()) instanceof LivingEntity living)) return;
+		ItemStack stack = living.getItemBySlot(EquipmentSlot.HEAD);
 		boolean visible = !stack.is(RatsItemRegistry.BLACK_DEATH_MASK.get()) && !stack.is(RatsItemRegistry.PLAGUE_DOCTOR_MASK.get()) && !stack.is(RatlantisBlockRegistry.MARBLED_CHEESE_RAT_HEAD.get().asItem());
 
 		if (!visible && event.getRenderer().getModel() instanceof HumanoidModel<?> humanoidModel && event.getRenderer().getModel() instanceof HeadedModel) {
@@ -182,11 +185,10 @@ public class ForgeClientEvents {
 		if (!event.getName().equals(VanillaGuiLayers.PLAYER_HEALTH) || !player.hasEffect(RatsEffectRegistry.PLAGUE) || !RatConfig.plagueHearts) {
 			return;
 		}
-		GuiGraphics graphics = event.getGuiGraphics();
+		net.minecraft.client.gui.GuiGraphicsExtractor graphics = event.getGuiGraphics();
 		int width = Minecraft.getInstance().getWindow().getGuiScaledWidth();
 		int height = Minecraft.getInstance().getWindow().getGuiScaledHeight();
 		int leftHeight = 39;
-		RenderSystem.enableBlend();
 		int health = Mth.ceil(player.getHealth());
 		Gui gui = Minecraft.getInstance().gui;
 		boolean highlight = gui.healthBlinkTime > (long) gui.getGuiTicks() && (gui.healthBlinkTime - (long) gui.getGuiTicks()) / 3L % 2L == 1L;
@@ -245,7 +247,7 @@ public class ForgeClientEvents {
 			}
 
 			if (!RatConfig.singleRowPlagueHearts) {
-				graphics.blit(PLAGUE_HEART_TEXTURE, x, y, 0, emptyHeartYPos, 9, 9);
+				graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, PLAGUE_HEART_TEXTURE, x, y, 0, emptyHeartYPos, 9, 9, 256, 256);
 			}
 			int fullHealth = currentHeart * 2;
 			//absorption hearts
@@ -253,31 +255,30 @@ public class ForgeClientEvents {
 				int k2 = fullHealth - health * 2;
 				if (k2 < absorption) {
 					boolean halfHeart = k2 + 1 == absorption;
-					graphics.blit(PLAGUE_HEART_TEXTURE, x, y, halfHeart ? 9 : 0, heartYPos, 9, 9);
+					graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, PLAGUE_HEART_TEXTURE, x, y, halfHeart ? 9 : 0, heartYPos, 9, 9, 256, 256);
 				}
 			}
 
 			//blinking hearts
 			if (highlight && fullHealth < healthLast) {
 				boolean halfHeart = fullHealth + 1 == healthLast;
-				graphics.blit(PLAGUE_HEART_TEXTURE, x, y, halfHeart ? 9 : 0, heartYPos, 9, 9);
+				graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, PLAGUE_HEART_TEXTURE, x, y, halfHeart ? 9 : 0, heartYPos, 9, 9, 256, 256);
 			}
 
 			//normal hearts
 			if (fullHealth < health) {
 				boolean halfHeart = fullHealth + 1 == health;
-				graphics.blit(PLAGUE_HEART_TEXTURE, x, y, halfHeart ? 9 : 0, heartYPos, 9, 9);
+				graphics.blit(net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED, PLAGUE_HEART_TEXTURE, x, y, halfHeart ? 9 : 0, heartYPos, 9, 9, 256, 256);
 			}
 		}
-		RenderSystem.disableBlend();
-		Minecraft.getInstance().getProfiler().endTick();
 	}
 
 	@SubscribeEvent
 	public static void onFogColors(ViewportEvent.ComputeFogColor event) {
 		ClientLevel level = Minecraft.getInstance().level;
 		if (level != null && level.dimension().equals(RatlantisDimensionRegistry.DIMENSION_KEY)) {
-			float f12 = Mth.clamp(Mth.cos(level.getTimeOfDay((float) event.getPartialTick()) * ((float) Math.PI * 2F)) * 2.0F + 0.5F, 0.0F, 1.0F);
+			// TODO(26.1): day-night fraction moved into the environment-attribute/timeline system; use full daylight tint for now.
+			float f12 = 1.0F;
 			FluidState fluidstate = event.getCamera().getBlockAtCamera().getFluidState();
 			if (!fluidstate.is(FluidTags.WATER)) {
 				event.setRed((f12));
@@ -288,29 +289,32 @@ public class ForgeClientEvents {
 	}
 
 	@SubscribeEvent
-	public static <T extends LivingEntity, M extends EntityModel<T>> void onLivingRender(RenderLivingEvent.Post<T, M> event) {
-		if (event.getEntity() instanceof Player) {
+	public static void onLivingRender(RenderLivingEvent.Post<?, ?, ?> event) {
+		if (com.github.alexthe666.rats.client.render.RatsClientKeys.getLiving(event.getRenderState()) instanceof Player player) {
 			PoseStack stack = event.getPoseStack();
-			int protectorCount = ForgeEvents.getProtectorCount(event.getEntity());
-			VertexConsumer textureBuilder = event.getMultiBufferSource().getBuffer(RatsRenderType.getGlowingTranslucent(RatProtectorRenderer.BASE_TEXTURE));
+			int protectorCount = ForgeEvents.getProtectorCount(player);
+			if (protectorCount <= 0) return;
+			float partialTick = event.getPartialTick();
+			int light = event.getRenderState().lightCoords;
 			for (int i = 0; i < protectorCount; i++) {
-				float tick = (float) (event.getEntity().tickCount - 1) + event.getPartialTick();
+				float tick = (float) (player.tickCount - 1) + partialTick;
 				float offsetRot = 30 + 360 * (i / (float) protectorCount);
 				float bob = (float) ((Math.sin(tick * 0.1F) * 0.2F + Math.cos(tick * 0.4F + i)) * 0.2);
 				float scale = 0.4F;
 				float rotation = Mth.wrapDegrees((tick * 8) % 360.0F + offsetRot);
 				stack.pushPose();
 				stack.mulPose(Axis.YP.rotationDegrees(rotation));
-				stack.translate(0.0D, event.getEntity().getBbHeight() + 0.5D + bob, event.getEntity().getBbWidth() + 0.5F);
+				stack.translate(0.0D, player.getBbHeight() + 0.5D + bob, player.getBbWidth() + 0.5F);
 				stack.pushPose();
 				stack.mulPose(Axis.YP.rotationDegrees(90));
 				stack.mulPose(Axis.XP.rotationDegrees(75.0F));
 				stack.scale(scale, scale, scale);
 				stack.mulPose(Axis.XP.rotationDegrees(90.0F));
-				float f = (event.getEntity().tickCount + event.getPartialTick()) * 0.5F;
-				float f1 = 1;
-				RAT_MODEL.setupAnim(event.getEntity(), f, f1, event.getEntity().tickCount + event.getPartialTick(), event.getPartialTick(), 0);
-				RAT_MODEL.renderToBuffer(event.getPoseStack(), textureBuilder, event.getPackedLight(), OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+				float f = (player.tickCount + partialTick) * 0.5F;
+				RAT_MODEL.setupAnim(player, f, 1, player.tickCount + partialTick, partialTick, 0);
+				// 26.1: deferred submit replaces direct buffer access on the living-render event.
+				event.getSubmitNodeCollector().submitCustomGeometry(stack, RatsRenderType.getGlowingTranslucent(RatProtectorRenderer.BASE_TEXTURE), (pose, consumer) ->
+						RAT_MODEL.renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, -1));
 				stack.popPose();
 				stack.popPose();
 			}
@@ -319,94 +323,9 @@ public class ForgeClientEvents {
 
 	@SubscribeEvent
 	public static void onRenderWorld(RenderLevelStageEvent event) {
-		if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_PARTICLES) {
-			if (Minecraft.getInstance().player != null && SelectedRat.has(Minecraft.getInstance().player)) {
-				TamedRat rat = SelectedRat.get(Minecraft.getInstance().player);
-				if (rat == null) return;
-				ItemStack heldItem = Minecraft.getInstance().player.getItemInHand(InteractionHand.MAIN_HAND);
-				final Tesselator tessellator = Tesselator.getInstance();
-				// 1.21: BufferBuilders come from tessellator.begin(...) at the draw site; the icon
-				// helper allocates its own internally, so we no longer thread one through here.
-				final PoseStack stack = event.getPoseStack();
-				float bob = 1.5F + 0.3F * (Mth.sin((event.getPartialTick().getGameTimeDeltaPartialTick(false) + Minecraft.getInstance().player.tickCount) * 0.1F) + 1F);
-				final Vec3 viewPosition = Minecraft.getInstance().getEntityRenderDispatcher().camera.getPosition();
-				double px = viewPosition.x;
-				double py = viewPosition.y;
-				double pz = viewPosition.z;
-				if (heldItem.is(RatsItemRegistry.CHEESE_STICK.get())) {
-					float finalBob = bob;
-					rat.getDepositPos().ifPresent(pos -> {
-						if (Minecraft.getInstance().player.level().isLoaded(pos.pos()) && pos.dimension().equals(rat.level().dimension())) {
-							RatsIconRenderUtil.renderPOIIcon(RAT_DEPOSIT_TEXTURE, viewPosition, pos.pos(), finalBob, stack, tessellator);
-						}
-					});
-					rat.getPickupPos().ifPresent(pos -> {
-						if (Minecraft.getInstance().player.level().isLoaded(pos.pos()) && pos.dimension().equals(rat.level().dimension())) {
-							RatsIconRenderUtil.renderPOIIcon(RAT_PICKUP_TEXTURE, viewPosition, pos.pos(), finalBob, stack, tessellator);
-						}
-					});
-					rat.getHomePoint().ifPresent(pos -> {
-						if (Minecraft.getInstance().player.level().isLoaded(pos.pos()) && pos.dimension().equals(rat.level().dimension())) {
-							RatsIconRenderUtil.renderPOIIcon(HOME_TEXTURE, viewPosition, pos.pos(), finalBob, stack, tessellator);
-						}
-					});
-					if (Minecraft.getInstance().hitResult != null && Minecraft.getInstance().hitResult.getType() == HitResult.Type.BLOCK) {
-						BlockHitResult over = (BlockHitResult) Minecraft.getInstance().hitResult;
-						if (Minecraft.getInstance().level != null && Minecraft.getInstance().level.getBlockState(over.getBlockPos()).is(RatsBlockRegistry.RAT_QUARRY.get())) {
-							if (Minecraft.getInstance().level.getBlockEntity(over.getBlockPos()) instanceof RatQuarryBlockEntity quarry) {
-								BlockPos blockPos = quarry.getBlockPos().offset(-quarry.getRadius(), 0, -quarry.getRadius());
-								AABB aabb = new AABB(0, -0.05, 0, 1 + quarry.getRadius() * 2, 0.1, 1 + quarry.getRadius() * 2);
-								RatsIconRenderUtil.renderBox(QUARRY_TEXTURE, viewPosition, Vec3.atLowerCornerOf(blockPos), aabb, stack);
-							}
-						}
-					}
-				} else if (heldItem.is(RatsItemRegistry.RADIUS_STICK.get())) {
-					BlockPos blockPos = rat.getSearchCenter();
-					if (!Minecraft.getInstance().player.level().isLoaded(blockPos)) return;
-					Vec3 renderCenter = new Vec3(blockPos.getX() + 0.5D, blockPos.getY() + 0.5D, blockPos.getZ() + 0.5D);
-					double renderRadius = rat.getRadius();
-					AABB aabb = new AABB(-renderRadius, -renderRadius, -renderRadius, renderRadius, renderRadius, renderRadius);
-					RatsIconRenderUtil.renderBox(RADIUS_TEXTURE, viewPosition, renderCenter, aabb, stack);
-				} else if (heldItem.is(RatsItemRegistry.PATROL_STICK.get())) {
-					bob = 1.5F + 0.05F * (Mth.sin((event.getPartialTick().getGameTimeDeltaPartialTick(false) + (float) Minecraft.getInstance().player.tickCount) * 0.1F) + 1.0F);
-
-					for (int i = 0; i < rat.getPatrolNodes().size(); ++i) {
-						GlobalPos node = rat.getPatrolNodes().get(i);
-						if (!Minecraft.getInstance().player.level().isLoaded(node.pos())) return;
-						float r = 0.6F;
-						float g = 0.1F;
-						float b = 0.1F;
-						GlobalPos prev;
-						if (i > 0) {
-							prev = rat.getPatrolNodes().get(i - 1);
-						} else {
-							prev = rat.getPatrolNodes().get(rat.getPatrolNodes().size() - 1);
-							r = 0.5F;
-							g = 0.3F;
-						}
-
-						if (node.dimension().equals(Minecraft.getInstance().player.level().dimension()) && prev.dimension().equals(Minecraft.getInstance().player.level().dimension())) {
-							stack.pushPose();
-							stack.translate(-px, -py, -pz);
-							stack.translate((float) prev.pos().getX() + 0.5F, (float) prev.pos().getY() + bob - 0.25F, (float) prev.pos().getZ() + 0.5F);
-							float pdx = (float) (node.pos().getX() - prev.pos().getX());
-							float pdy = (float) (node.pos().getY() - prev.pos().getY());
-							float pdz = (float) (node.pos().getZ() - prev.pos().getZ());
-							BufferBuilder lineBuffer = tessellator.begin(VertexFormat.Mode.DEBUG_LINES, DefaultVertexFormat.POSITION_COLOR);
-							Matrix4f matrix4f = stack.last().pose();
-							lineBuffer.addVertex(matrix4f, pdx, pdy, pdz).setColor(r, g, b, 1.0F);
-							lineBuffer.addVertex(matrix4f, 0.0F, 0.0F, 0.0F).setColor(r, g, b, 1.0F);
-							com.mojang.blaze3d.vertex.BufferUploader.drawWithShader(lineBuffer.buildOrThrow());
-							stack.popPose();
-						}
-
-						if (node.dimension().equals(Minecraft.getInstance().player.level().dimension())) {
-							RatsIconRenderUtil.renderPOIIcon(RAT_PATROL_NODE_TEXTURE, viewPosition, node.pos(), bob, stack, tessellator);
-						}
-					}
-				}
-			}
-		}
+		// TODO(26.1): the cheese/radius/patrol staff world overlays used immediate-mode drawing
+		// (Tesselator + BufferUploader.drawWithShader), which was removed with the render-pipeline
+		// rework. Reimplement on the submit/level-render-state path once the rest of the port settles.
 	}
 
 	public static boolean isRatSelectedOnStaff(TamedRat rat) {

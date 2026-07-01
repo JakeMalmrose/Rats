@@ -5,7 +5,8 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.entity.EntityRenderDispatcher;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
@@ -29,13 +30,16 @@ public class EntityRenderingUtil {
 	@Nullable
 	public static LivingEntity fetchEntity(@Nullable Identifier entityName, @Nullable Level level) {
 		if (entityName != null && level != null && !IGNORED_ENTITIES.contains(entityName)) {
-			EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(entityName);
+			EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.getValue(entityName);
 			if (type != null) {
 				Entity entity;
 				if (type == EntityType.PLAYER) {
 					entity = Minecraft.getInstance().player;
 				} else {
-					entity = ENTITY_MAP.computeIfAbsent(entityName, t -> BuiltInRegistries.ENTITY_TYPE.get(t).create(level));
+					entity = ENTITY_MAP.computeIfAbsent(entityName, t -> {
+						EntityType<?> cached = BuiltInRegistries.ENTITY_TYPE.getValue(t);
+						return cached == null ? null : cached.create(level, net.minecraft.world.entity.EntitySpawnReason.LOAD);
+					});
 				}
 				if (entity instanceof LivingEntity living) {
 					return living;
@@ -66,46 +70,14 @@ public class EntityRenderingUtil {
 		ENTITY_MAP.remove(entityName);
 	}
 
-	public static void drawEntityOnScreen(GuiGraphics graphics, int posX, int posY, int scale, float mouseX, float mouseY, @Nullable LivingEntity entity, boolean rotating) {
+	// 26.1: entity-in-GUI rendering goes through the vanilla extraction helper; the old
+	// EntityRenderDispatcher immediate path (overrideCameraOrientation/runAsFancy) is gone.
+	public static void drawEntityOnScreen(GuiGraphicsExtractor graphics, int posX, int posY, int scale, float mouseX, float mouseY, @Nullable LivingEntity entity) {
 		if (entity != null) {
-			float rotate = (Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true) + Minecraft.getInstance().player.tickCount) * 2F;
-			float f = (float) Math.atan(mouseX / 40.0F);
-			float f1 = (float) Math.atan(mouseY / 40.0F);
-			Quaternionf quaternion = Axis.ZP.rotationDegrees(180.0F);
-			Quaternionf quaternion1 = Axis.XP.rotationDegrees(f1 * 20.0F);
-			Quaternionf quaternion2 = Axis.YP.rotationDegrees(rotate);
-			quaternion.mul(quaternion1);
-			float f2 = entity.yBodyRot;
-			float f3 = entity.getYRot();
-			float f4 = entity.getXRot();
-			float f5 = entity.yHeadRotO;
-			float f6 = entity.yHeadRot;
-			entity.yBodyRot = 180.0F + f * 20.0F;
-			entity.setYRot(180.0F + f * 40.0F);
-			entity.setXRot(-f1 * 20.0F);
-			entity.yHeadRot = entity.getYRot();
-			entity.yHeadRotO = entity.getYRot();
-			graphics.pose().pushPose();
-			graphics.pose().translate(posX, posY, 50.0D);
-			// 1.21: PoseStack.mulPoseMatrix removed; use scale + mulPose chain.
-			graphics.pose().scale(scale, scale, -scale);
-			graphics.pose().mulPose(quaternion);
-			if (rotating) graphics.pose().mulPose(quaternion2);
-			Lighting.setupForEntityInInventory();
-			EntityRenderDispatcher dispatcher = Minecraft.getInstance().getEntityRenderDispatcher();
-			quaternion1.conjugate();
-			dispatcher.overrideCameraOrientation(quaternion1);
-			dispatcher.setRenderShadow(false);
-			RenderSystem.runAsFancy(() -> dispatcher.render(entity, 0.0D, 0.0D, 0.0D, 0.0F, 1.0F, graphics.pose(), graphics.bufferSource(), 15728880));
-			graphics.flush();
-			dispatcher.setRenderShadow(true);
-			graphics.pose().popPose();
-			Lighting.setupFor3DItems();
-			entity.yBodyRot = f2;
-			entity.setYRot(f3);
-			entity.setXRot(f4);
-			entity.yHeadRotO = f5;
-			entity.yHeadRot = f6;
+			float xAngle = (float) Math.atan(mouseX / 40.0F);
+			float yAngle = (float) Math.atan(mouseY / 40.0F);
+			int half = scale * 2;
+			InventoryScreen.renderEntityInInventoryFollowsAngle(graphics, posX - half, posY - scale * 4, posX + half, posY, scale, 0.0F, xAngle, yAngle, entity);
 		}
 	}
 }
