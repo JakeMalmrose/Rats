@@ -26,11 +26,11 @@ public record RatKilledAndHasUpgradeCondition(Item upgrade) implements LootItemC
 
 	@Override
 	public boolean test(LootContext context) {
-		if (!context.hasParam(LootContextParams.ATTACKING_ENTITY)) return false;
-		if (context.getParam(LootContextParams.ATTACKING_ENTITY) instanceof RatMountBase base) {
+		if (!context.hasParameter(LootContextParams.ATTACKING_ENTITY)) return false;
+		if (context.getParameter(LootContextParams.ATTACKING_ENTITY) instanceof RatMountBase base) {
 			return base.getRat() != null && RatUpgradeUtils.hasUpgrade(base.getRat(), this.upgrade());
 		}
-		return context.getParam(LootContextParams.ATTACKING_ENTITY) instanceof TamedRat rat && RatUpgradeUtils.hasUpgrade(rat, this.upgrade());
+		return context.getParameter(LootContextParams.ATTACKING_ENTITY) instanceof TamedRat rat && RatUpgradeUtils.hasUpgrade(rat, this.upgrade());
 	}
 
 	public static LootItemCondition.Builder hasUpgrade(Item upgrade) {

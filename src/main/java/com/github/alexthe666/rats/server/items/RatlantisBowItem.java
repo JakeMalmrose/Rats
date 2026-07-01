@@ -8,11 +8,12 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.*;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 // 1.21: Power/Punch/Flame enchant scaling is now driven by the enchantment-effect-component system on hit;
 // instead of manually copying levels from the bow to the arrow at fire time, we just thread the bow stack through
@@ -29,12 +30,13 @@ public class RatlantisBowItem extends BowItem {
 		return 36000;
 	}
 
+	// 26.1: releaseUsing now returns a boolean (whether the item was actually used).
 	@Override
-	public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int useTicks) {
+	public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int useTicks) {
 		if (entity instanceof Player player) {
 			ItemStack itemstack = player.getProjectile(stack);
 			int i = this.getUseDuration(stack, entity) - useTicks;
-			if (i < 0) return;
+			if (i < 0) return false;
 
 			if (!itemstack.isEmpty() || player.getAbilities().instabuild) {
 				if (itemstack.isEmpty()) {
@@ -42,7 +44,7 @@ public class RatlantisBowItem extends BowItem {
 				}
 				float f = getPowerForTime(i);
 				if (!((double) f < 0.1D)) {
-					if (!level.isClientSide) {
+					if (!level.isClientSide()) {
 						// Pass the bow as the firedFromWeapon so vanilla applies Power/Punch/Flame enchant effects on hit.
 						AbstractArrow arrow = new RatlantisArrow(level, player, stack.copy());
 						arrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, f * 3.0F, 1.0F);
@@ -60,9 +62,11 @@ public class RatlantisBowItem extends BowItem {
 						}
 					}
 					player.awardStat(Stats.ITEM_USED.get(this));
+					return true;
 				}
 			}
 		}
+		return false;
 	}
 
 	public static float getPowerForTime(int time) {
@@ -75,9 +79,9 @@ public class RatlantisBowItem extends BowItem {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(stack, context, tooltip, flag);
-		tooltip.add(Component.translatable("item.rats.ratlantis_bow.desc0").withStyle(ChatFormatting.YELLOW));
-		tooltip.add(Component.translatable("item.rats.ratlantis_bow.desc1").withStyle(ChatFormatting.GRAY));
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+		super.appendHoverText(stack, context, display, tooltip, flag);
+		tooltip.accept(Component.translatable("item.rats.ratlantis_bow.desc0").withStyle(ChatFormatting.YELLOW));
+		tooltip.accept(Component.translatable("item.rats.ratlantis_bow.desc1").withStyle(ChatFormatting.GRAY));
 	}
 }

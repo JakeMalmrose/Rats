@@ -5,10 +5,11 @@ import com.github.alexthe666.rats.server.entity.projectile.RatArrow;
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -29,10 +30,8 @@ public class RatArrowItem extends ArrowItem {
 		CompoundTag ratTag = stored.contains("Rat") ? stored.getCompoundOrEmpty("Rat") : new CompoundTag();
 		TamedRat rat = new TamedRat(RatsEntityRegistry.TAMED_RAT.get(), context.getLevel());
 		BlockPos offset = context.getClickedPos().relative(context.getClickedFace());
-		rat.readAdditionalSaveData(ratTag);
-		if (!ratTag.getStringOr("CustomName", "").isEmpty()) {
-			rat.setCustomName(Component.Serializer.fromJson(ratTag.getStringOr("CustomName", ""), net.minecraft.core.RegistryAccess.EMPTY));
-		}
+		rat.readAdditionalSaveData(net.minecraft.world.level.storage.TagValueInput.create(ProblemReporter.DISCARDING, context.getLevel().registryAccess(), ratTag));
+		ratTag.read("CustomName", ComponentSerialization.CODEC).ifPresent(rat::setCustomName);
 		rat.moveTo(offset.getX() + 0.5D, offset.getY(), offset.getZ() + 0.5D, 0, 0);
 		if (!context.getLevel().isClientSide()) {
 			context.getLevel().addFreshEntity(rat);

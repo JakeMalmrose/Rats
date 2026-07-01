@@ -85,35 +85,33 @@ public class RatSackItem extends Item {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
 		int ratCount = 0;
 		List<String> ratNames = new ArrayList<>();
 		CompoundTag tag = readTag(stack);
-		for (String tagInfo : tag.getAllKeys()) {
+		for (String tagInfo : tag.keySet()) {
 			if (tagInfo.contains("Rat")) {
 				CompoundTag ratTag = tag.getCompoundOrEmpty(tagInfo);
 				ratCount++;
 				String ratName = Component.translatable("entity.rats.rat").getString();
-				if (!ratTag.getStringOr("CustomName", "").isEmpty()) {
-					Component ratNameTag = Component.Serializer.fromJson(ratTag.getStringOr("CustomName", ""), RegistryAccess.EMPTY);
-					if (ratNameTag != null) {
-						ratName = ratNameTag.getString();
-					}
+				Component ratNameTag = ratTag.read("CustomName", ComponentSerialization.CODEC).orElse(null);
+				if (ratNameTag != null) {
+					ratName = ratNameTag.getString();
 				}
 				ratNames.add(ratName);
 			}
 		}
-		tooltip.add(Component.translatable(RatsLangConstants.RAT_SACK_CONTAINED_RATS, ratCount, RatConfig.ratSackCapacity).withStyle(ChatFormatting.GRAY));
+		tooltip.accept(Component.translatable(RatsLangConstants.RAT_SACK_CONTAINED_RATS, ratCount, RatConfig.ratSackCapacity).withStyle(ChatFormatting.GRAY));
 		if (!ratNames.isEmpty()) {
 			for (int i = 0; i < ratNames.size(); i++) {
 				if (i < 3) {
-					tooltip.add(Component.literal(ratNames.get(i)).withStyle(ChatFormatting.GRAY));
+					tooltip.accept(Component.literal(ratNames.get(i)).withStyle(ChatFormatting.GRAY));
 				} else {
 					break;
 				}
 			}
 			if (ratNames.size() > 3) {
-				tooltip.add(Component.translatable(RatsLangConstants.AND_MORE, ratNames.size() - 3).withStyle(ChatFormatting.GRAY));
+				tooltip.accept(Component.translatable(RatsLangConstants.AND_MORE, ratNames.size() - 3).withStyle(ChatFormatting.GRAY));
 			}
 		}
 	}

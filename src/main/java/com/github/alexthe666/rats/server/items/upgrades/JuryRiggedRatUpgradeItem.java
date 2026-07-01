@@ -8,11 +8,11 @@ import net.minecraft.core.NonNullList;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.item.component.CustomData;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -21,9 +21,8 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public class JuryRiggedRatUpgradeItem extends BaseRatUpgradeItem implements CombinedUpgrade {
 
@@ -37,9 +36,9 @@ public class JuryRiggedRatUpgradeItem extends BaseRatUpgradeItem implements Comb
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(stack, context, tooltip, flag);
-		tooltip.add(Component.translatable("item.rats.rat_upgrade_combined.desc").withStyle(ChatFormatting.GRAY));
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+		super.appendHoverText(stack, context, display, tooltip, flag);
+		tooltip.accept(Component.translatable("item.rats.rat_upgrade_combined.desc").withStyle(ChatFormatting.GRAY));
 		this.addTooltip(stack, tooltip);
 	}
 
@@ -49,7 +48,7 @@ public class JuryRiggedRatUpgradeItem extends BaseRatUpgradeItem implements Comb
 	}
 
 	@Override
-	public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+	public InteractionResult use(Level level, Player player, InteractionHand hand) {
 		ItemStack stack = player.getItemInHand(hand);
 
 		if (!player.isShiftKeyDown() && !this.isUpgradeLocked(stack)) {
@@ -65,17 +64,16 @@ public class JuryRiggedRatUpgradeItem extends BaseRatUpgradeItem implements Comb
 						return JuryRiggedRatUpgradeItem.this.getName(stack);
 					}
 				});
-				return InteractionResultHolder.success(stack);
+				return InteractionResult.SUCCESS;
 			}
 		}
-		return InteractionResultHolder.pass(stack);
+		return InteractionResult.PASS;
 	}
 
 	private boolean isUpgradeLocked(ItemStack stack) {
 		CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
 		if (tag.contains("Items")) {
-			NonNullList<ItemStack> nonnulllist = NonNullList.withSize(this.getUpgradeSlots(), ItemStack.EMPTY);
-			ContainerHelper.loadAllItems(tag, nonnulllist, net.minecraft.core.RegistryAccess.EMPTY);
+			NonNullList<ItemStack> nonnulllist = CombinedUpgrade.loadUpgrades(tag, this.getUpgradeSlots());
 			return !nonnulllist.get(0).isEmpty() && !nonnulllist.get(1).isEmpty();
 		}
 		return false;

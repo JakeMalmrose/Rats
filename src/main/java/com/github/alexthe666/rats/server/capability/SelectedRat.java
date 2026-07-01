@@ -25,7 +25,8 @@ public final class SelectedRat {
     public static final DeferredHolder<AttachmentType<?>, AttachmentType<Integer>> SELECTED_RAT_ID =
             ATTACHMENTS.register("selected_rat", () ->
                     AttachmentType.builder(() -> -1)
-                            .serialize(Codec.INT)
+                            // 26.1: Builder#serialize takes a MapCodec now
+                            .serialize(Codec.INT.fieldOf("id"))
                             .copyOnDeath()
                             .build());
 

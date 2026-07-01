@@ -23,8 +23,10 @@ import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.entity.InsideBlockEffectApplier;
 import net.minecraft.world.level.pathfinder.PathComputationType;
-import net.minecraft.world.level.portal.DimensionTransition;
+import net.minecraft.world.level.portal.TeleportTransition;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,22 +51,24 @@ public class RatlantisPortalBlock extends BaseEntityBlock implements CustomItemR
 
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
+		// 26.1: ENTITYBLOCK_ANIMATED was removed; BE-rendered blocks return INVISIBLE.
+		return RenderShape.INVISIBLE;
 	}
 
 	@Override
-	public void entityInside(BlockState state, Level level, BlockPos pos, Entity entity) {
+	protected void entityInside(BlockState state, Level level, BlockPos pos, Entity entity, InsideBlockEffectApplier effectApplier, boolean isPrecise) {
 		// Direct teleport on contact (server-side only). We bypass vanilla's PortalProcessor timer because
 		// the Ratlantis portal is a single 1x2 frame; the cooldown set after changeDimension prevents the
 		// destination block from bouncing the entity straight back.
 		if (!(level instanceof ServerLevel sourceLevel)) return;
 		if (entity.isOnPortalCooldown() || entity.isPassenger() || entity.isVehicle() || !entity.canUsePortal(false)) return;
 
-		DimensionTransition transition = this.getPortalDestination(sourceLevel, entity, pos);
+		TeleportTransition transition = this.getPortalDestination(sourceLevel, entity, pos);
 		if (transition == null) return;
 
 		entity.setPortalCooldown();
-		entity.changeDimension(transition);
+		// 26.1: Entity.changeDimension(DimensionTransition) became Entity.teleport(TeleportTransition).
+		entity.teleport(transition);
 	}
 
 	@Override
@@ -74,26 +78,28 @@ public class RatlantisPortalBlock extends BaseEntityBlock implements CustomItemR
 
 	@Override
 	@Nullable
-	public DimensionTransition getPortalDestination(ServerLevel level, Entity entity, BlockPos pos) {
+	public TeleportTransition getPortalDestination(ServerLevel level, Entity entity, BlockPos pos) {
 		ResourceKey<Level> targetKey = level.dimension().equals(RatlantisDimensionRegistry.DIMENSION_KEY)
 				? Level.OVERWORLD
 				: RatlantisDimensionRegistry.DIMENSION_KEY;
 		MinecraftServer server = level.getServer();
 		ServerLevel targetLevel = server == null ? null : server.getLevel(targetKey);
 		if (targetLevel == null) return null;
-		if (!entity.canChangeDimensions(level, targetLevel)) return null;
+		// 26.1: Entity.canChangeDimensions(Level, Level) was renamed to canTeleport.
+		if (!entity.canTeleport(level, targetLevel)) return null;
 
 		RatlantisTeleporter teleporter = new RatlantisTeleporter(targetLevel);
-		java.util.Optional<net.minecraft.BlockUtil.FoundRectangle> portalRect = teleporter.getOrMakePortal(entity.blockPosition());
-		BlockPos destPos = portalRect.map(rect -> rect.minCorner).orElseGet(() -> targetLevel.getSharedSpawnPos());
+		java.util.Optional<net.minecraft.util.BlockUtil.FoundRectangle> portalRect = teleporter.getOrMakePortal(entity.blockPosition());
+		// 26.1: getSharedSpawnPos is gone; the level spawn now lives in LevelData.RespawnData.
+		BlockPos destPos = portalRect.map(rect -> rect.minCorner).orElseGet(() -> targetLevel.getRespawnData().pos());
 		// Land one block above the bottom-portal position so the player doesn't suffocate inside the frame.
 		Vec3 dest = new Vec3(destPos.getX() + 0.5D, destPos.getY() + 1.0D, destPos.getZ() + 0.5D);
-		return new DimensionTransition(targetLevel, dest, Vec3.ZERO, entity.getYRot(), entity.getXRot(),
-				DimensionTransition.PLAY_PORTAL_SOUND.then(DimensionTransition.PLACE_PORTAL_TICKET));
+		return new TeleportTransition(targetLevel, dest, Vec3.ZERO, entity.getYRot(), entity.getXRot(),
+				TeleportTransition.PLAY_PORTAL_SOUND.then(TeleportTransition.PLACE_PORTAL_TICKET));
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+	protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
 		if (!this.canSurviveAt(level, pos)) {
 			level.destroyBlock(pos, true);
 		}

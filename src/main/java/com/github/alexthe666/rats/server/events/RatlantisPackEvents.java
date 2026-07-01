@@ -28,13 +28,14 @@ public class RatlantisPackEvents {
 	@SubscribeEvent
 	public static void checkDatapackOnSync(OnDatapackSyncEvent event) {
 		if (event.getPlayer() != null) {
-			boolean enabled = event.getPlayer().serverLevel().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains("ratlantis");
+			// 26.1: ServerPlayer#serverLevel() was removed; level() now returns ServerLevel directly
+			boolean enabled = event.getPlayer().level().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains("ratlantis");
 			RatsMod.RATLANTIS_DATAPACK_ENABLED = enabled;
 			PacketDistributor.sendToPlayer(event.getPlayer(), new ChangeRatlantisStatusPacket(enabled));
 			RatsMod.LOGGER.debug("Ratlantis datapack flag has been set to {} for {} ({})", enabled, event.getPlayer().getDisplayName().getString(), event.getPlayer().getStringUUID());
 		} else {
 			event.getPlayerList().getPlayers().forEach(player -> {
-				boolean enabled = player.serverLevel().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains("ratlantis");
+				boolean enabled = player.level().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains("ratlantis");
 				RatsMod.RATLANTIS_DATAPACK_ENABLED = enabled;
 				PacketDistributor.sendToPlayer(player, new ChangeRatlantisStatusPacket(enabled));
 				RatsMod.LOGGER.debug("Ratlantis datapack flag has been set to {} for {} ({})", enabled, player.getDisplayName().getString(), player.getStringUUID());

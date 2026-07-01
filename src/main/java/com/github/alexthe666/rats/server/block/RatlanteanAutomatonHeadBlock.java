@@ -16,6 +16,7 @@ import net.minecraft.advancements.CriteriaTriggers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.player.Player;
@@ -35,7 +36,7 @@ import net.minecraft.world.level.block.state.pattern.BlockPattern;
 import net.minecraft.world.level.block.state.pattern.BlockPatternBuilder;
 import net.minecraft.world.level.block.state.predicate.BlockStatePredicate;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
@@ -55,7 +56,8 @@ public class RatlanteanAutomatonHeadBlock extends BaseEntityBlock implements Wea
 	}
 
 
-	public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
+	// 26.1: DirectionProperty was removed; HORIZONTAL_FACING is now an EnumProperty<Direction>.
+	public static final EnumProperty<Direction> FACING = BlockStateProperties.HORIZONTAL_FACING;
 	private static final Map<Direction, VoxelShape> SHAPES = Maps.newEnumMap(ImmutableMap.of(
 			Direction.NORTH, Block.box(4.0D, 5.0D, 0.0D, 12.0D, 14.0D, 10.0D),
 			Direction.EAST, Block.box(6.0D, 5.0D, 4.0D, 16.0D, 14.0D, 12.0D),
@@ -78,7 +80,8 @@ public class RatlanteanAutomatonHeadBlock extends BaseEntityBlock implements Wea
 
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
+		// 26.1: ENTITYBLOCK_ANIMATED was removed; BE-rendered blocks return INVISIBLE.
+		return RenderShape.INVISIBLE;
 	}
 
 	@Override
@@ -104,7 +107,8 @@ public class RatlanteanAutomatonHeadBlock extends BaseEntityBlock implements Wea
 	}
 
 	public static boolean canSpawnGolem(Level level, BlockPos pos) {
-		if (pos.getY() >= level.getMinBuildHeight() + 2 && level.getDifficulty() != Difficulty.PEACEFUL && !level.isClientSide()) {
+		// 26.1: getMinBuildHeight was renamed to getMinY.
+		if (pos.getY() >= level.getMinY() + 2 && level.getDifficulty() != Difficulty.PEACEFUL && !level.isClientSide()) {
 			return getGolemBasePattern().find(level, pos) != null;
 		} else {
 			return false;
@@ -112,10 +116,13 @@ public class RatlanteanAutomatonHeadBlock extends BaseEntityBlock implements Wea
 	}
 
 	public static void trySpawnGolem(Level level, BlockPos pos) {
-		if (level.getCurrentDifficultyAt(pos).getDifficulty() == Difficulty.PEACEFUL) return;
+		// 26.1: getCurrentDifficultyAt now only exists on ServerLevelAccessor.
+		if (!(level instanceof ServerLevel serverLevel)) return;
+		if (serverLevel.getCurrentDifficultyAt(pos).getDifficulty() == Difficulty.PEACEFUL) return;
 		if (RatConfig.summonAutomatonOnlyInRatlantis && !level.dimension().equals(RatlantisDimensionRegistry.DIMENSION_KEY)) {
-			for (Player player : level.getEntitiesOfClass(Player.class, new AABB(pos).inflate(16.0D))) {
-				player.displayClientMessage(Component.translatable(RatsLangConstants.AUTOMATON_RATLANTIS_ONLY), true);
+			for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, new AABB(pos).inflate(16.0D))) {
+				// 26.1: displayClientMessage was removed; send an overlay message from the server instead.
+				player.sendSystemMessage(Component.translatable(RatsLangConstants.AUTOMATON_RATLANTIS_ONLY), true);
 			}
 			return;
 		}
@@ -132,7 +139,8 @@ public class RatlanteanAutomatonHeadBlock extends BaseEntityBlock implements Wea
 
 			BlockPos blockpos = matcher.getBlock(1, 2, 0).getPos();
 			RatlanteanAutomaton automaton = new RatlanteanAutomaton(RatlantisEntityRegistry.RATLANTEAN_AUTOMATON.get(), level);
-			automaton.moveTo((double) blockpos.getX() + 0.5D, (double) blockpos.getY() + 0.05D, (double) blockpos.getZ() + 0.5D, 0.0F, 0.0F);
+			// 26.1: Entity.moveTo was renamed to snapTo.
+			automaton.snapTo((double) blockpos.getX() + 0.5D, (double) blockpos.getY() + 0.05D, (double) blockpos.getZ() + 0.5D, 0.0F, 0.0F);
 			level.addFreshEntity(automaton);
 			for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, automaton.getBoundingBox().inflate(5.0D))) {
 				CriteriaTriggers.SUMMONED_ENTITY.trigger(player, automaton);

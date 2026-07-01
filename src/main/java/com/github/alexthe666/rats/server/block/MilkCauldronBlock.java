@@ -43,7 +43,7 @@ public class MilkCauldronBlock extends AbstractCauldronBlock implements EntityBl
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader level, BlockPos pos, BlockState state) {
+	protected ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
 		return new ItemStack(Items.CAULDRON);
 	}
 

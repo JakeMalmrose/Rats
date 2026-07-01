@@ -20,6 +20,7 @@ import java.util.Map;
 
 public class GenericAddItemLootModifier extends LootModifier {
 
+	// 26.1: LootModifier.codecStart now includes the "priority" field, so the codec ctor takes it too
 	public static final MapCodec<GenericAddItemLootModifier> CODEC = RecordCodecBuilder.mapCodec(inst -> LootModifier.codecStart(inst).and(
 					inst.group(
 							Codec.unboundedMap(BuiltInRegistries.ITEM.byNameCodec(), Codec.INT).fieldOf("items").forGetter(m -> m.items),
@@ -29,14 +30,14 @@ public class GenericAddItemLootModifier extends LootModifier {
 	private final Map<Item, Integer> items;
 	private final boolean makeNewPool;
 
-	private GenericAddItemLootModifier(LootItemCondition[] conditions, Map<Item, Integer> items, boolean makeNewPool) {
-		super(conditions);
+	private GenericAddItemLootModifier(LootItemCondition[] conditions, int priority, Map<Item, Integer> items, boolean makeNewPool) {
+		super(conditions, priority);
 		this.items = items;
 		this.makeNewPool = makeNewPool;
 	}
 
 	public GenericAddItemLootModifier(LootItemCondition[] conditions, boolean makeNewPool, ItemStack... stacks) {
-		super(conditions);
+		super(conditions, IGlobalLootModifier.DEFAULT_PRIORITY);
 		this.items = new HashMap<>();
 		for (ItemStack stack : stacks) {
 			this.items.put(stack.getItem(), stack.getCount());

@@ -13,6 +13,7 @@ import com.github.alexthe666.rats.server.entity.ai.goal.WildRatTargetFoodGoal;
 import com.github.alexthe666.rats.server.entity.monster.boss.RatKing;
 import com.github.alexthe666.rats.server.misc.RatUtils;
 import com.github.alexthe666.rats.server.misc.RatsDateFetcher;
+import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.nbt.CompoundTag;
@@ -47,7 +48,7 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.event.EventHooks;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.UUID;
+import java.util.List;
 import java.util.function.Predicate;
 import net.minecraft.network.syncher.SynchedEntityData;
 
@@ -150,10 +151,13 @@ public class Rat extends DiggingRat {
 			this.level().addParticle(net.minecraft.core.particles.ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, (float) d0, (float) d1, (float) d2), this.getX() + (double) (this.getRandom().nextFloat() * this.getBbWidth() * 2.0F) - (double) this.getBbWidth(), this.getY() + (double) (this.getRandom().nextFloat() * this.getBbHeight()), this.getZ() + (double) (this.getRandom().nextFloat() * this.getBbWidth() * 2.0F) - (double) this.getBbWidth(), 0, 0, 0);
 		}
 
-		if (this.isBecomingRatKing() && (!this.getMainHandItem().is(RatsItemRegistry.FILTH_CORRUPTION.get()) || this.level().getCurrentDifficultyAt(this.blockPosition()).getDifficulty() == Difficulty.PEACEFUL)) {
+		// 26.1: getCurrentDifficultyAt is ServerLevel-only; the base difficulty check here is equivalent.
+		if (this.isBecomingRatKing() && (!this.getMainHandItem().is(RatsItemRegistry.FILTH_CORRUPTION.get()) || this.level().getDifficulty() == Difficulty.PEACEFUL)) {
 			this.getEntityData().set(RAT_KING_TRANSFORMATION, false);
-			if (this.level().getCurrentDifficultyAt(this.blockPosition()).getDifficulty() == Difficulty.PEACEFUL) {
-				this.spawnAtLocation(this.getMainHandItem());
+			if (this.level().getDifficulty() == Difficulty.PEACEFUL) {
+				if (this.level() instanceof ServerLevel serverLevel) {
+					this.spawnAtLocation(serverLevel, this.getMainHandItem());
+				}
 				this.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 			}
 		}
@@ -168,26 +172,16 @@ public class Rat extends DiggingRat {
 	}
 
 	@Override
-	protected int getBaseExperienceReward() {
-		// 1.21: getExperienceReward is final; override getBaseExperienceReward instead.
-		return this.hasPlague() ? 10 : super.getBaseExperienceReward();
+	protected int getBaseExperienceReward(ServerLevel level) {
+		// 1.21: getExperienceReward is final; override getBaseExperienceReward instead. 26.1 adds the ServerLevel param.
+		return this.hasPlague() ? 10 : super.getBaseExperienceReward(level);
 	}
 
 	@Nullable
 	@Override
 	public LivingEntity getOwner() {
-		try {
-			UUID uuid = this.getOwnerUUID();
-			if (this.level() instanceof ServerLevel server) {
-				Entity entity = server.getEntity(uuid);
-				if (entity instanceof LivingEntity living) {
-					return living;
-				}
-			}
-		} catch (IllegalArgumentException e) {
-			return null;
-		}
-		return null;
+		// 26.1: owner UUID lookups replaced by EntityReference resolution.
+		return EntityReference.getLivingEntity(this.getOwnerReference(), this.level());
 	}
 
 	private void handleRatKingTransform() {
@@ -214,10 +208,10 @@ public class Rat extends DiggingRat {
 			}
 		}
 
-		if (this.ratKingTransformTicks == 200 && !this.level().isClientSide()) {
+		if (this.ratKingTransformTicks == 200 && this.level() instanceof ServerLevel serverLevel) {
 			RatKing king = new RatKing(RatsEntityRegistry.RAT_KING.get(), this.level());
 			king.copyPosition(this);
-			EventHooks.finalizeMobSpawn(king, (ServerLevelAccessor) this.level(), this.level().getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.CONVERSION, null);
+			EventHooks.finalizeMobSpawn(king, serverLevel, serverLevel.getCurrentDifficultyAt(this.blockPosition()), EntitySpawnReason.CONVERSION, null);
 			this.level().addFreshEntity(king);
 			this.discard();
 		}
@@ -229,14 +223,20 @@ public class Rat extends DiggingRat {
 	}
 
 	@Override
-	protected boolean shouldDespawnInPeaceful() {
-		return this.hasPlague();
+	public void checkDespawn() {
+		// 26.1: shouldDespawnInPeaceful was removed in favor of EntityType#isAllowedInPeaceful;
+		// keep plague rats despawning in peaceful via an instance-level check here.
+		if (this.level().getDifficulty() == Difficulty.PEACEFUL && this.hasPlague()) {
+			this.discard();
+			return;
+		}
+		super.checkDespawn();
 	}
 
 	@Override
 	protected void dropCustomDeathLoot(net.minecraft.server.level.ServerLevel _sl, DamageSource source, boolean playerKill) {
 		if (this.hasToga()) {
-			this.spawnAtLocation(new ItemStack(RatlantisItemRegistry.RAT_TOGA.get()), 0.0F);
+			this.spawnAtLocation(_sl, new ItemStack(RatlantisItemRegistry.RAT_TOGA.get()), 0.0F);
 		}
 		super.dropCustomDeathLoot(_sl, source, playerKill);
 	}
@@ -261,7 +261,7 @@ public class Rat extends DiggingRat {
 				ItemStack stack = new ItemStack(RatsItemRegistry.PARTY_HAT.get());
 				// 1.21: DyeableLeatherItem replaced by DataComponents.DYED_COLOR.
 				stack.set(net.minecraft.core.component.DataComponents.DYED_COLOR,
-						new net.minecraft.world.item.component.DyedItemColor((int) (this.getRandom().nextFloat() * 0xFFFFFF), false));
+						new net.minecraft.world.item.component.DyedItemColor((int) (this.getRandom().nextFloat() * 0xFFFFFF))); // 26.1: DyedItemColor is rgb-only
 				this.setItemSlot(EquipmentSlot.HEAD, stack);
 				this.setGuaranteedDrop(EquipmentSlot.HEAD);
 			} else if (RatsDateFetcher.isPirateDay() && this.getRandom().nextFloat() <= 0.25F) {
@@ -281,10 +281,13 @@ public class Rat extends DiggingRat {
 	public InteractionResult mobInteract(Player player, InteractionHand hand) {
 		ItemStack itemstack = player.getItemInHand(hand);
 		if (!this.hasPlague()) {
-			if (itemstack.is(RatsItemRegistry.FILTH_CORRUPTION.get()) && this.level().getCurrentDifficultyAt(this.blockPosition()).getDifficulty() != Difficulty.PEACEFUL) {
+			// 26.1: getCurrentDifficultyAt is ServerLevel-only; the base difficulty check here is equivalent.
+			if (itemstack.is(RatsItemRegistry.FILTH_CORRUPTION.get()) && this.level().getDifficulty() != Difficulty.PEACEFUL) {
 				this.playSound(RatsSoundRegistry.RAT_KING_SUMMON.get(), 1F, 1.5F);
 				if (!this.getMainHandItem().isEmpty()) {
-					this.spawnAtLocation(this.getMainHandItem());
+					if (this.level() instanceof ServerLevel serverLevel) {
+						this.spawnAtLocation(serverLevel, this.getMainHandItem());
+					}
 					this.setItemInHand(InteractionHand.MAIN_HAND, ItemStack.EMPTY);
 				}
 				this.setItemInHand(InteractionHand.MAIN_HAND, player.getItemInHand(hand).copyWithCount(1));
@@ -330,8 +333,8 @@ public class Rat extends DiggingRat {
 	}
 
 	@Override
-	public boolean isInvulnerableTo(DamageSource source) {
-		return this.isBecomingRatKing() || super.isInvulnerableTo(source);
+	public boolean isInvulnerableTo(ServerLevel level, DamageSource source) {
+		return this.isBecomingRatKing() || super.isInvulnerableTo(level, source);
 	}
 
 	@Override
@@ -347,7 +350,8 @@ public class Rat extends DiggingRat {
 	}
 
 	private static boolean spawnCheck(LevelAccessor accessor, BlockPos pos, RandomSource random, EntitySpawnReason type) {
-		if (!accessor.getLevelData().getGameRules().get(RatsMod.SPAWN_RATS)) return false;
+		// 26.1: game rules now live on the ServerLevel only.
+		if (accessor instanceof ServerLevelAccessor server && !server.getLevel().getGameRules().get(RatsMod.SPAWN_RATS)) return false;
 		if (type != EntitySpawnReason.NATURAL) return true;
 		int spawnRoll = RatConfig.ratSpawnDecrease;
 		if (accessor instanceof ServerLevelAccessor server && server.getLevel().dimension().equals(RatlantisDimensionRegistry.DIMENSION_KEY))

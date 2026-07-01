@@ -14,6 +14,7 @@ import net.minecraft.util.ProblemReporter;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.ai.targeting.TargetingConditions;
 import net.minecraft.world.entity.animal.feline.Cat;
 import net.minecraft.world.entity.animal.cow.Cow;
 import net.minecraft.world.entity.animal.fox.Fox;
@@ -38,12 +39,12 @@ import net.neoforged.neoforge.items.IItemHandler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.Predicate;
 
 @SuppressWarnings("deprecation")
 public class RatUtils {
 
-	public static final Predicate<LivingEntity> UNTAMED_RAT_SELECTOR = entity -> entity instanceof AbstractRat rat && !rat.isTame();
+	// 26.1: targeting goals take TargetingConditions.Selector (LivingEntity, ServerLevel) instead of Predicate<LivingEntity>
+	public static final TargetingConditions.Selector UNTAMED_RAT_SELECTOR = (entity, level) -> entity instanceof AbstractRat rat && !rat.isTame();
 
 	public static boolean isRidingOrBeingRiddenBy(Entity us, Entity entity) {
 		for (Entity selected : us.getPassengers()) {

@@ -43,8 +43,9 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 
 	}
 
+	// 26.1: CustomSpawner#tick returns void and takes (level, spawnEnemies) only
 	@Override
-	public int tick(ServerLevel level, boolean spawnEnemies, boolean spawnFriendlies) {
+	public void tick(ServerLevel level, boolean spawnEnemies) {
 		if (level.getGameRules().get(RatsMod.SPAWN_PLAGUE_DOCTORS) && this.tickDelay-- <= 0) {
 			this.tickDelay = 1200;
 			PlagueDoctorWorldData data = PlagueDoctorWorldData.get(level);
@@ -53,20 +54,18 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 				data.setDoctorSpawnDelay(this.spawnDelay);
 				if (this.spawnDelay <= 0) {
 					this.spawnDelay = 24000;
-					if (level.getGameRules().get(GameRules.RULE_DOMOBSPAWNING)) {
+					if (level.getGameRules().get(GameRules.SPAWN_MOBS)) {
 						int i = this.spawnChance;
 						this.spawnChance = Mth.clamp(this.spawnChance + 25, 25, 75);
 						data.setDoctorSpawnChance(this.spawnChance);
 						if (level.getRandom().nextInt(100) <= i && this.canSpawnDoctor(level)) {
 							this.spawnChance = 25;
 							data.setDirty();
-							return 1;
 						}
 					}
 				}
 			}
 		}
-		return 0;
 	}
 
 	private boolean canSpawnDoctor(ServerLevel level) {
@@ -97,7 +96,7 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 						plagueDoctor.setWillDespawn(true);
 						plagueDoctor.setDespawnDelay(24000);
 						plagueDoctor.setWanderTarget(blockpos1);
-						plagueDoctor.restrictTo(blockpos1, 32);
+						plagueDoctor.setHomeTo(blockpos1, 32); // restrictTo was renamed setHomeTo
 
 						return true;
 					}
@@ -115,7 +114,7 @@ public class PlagueDoctorSpawner implements CustomSpawner {
 			if (rat != null) {
 				rat.setLeashedTo(doctor, true);
 				rat.setPlagued(false);
-				rat.setOwnerUUID(doctor.getUUID());
+				rat.setOwner(doctor); // setOwnerUUID is gone; TamableAnimal#setOwner stores an EntityReference
 			}
 		}
 	}

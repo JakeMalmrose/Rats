@@ -3,17 +3,21 @@ package com.github.alexthe666.rats.client.particle;
 import com.github.alexthe666.rats.client.model.entity.StaticRatModel;
 import com.github.alexthe666.rats.server.misc.RatVariant;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
+import net.minecraft.client.particle.ParticleEngine;
+import net.minecraft.client.particle.ParticleGroup;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.ParticleRenderType;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.state.level.ParticleGroupRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.SimpleParticleType;
@@ -23,13 +27,18 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class RunningRatParticle extends Particle {
 
+	// 26.1: ParticleRenderType.CUSTOM is gone, custom-rendered particles use their own type + ParticleGroup
+	public static final ParticleRenderType RUNNING_RAT = new ParticleRenderType("rats_running_rat");
+
 	private final StaticRatModel<?> model = new StaticRatModel<>();
-	private final RenderType renderType = RenderTypes.entityCutoutNoCull(RatVariant.getRandomVariant(RandomSource.create(), false).getTexture());
+	// 26.1: entityCutoutNoCull was removed, entityCutout is now the no-cull variant (pipeline has withCull(false))
+	private final RenderType renderType = RenderTypes.entityCutout(RatVariant.getRandomVariant(RandomSource.create(), false).getTexture());
 	private final Vec3 headingTo;
 	private int oldAge;
 
@@ -104,9 +113,10 @@ public class RunningRatParticle extends Particle {
 		}
 	}
 
-	@Override
-	public void render(VertexConsumer consumer, Camera camera, float partialTicks) {
-		Vec3 vec = camera.getPosition();
+	// 26.1: replaces the old render(VertexConsumer, Camera, float) override, called from the group render state
+	private void submitRat(SubmitNodeCollector collector, float partialTicks) {
+		Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+		Vec3 vec = camera.position();
 		float f = (float) (Mth.lerp(partialTicks, this.xo, this.x) - vec.x());
 		float f1 = (float) (Mth.lerp(partialTicks, this.yo, this.y) - vec.y());
 		float f2 = (float) (Mth.lerp(partialTicks, this.zo, this.z) - vec.z());
@@ -117,11 +127,10 @@ public class RunningRatParticle extends Particle {
 		posestack.translate(0.0D, 0.95D, 0.0D);
 		posestack.scale(0.6F, -0.6F, -0.6F);
 		this.getYRotD().ifPresent(aFloat -> posestack.mulPose(Axis.YP.rotationDegrees(aFloat)));
-		MultiBufferSource.BufferSource source = Minecraft.getInstance().renderBuffers().bufferSource();
-		VertexConsumer vertexconsumer = source.getBuffer(this.renderType);
 		this.model.setupAnim(null, Mth.lerp(partialTicks, this.oldAge, this.age) * 0.35F, 1, Mth.lerp(partialTicks, this.oldAge, this.age), partialTicks, 0);
-		this.model.renderToBuffer(posestack, vertexconsumer, this.getLightColor(partialTicks), OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
-		source.endBatch();
+		int light = this.getLightCoords(partialTicks);
+		collector.submitCustomGeometry(posestack, this.renderType, (pose, vertexconsumer) ->
+				this.model.renderToBuffer(posestack, vertexconsumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));
 		posestack.popPose();
 	}
 
@@ -132,13 +141,42 @@ public class RunningRatParticle extends Particle {
 	}
 
 	@Override
-	public ParticleRenderType getRenderType() {
-		return ParticleRenderType.CUSTOM;
+	public ParticleRenderType getGroup() {
+		return RUNNING_RAT;
+	}
+
+	// 26.1: must be registered for RUNNING_RAT via RegisterParticleGroupsEvent
+	public static final class RunningRatParticleGroup extends ParticleGroup<RunningRatParticle> {
+
+		public RunningRatParticleGroup(ParticleEngine engine) {
+			super(engine);
+		}
+
+		@Override
+		public ParticleGroupRenderState extractRenderState(Frustum frustum, Camera camera, float partialTicks) {
+			List<RunningRatParticle> list = new ArrayList<>();
+			for (RunningRatParticle particle : this.getAll()) {
+				if (frustum.pointInFrustum(particle.x, particle.y, particle.z)) {
+					list.add(particle);
+				}
+			}
+			return new RunningRatRenderState(list, partialTicks);
+		}
+	}
+
+	private record RunningRatRenderState(List<RunningRatParticle> particles, float partialTicks) implements ParticleGroupRenderState {
+
+		@Override
+		public void submit(SubmitNodeCollector collector, CameraRenderState cameraRenderState) {
+			for (RunningRatParticle particle : this.particles) {
+				particle.submitRat(collector, this.partialTicks);
+			}
+		}
 	}
 
 	public static class Provider implements ParticleProvider<SimpleParticleType> {
 		@Override
-		public Particle createParticle(SimpleParticleType type, ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
+		public Particle createParticle(SimpleParticleType type, ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, RandomSource random) {
 			return new RunningRatParticle(level, x, y, z, xSpeed, ySpeed, zSpeed);
 		}
 	}

@@ -26,9 +26,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.items.IItemHandler;
 import net.neoforged.neoforge.event.entity.player.PlayerContainerEvent;
-import net.neoforged.neoforge.items.wrapper.InvWrapper;
+import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.VanillaContainerWrapper;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -49,7 +50,8 @@ public abstract class InventoryRat extends DiggingRat {
 	private static final EntityDataAccessor<Byte> VISIBILITY_FLAGS = SynchedEntityData.defineId(InventoryRat.class, EntityDataSerializers.BYTE);
 
 	private RatContainer inventory;
-	public IItemHandler itemHandler = null;
+	// 26.1: InvWrapper/IItemHandler are deprecated for removal; expose the inventory through the transfer API instead.
+	public ResourceHandler<ItemResource> itemHandler = null;
 	private boolean inventoryOpen;
 
 	protected InventoryRat(EntityType<? extends TamableAnimal> type, Level level) {
@@ -123,7 +125,7 @@ public abstract class InventoryRat extends DiggingRat {
 			}
 		}
 
-		this.itemHandler = new InvWrapper(this.getInventory());
+		this.itemHandler = VanillaContainerWrapper.of(this.getInventory());
 	}
 
 	@Override

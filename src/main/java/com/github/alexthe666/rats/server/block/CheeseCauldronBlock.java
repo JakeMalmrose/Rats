@@ -7,7 +7,6 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.ItemInteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -32,7 +31,7 @@ import java.util.Map;
 public class CheeseCauldronBlock extends AbstractCauldronBlock {
 	public static final com.mojang.serialization.MapCodec<CheeseCauldronBlock> CODEC = com.mojang.serialization.codecs.RecordCodecBuilder.mapCodec(instance -> instance.group(
 			propertiesCodec()
-	).apply(instance, props -> new CheeseCauldronBlock(props, null, CauldronInteraction.WATER)));
+	).apply(instance, props -> new CheeseCauldronBlock(props, null, net.minecraft.core.cauldron.CauldronInteractions.WATER)));
 
 	@Override
 	protected com.mojang.serialization.MapCodec<? extends AbstractCauldronBlock> codec() {
@@ -41,15 +40,17 @@ public class CheeseCauldronBlock extends AbstractCauldronBlock {
 
 	private final DeferredHolder<Block, Block> drop;
 
-	public CheeseCauldronBlock(BlockBehaviour.Properties properties, DeferredHolder<Block, Block> dropBlock, CauldronInteraction.InteractionMap interaction) {
+	// 26.1: CauldronInteraction.InteractionMap became CauldronInteraction.Dispatcher.
+	public CheeseCauldronBlock(BlockBehaviour.Properties properties, DeferredHolder<Block, Block> dropBlock, CauldronInteraction.Dispatcher interaction) {
 		super(properties, interaction);
 		this.drop = dropBlock;
 	}
 
 	@Override
-	protected ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
-		ItemInteractionResult parent = super.useItemOn(stack, state, level, pos, player, hand, hit);
-		if (parent == ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION || parent == ItemInteractionResult.SKIP_DEFAULT_BLOCK_INTERACTION) {
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+		InteractionResult parent = super.useItemOn(stack, state, level, pos, player, hand, hit);
+		// 26.1: ItemInteractionResult is gone; "unhandled" is now expressed as TRY_WITH_EMPTY_HAND or PASS.
+		if (parent == InteractionResult.TRY_WITH_EMPTY_HAND || parent == InteractionResult.PASS) {
 			level.setBlockAndUpdate(pos, Blocks.CAULDRON.defaultBlockState());
 			level.playSound(null, pos, RatsSoundRegistry.CHEESE_CAULDRON_EMPTY.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
 			level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1.0F, 1.0F);
@@ -57,7 +58,7 @@ public class CheeseCauldronBlock extends AbstractCauldronBlock {
 				player.drop(new ItemStack(this.drop.get()), false);
 			}
 		}
-		return ItemInteractionResult.sidedSuccess(level.isClientSide());
+		return InteractionResult.SUCCESS;
 	}
 
 	@Override
@@ -81,7 +82,7 @@ public class CheeseCauldronBlock extends AbstractCauldronBlock {
 	}
 
 	@Override
-	public ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader level, BlockPos pos, BlockState state) {
+	protected ItemStack getCloneItemStack(net.minecraft.world.level.LevelReader level, BlockPos pos, BlockState state, boolean includeData) {
 		return new ItemStack(Items.CAULDRON);
 	}
 }

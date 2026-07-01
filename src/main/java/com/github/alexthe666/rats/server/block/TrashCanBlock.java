@@ -13,6 +13,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.*;
@@ -21,6 +23,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -33,7 +36,7 @@ import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
-import net.minecraft.world.level.block.state.properties.DirectionProperty;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.BlockHitResult;
@@ -41,8 +44,8 @@ import net.minecraft.world.phys.shapes.*;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 @SuppressWarnings("deprecation")
 public class TrashCanBlock extends BaseEntityBlock implements WorldlyContainerHolder {
@@ -54,7 +57,8 @@ public class TrashCanBlock extends BaseEntityBlock implements WorldlyContainerHo
 	}
 
 
-	public static final DirectionProperty FACING = DirectionProperty.create("facing", Direction.Plane.HORIZONTAL);
+	// 26.1: DirectionProperty was removed; use EnumProperty<Direction>.
+	public static final EnumProperty<Direction> FACING = EnumProperty.create("facing", Direction.class, Direction.Plane.HORIZONTAL);
 	public static final IntegerProperty LEVEL = IntegerProperty.create("level", 0, 7);
 	public static final BooleanProperty OPEN = BooleanProperty.create("open");
 	private static final VoxelShape OUTER_SHAPE = Block.box(1.0D, 0.0D, 1.0D, 15.0D, 18.0D, 15.0D);
@@ -87,20 +91,19 @@ public class TrashCanBlock extends BaseEntityBlock implements WorldlyContainerHo
 		return state.getValue(OPEN) ? OUTER_SHAPE : CLOSED_SHAPE;
 	}
 
+	// 26.1: onRemove was removed; this hook only runs server-side when the block actually changed.
 	@Override
-	public void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean moving) {
-		if (!state.is(newState.getBlock())) {
-			if (state.getValue(LEVEL) == 7 && !level.isClientSide()) {
-				ItemEntity item = new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 0.75D, pos.getZ() + 0.5D, new ItemStack(RatsBlockRegistry.GARBAGE_PILE.get()));
-				item.setDefaultPickUpDelay();
-				level.addFreshEntity(item);
-			}
+	protected void affectNeighborsAfterRemoval(BlockState state, ServerLevel level, BlockPos pos, boolean movedByPiston) {
+		if (state.getValue(LEVEL) == 7) {
+			ItemEntity item = new ItemEntity(level, pos.getX() + 0.5D, pos.getY() + 0.75D, pos.getZ() + 0.5D, new ItemStack(RatsBlockRegistry.GARBAGE_PILE.get()));
+			item.setDefaultPickUpDelay();
+			level.addFreshEntity(item);
 		}
-		super.onRemove(state, level, pos, newState, moving);
+		super.affectNeighborsAfterRemoval(state, level, pos, movedByPiston);
 	}
 
 	@Override
-	protected net.minecraft.world.ItemInteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
+	protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos, Player player, InteractionHand hand, BlockHitResult hit) {
 		BlockEntity te = level.getBlockEntity(pos);
 
 		if (!player.isCrouching()) {
@@ -113,11 +116,14 @@ public class TrashCanBlock extends BaseEntityBlock implements WorldlyContainerHo
 					}
 					level.setBlockAndUpdate(pos, state.setValue(LEVEL, 0));
 					level.playSound(null, pos, RatsSoundRegistry.TRASH_CAN_EMPTY.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-					return net.minecraft.world.ItemInteractionResult.sidedSuccess(level.isClientSide());
+					return InteractionResult.SUCCESS;
 				} else if (state.getValue(LEVEL) < 7 && stack.getItem() instanceof BlockItem bi) {
 					if (bi.getBlock().defaultBlockState().is(RatsBlockTags.TRASH_CAN_BLACKLIST)) {
-						player.displayClientMessage(Component.literal("This block can't be used here.").withStyle(ChatFormatting.RED), true);
-						return net.minecraft.world.ItemInteractionResult.CONSUME;
+						// 26.1: displayClientMessage was removed; send an overlay message from the server instead.
+						if (player instanceof ServerPlayer serverPlayer) {
+							serverPlayer.sendSystemMessage(Component.literal("This block can't be used here.").withStyle(ChatFormatting.RED), true);
+						}
+						return InteractionResult.CONSUME;
 					}
 					if (!player.isCreative()) {
 						stack.shrink(1);
@@ -129,11 +135,11 @@ public class TrashCanBlock extends BaseEntityBlock implements WorldlyContainerHo
 								0.0D, 0.0D, 0.0D);
 					}
 					level.playSound(null, pos, RatsSoundRegistry.TRASH_CAN_FILL.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-					return net.minecraft.world.ItemInteractionResult.SUCCESS;
+					return InteractionResult.SUCCESS;
 				}
 			}
 		}
-		return net.minecraft.world.ItemInteractionResult.PASS_TO_DEFAULT_BLOCK_INTERACTION;
+		return InteractionResult.TRY_WITH_EMPTY_HAND;
 	}
 
 	@Override
@@ -175,15 +181,16 @@ public class TrashCanBlock extends BaseEntityBlock implements WorldlyContainerHo
 		}
 	}
 
-	@Override
-	public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		tooltip.add(Component.translatable("block.rats.trash_can.desc0").withStyle(ChatFormatting.GRAY));
-		tooltip.add(Component.translatable("block.rats.trash_can.desc1").withStyle(ChatFormatting.GRAY));
+	// 26.1: Block.appendHoverText no longer exists; the block item must delegate here (see RatsBlockItem in items/).
+	public void appendHoverText(ItemStack stack, net.minecraft.world.item.Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+		tooltip.accept(Component.translatable("block.rats.trash_can.desc0").withStyle(ChatFormatting.GRAY));
+		tooltip.accept(Component.translatable("block.rats.trash_can.desc1").withStyle(ChatFormatting.GRAY));
 	}
 
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.ENTITYBLOCK_ANIMATED;
+		// 26.1: ENTITYBLOCK_ANIMATED was removed; BE-rendered blocks return INVISIBLE.
+		return RenderShape.INVISIBLE;
 	}
 
 	@Override

@@ -3,9 +3,6 @@ package com.github.alexthe666.rats.server.entity.projectile;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.util.Mth;
@@ -15,7 +12,6 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
-import net.minecraft.world.level.Explosion;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
@@ -67,8 +63,8 @@ public abstract class ArrowlikeProjectile extends Projectile {
 	}
 
 	@Override
-	public void lerpMotion(double xMotion, double yMotion, double zMotion) {
-		super.lerpMotion(xMotion, yMotion, zMotion);
+	public void lerpMotion(Vec3 movement) {
+		super.lerpMotion(movement);
 		this.life = 0;
 	}
 
@@ -110,7 +106,8 @@ public abstract class ArrowlikeProjectile extends Projectile {
 			--this.shakeTime;
 		}
 
-		if (this.isInWaterOrRain() || blockstate.is(Blocks.POWDER_SNOW) || this.isInFluidType((fluidType, height) -> this.canFluidExtinguish(fluidType))) {
+		// 26.1: NeoForge removed Entity#isInFluidType; mirror vanilla AbstractArrow's water/rain check.
+		if (this.isInWaterOrRain() || blockstate.is(Blocks.POWDER_SNOW)) {
 			this.clearFire();
 		}
 
@@ -156,7 +153,8 @@ public abstract class ArrowlikeProjectile extends Projectile {
 			}
 
 			this.setPos(d7, d2, d3);
-			this.checkInsideBlocks();
+			// 26.1: checkInsideBlocks is private; applyEffectsFromBlocks is the protected replacement.
+			this.applyEffectsFromBlocks();
 		}
 	}
 
@@ -211,7 +209,8 @@ public abstract class ArrowlikeProjectile extends Projectile {
 			entity.igniteForSeconds(5);
 		}
 
-		if (entity.hurt(damagesource, (float) i)) {
+		// 26.1: Entity#hurt returns void; hurtOrSimulate gives back the old boolean result.
+		if (entity.hurtOrSimulate(damagesource, (float) i)) {
 			if (flag) {
 				return;
 			}
@@ -246,9 +245,8 @@ public abstract class ArrowlikeProjectile extends Projectile {
 	protected void onHitBlock(BlockHitResult result) {
 		this.discard();
 		if (this.explodesOnHit()) {
-			Explosion explosion = this.level().explode(this.getOwner(), this.getX(), this.getY(), this.getZ(), 0.0F, Level.ExplosionInteraction.MOB);
-			explosion.explode();
-			explosion.finalizeExplosion(true);
+			// 26.1: Level#explode returns void and runs the whole explosion itself.
+			this.level().explode(this.getOwner(), this.getX(), this.getY(), this.getZ(), 0.0F, Level.ExplosionInteraction.MOB);
 		}
 	}
 
@@ -256,10 +254,8 @@ public abstract class ArrowlikeProjectile extends Projectile {
 	public void addAdditionalSaveData(ValueOutput tag) {
 		super.addAdditionalSaveData(tag);
 		tag.putShort("life", (short) this.life);
-		if (this.lastState != null) {
-			tag.put("inBlockState", NbtUtils.writeBlockState(this.lastState));
-		}
-
+		// 26.1: block states are stored through BlockState.CODEC, mirroring vanilla AbstractArrow.
+		tag.storeNullable("inBlockState", BlockState.CODEC, this.lastState);
 		tag.putByte("shake", (byte) this.shakeTime);
 		tag.putBoolean("inGround", this.inGround);
 		tag.putDouble("damage", this.baseDamage);
@@ -269,15 +265,10 @@ public abstract class ArrowlikeProjectile extends Projectile {
 	public void readAdditionalSaveData(ValueInput tag) {
 		super.readAdditionalSaveData(tag);
 		this.life = tag.getShortOr("life", (short) 0);
-		if (tag.contains("inBlockState")) {
-			this.lastState = NbtUtils.readBlockState(this.level().holderLookup(Registries.BLOCK), tag.getCompoundOrEmpty("inBlockState"));
-		}
-
+		this.lastState = tag.read("inBlockState", BlockState.CODEC).orElse(null);
 		this.shakeTime = tag.getByteOr("shake", (byte) 0) & 255;
 		this.inGround = tag.getBooleanOr("inGround", false);
-		if (tag.contains("damage")) {
-			this.baseDamage = tag.getDoubleOr("damage", 0.0D);
-		}
+		this.baseDamage = tag.getDoubleOr("damage", this.baseDamage);
 	}
 
 	@Override

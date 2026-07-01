@@ -96,16 +96,17 @@ public class ForgeEvents {
 				double d0 = sheep.getRandom().nextGaussian() * 0.02D;
 				double d1 = sheep.getRandom().nextGaussian() * 0.02D;
 				double d2 = sheep.getRandom().nextGaussian() * 0.02D;
-				sheep.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, new ItemStack(RatsBlockRegistry.DYE_SPONGE.get())), sheep.getX() + (double) (sheep.getRandom().nextFloat() * sheep.getBbWidth() * 2.0F) - (double) sheep.getBbWidth(), sheep.getY() + (double) (sheep.getRandom().nextFloat() * sheep.getBbHeight() * 2.0F) - (double) sheep.getBbHeight(), sheep.getZ() + (double) (sheep.getRandom().nextFloat() * sheep.getBbWidth() * 2.0F) - (double) sheep.getBbWidth(), d0, d1, d2);
+				sheep.level().addParticle(new ItemParticleOption(ParticleTypes.ITEM, RatsBlockRegistry.DYE_SPONGE.get().asItem()), sheep.getX() + (double) (sheep.getRandom().nextFloat() * sheep.getBbWidth() * 2.0F) - (double) sheep.getBbWidth(), sheep.getY() + (double) (sheep.getRandom().nextFloat() * sheep.getBbHeight() * 2.0F) - (double) sheep.getBbHeight(), sheep.getZ() + (double) (sheep.getRandom().nextFloat() * sheep.getBbWidth() * 2.0F) - (double) sheep.getBbWidth(), d0, d1, d2);
 			}
 			sheep.playSound(RatsSoundRegistry.DYE_SPONGE_USED.get(), 1.0F, 1.0F);
 
 		}
 		if (heldItem.is(RatsItemRegistry.PLAGUE_DOCTORATE.get())) {
-			if (event.getTarget() instanceof Villager villager && !villager.isBaby() && (villager.getVillagerData().getProfession() == VillagerProfession.NITWIT || villager.getVillagerData().getProfession() == VillagerProfession.NONE)) {
-				PlagueDoctor doctor = villager.convertTo(RatsEntityRegistry.PLAGUE_DOCTOR.get(), true);
+			if (event.getTarget() instanceof Villager villager && !villager.isBaby() && (villager.getVillagerData().profession().is(VillagerProfession.NITWIT) || villager.getVillagerData().profession().is(VillagerProfession.NONE))) {
+				PlagueDoctor doctor = villager.convertTo(RatsEntityRegistry.PLAGUE_DOCTOR.get(), ConversionParams.single(villager, true, false), converted -> {
+					converted.setWillDespawn(false);
+				});
 				if (doctor != null) {
-					doctor.setWillDespawn(false);
 					event.getEntity().swing(event.getHand());
 					event.getLevel().playSound(null, doctor.blockPosition(), RatsSoundRegistry.PLAGUE_DOCTOR_SUMMON.get(), SoundSource.HOSTILE, 1.0F, 1.0F);
 					if (!event.getEntity().isCreative()) {
@@ -185,7 +186,7 @@ public class ForgeEvents {
 
 	@SubscribeEvent
 	public static void checkIfPlagueCanApplyToMob(MobEffectEvent.Applicable event) {
-		if (event.getEffectInstance().is(RatsEffectRegistry.PLAGUE) && (!RatConfig.plagueSpread || event.getEntity().getType().is(RatsEntityTags.PLAGUE_IMMUNE))) {
+		if (event.getEffectInstance().is(RatsEffectRegistry.PLAGUE) && (!RatConfig.plagueSpread || event.getEntity().is(RatsEntityTags.PLAGUE_IMMUNE))) {
 			event.setResult(MobEffectEvent.Applicable.Result.DO_NOT_APPLY);
 		}
 	}
@@ -221,11 +222,12 @@ public class ForgeEvents {
 
 	@SubscribeEvent
 	public static void maybeSendPlayerWarning(PlayerEvent.PlayerLoggedInEvent event) {
-		if (!event.getEntity().level().getGameRules().get(GameRules.RULE_MOBGRIEFING)) {
-			CompoundTag playerData = event.getEntity().getPersistentData();
+		// 26.1: game rules are only reachable server-side (ServerLevel); Level lost getGameRules()
+		if (event.getEntity() instanceof ServerPlayer player && !player.level().getGameRules().get(GameRules.MOB_GRIEFING)) {
+			CompoundTag playerData = player.getPersistentData();
 			CompoundTag data = playerData.getCompoundOrEmpty(Player.PERSISTED_NBT_TAG);
 			if (!data.getBooleanOr("rats_griefing_warning", false)) {
-				event.getEntity().displayClientMessage(Component.translatable(RatsLangConstants.MOB_GRIEFING_WARNING).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC), false);
+				player.sendSystemMessage(Component.translatable(RatsLangConstants.MOB_GRIEFING_WARNING).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
 				data.putBoolean("rats_griefing_warning", true);
 				playerData.put(Player.PERSISTED_NBT_TAG, data);
 			}
@@ -263,13 +265,15 @@ public class ForgeEvents {
 		if (event.getDifficulty().getDifficulty() != Difficulty.PEACEFUL && (event.getSpawnType() == EntitySpawnReason.CHUNK_GENERATION || event.getSpawnType() == EntitySpawnReason.NATURAL)) {
 			if (event.getEntity() instanceof Strider strider && event.getEntity().getType() == EntityType.STRIDER) {
 				if (!strider.isBaby() && !strider.isSaddled() && strider.getPassengers().isEmpty() && strider.getRandom().nextFloat() < 0.1F) {
-					DemonRat demonRat = RatsEntityRegistry.DEMON_RAT.get().create(event.getLevel().getLevel());
+					DemonRat demonRat = RatsEntityRegistry.DEMON_RAT.get().create(event.getLevel().getLevel(), EntitySpawnReason.JOCKEY);
 					if (demonRat != null) {
-						demonRat.moveTo(strider.getX(), strider.getY(), strider.getZ(), strider.getYRot(), 0.0F);
+						demonRat.snapTo(strider.getX(), strider.getY(), strider.getZ(), strider.getYRot(), 0.0F);
 						demonRat.finalizeSpawn(event.getLevel(), event.getDifficulty(), EntitySpawnReason.JOCKEY, null);
-						demonRat.startRiding(strider, true);
+						demonRat.startRiding(strider, true, true);
 						demonRat.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.WARPED_FUNGUS_ON_A_STICK));
-						strider.equipSaddle(new ItemStack(Items.SADDLE), null);
+						// 26.1: saddles are equipment now (see vanilla Strider jockey spawning)
+						strider.setItemSlot(EquipmentSlot.SADDLE, new ItemStack(Items.SADDLE));
+						strider.setGuaranteedDrop(EquipmentSlot.SADDLE);
 					}
 				}
 			}
@@ -327,12 +331,13 @@ public class ForgeEvents {
 						passenger.stopRiding();
 						Vec3 dismountPos = passenger.getDismountLocationForPassenger(event.getEntity());
 						passenger.setPos(dismountPos.x(), dismountPos.y(), dismountPos.z());
-						PacketDistributor.sendToServer(new DismountRatPacket(passenger.getId()));
+						// 26.1: serverbound payloads moved to the client-only ClientPacketDistributor; this event only fires client-side
+						net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new DismountRatPacket(passenger.getId()));
 					}
 				}
 			}
 			handleArmSwing(event.getItemStack(), event.getEntity());
-			PacketDistributor.sendToServer(new SyncArmSwingPacket(event.getItemStack()));
+			net.neoforged.neoforge.client.network.ClientPacketDistributor.sendToServer(new SyncArmSwingPacket(event.getItemStack()));
 		}
 	}
 
@@ -385,7 +390,7 @@ public class ForgeEvents {
 	public static void onPlayerInteract(PlayerInteractEvent.RightClickBlock event) {
 		ItemStack stack = event.getEntity().getItemInHand(event.getHand());
 		if (stack.getItem() instanceof RatStaffItem staff) {
-			event.setUseBlock(net.neoforged.neoforge.common.util.TriState.FALSE);
+			event.setUseBlock(net.minecraft.util.TriState.FALSE);
 			event.setCancellationResult(InteractionResult.FAIL);
 			event.setCanceled(true);
 			TamedRat rat = com.github.alexthe666.rats.server.capability.SelectedRat.get(event.getEntity());
@@ -395,7 +400,7 @@ public class ForgeEvents {
 					PacketDistributor.sendToPlayer((ServerPlayer) event.getEntity(), new ManageRatStaffPacket(rat.getId(), event.getPos(), event.getFace().ordinal(), false, true, staff.getStaff(stack)));
 				}
 			} else {
-				event.getEntity().displayClientMessage(Component.translatable(RatsLangConstants.RAT_STAFF_NO_RAT).withStyle(ChatFormatting.RED), true);
+				event.getEntity().sendOverlayMessage(Component.translatable(RatsLangConstants.RAT_STAFF_NO_RAT).withStyle(ChatFormatting.RED));
 			}
 		}
 	}

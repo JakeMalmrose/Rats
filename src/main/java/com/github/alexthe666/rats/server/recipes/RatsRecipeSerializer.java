@@ -6,7 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 
@@ -19,20 +19,20 @@ public final class RatsRecipeSerializer {
 
 	public static <T extends BaseRatRecipe> RecipeSerializer<T> create(SingleItemMaker<T> factory) {
 		MapCodec<T> codec = RecordCodecBuilder.mapCodec(instance -> instance.group(
-				Codec.STRING.optionalFieldOf("group", "").forGetter(BaseRatRecipe::getGroup),
+				Codec.STRING.optionalFieldOf("group", "").forGetter(BaseRatRecipe::group),
 				Ingredient.CODEC.fieldOf("ingredient").forGetter(BaseRatRecipe::getInputIngredient),
-				ItemStack.STRICT_CODEC.fieldOf("result").forGetter(BaseRatRecipe::getResult)
+				ItemStackTemplate.CODEC.fieldOf("result").forGetter(BaseRatRecipe::getResultTemplate)
 		).apply(instance, factory::create));
 		StreamCodec<RegistryFriendlyByteBuf, T> streamCodec = StreamCodec.composite(
-				ByteBufCodecs.STRING_UTF8, BaseRatRecipe::getGroup,
+				ByteBufCodecs.STRING_UTF8, BaseRatRecipe::group,
 				Ingredient.CONTENTS_STREAM_CODEC, BaseRatRecipe::getInputIngredient,
-				ItemStack.STREAM_CODEC, BaseRatRecipe::getResult,
+				ItemStackTemplate.STREAM_CODEC, BaseRatRecipe::getResultTemplate,
 				factory::create
 		);
 		return new RecipeSerializer<>(codec, streamCodec);
 	}
 
 	public interface SingleItemMaker<T extends BaseRatRecipe> {
-		T create(String group, Ingredient input, ItemStack output);
+		T create(String group, Ingredient input, ItemStackTemplate output);
 	}
 }

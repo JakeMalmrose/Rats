@@ -3,12 +3,13 @@ package com.github.alexthe666.rats.server.advancements;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.advancements.criterion.ContextAwarePredicate;
+import net.minecraft.advancements.criterion.EntityPredicate;
 import net.minecraft.advancements.criterion.SimpleCriterionTrigger;
 import net.minecraft.server.level.ServerPlayer;
 
 import java.util.Optional;
 
-// 1.21: SimpleCriterionTrigger uses Codec-based instances; deserializeTrigger/getId/createInstance(JsonObject,...) gone.
+// 26.1: critereon package renamed to criterion; player predicate now parses via EntityPredicate.ADVANCEMENT_CODEC (see vanilla PlayerTrigger).
 public class BlackDeathSummonedTrigger extends SimpleCriterionTrigger<BlackDeathSummonedTrigger.TriggerInstance> {
 
 	@Override
@@ -22,7 +23,7 @@ public class BlackDeathSummonedTrigger extends SimpleCriterionTrigger<BlackDeath
 
 	public record TriggerInstance(Optional<ContextAwarePredicate> player) implements SimpleCriterionTrigger.SimpleInstance {
 		public static final Codec<TriggerInstance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-				ContextAwarePredicate.CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player)
+				EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player)
 		).apply(instance, TriggerInstance::new));
 
 		public static TriggerInstance summoned() {

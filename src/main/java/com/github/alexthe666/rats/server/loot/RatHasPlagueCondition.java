@@ -19,8 +19,8 @@ public class RatHasPlagueCondition implements LootItemCondition {
 
 	@Override
 	public boolean test(LootContext context) {
-		if (!context.hasParam(LootContextParams.THIS_ENTITY)) return false;
-		return context.getParam(LootContextParams.THIS_ENTITY) instanceof Rat rat && rat.hasPlague();
+		if (!context.hasParameter(LootContextParams.THIS_ENTITY)) return false;
+		return context.getParameter(LootContextParams.THIS_ENTITY) instanceof Rat rat && rat.hasPlague();
 	}
 
 	public static LootItemCondition.Builder hasPlague() {

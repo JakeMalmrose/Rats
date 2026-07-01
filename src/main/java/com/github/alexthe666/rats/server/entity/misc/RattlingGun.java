@@ -10,19 +10,20 @@ import com.github.alexthe666.rats.server.entity.AdjustsRatTail;
 import com.github.alexthe666.rats.server.entity.projectile.RattlingGunBullet;
 import com.github.alexthe666.rats.server.entity.rat.AbstractRat;
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.world.phys.Vec3;
 
 public class RattlingGun extends Entity implements AdjustsRatTail {
 	private static final EntityDataAccessor<Boolean> FIRING = SynchedEntityData.defineId(RattlingGun.class, EntityDataSerializers.BOOLEAN);
@@ -45,6 +46,12 @@ public class RattlingGun extends Entity implements AdjustsRatTail {
 	@Override
 	protected void addAdditionalSaveData(ValueOutput tag) {
 
+	}
+
+	// 26.1: Entity#hurtServer is abstract; the gun was never damageable (old Entity#hurt default returned false).
+	@Override
+	public boolean hurtServer(ServerLevel level, DamageSource source, float amount) {
+		return false;
 	}
 
 	@Override
@@ -112,7 +119,8 @@ public class RattlingGun extends Entity implements AdjustsRatTail {
 		LivingEntity passenger = this.getControllingPassenger();
 		if (this.getVehicle() != null) {
 			if (!this.getVehicle().isPassenger()) {
-				this.getVehicle().startRiding(this, true);
+				// 26.1: startRiding gained a sendEventAndTriggers flag.
+				this.getVehicle().startRiding(this, true, true);
 			}
 		}
 		if (!this.level().isClientSide()) {
@@ -138,25 +146,29 @@ public class RattlingGun extends Entity implements AdjustsRatTail {
 			this.setRot(this.getYRot(), this.getXRot());
 		}
 
-		this.checkInsideBlocks();
+		// 26.1: checkInsideBlocks is private; applyEffectsFromBlocks is the protected replacement.
+		this.applyEffectsFromBlocks();
 	}
 
+	// 26.1: Entity#interact gained the clicked location parameter.
 	@Override
-	public InteractionResult interact(Player player, InteractionHand hand) {
+	public InteractionResult interact(Player player, InteractionHand hand, Vec3 location) {
 		if (this.getControllingPassenger() == null) {
 			if (!player.getPassengers().isEmpty()) {
 				boolean flag = false;
 				for (Entity entity : player.getPassengers()) {
 					if (entity instanceof TamedRat) {
 						flag = true;
-						entity.startRiding(this, false);
+						entity.startRiding(this, false, true);
 						break;
 					}
 				}
 				return flag ? InteractionResult.SUCCESS : InteractionResult.PASS;
 			} else {
 				if (player.isShiftKeyDown()) {
-					this.spawnAtLocation(RatlantisItemRegistry.RATTLING_GUN.get());
+					if (this.level() instanceof ServerLevel serverLevel) {
+						this.spawnAtLocation(serverLevel, RatlantisItemRegistry.RATTLING_GUN.get());
+					}
 					this.discard();
 					return InteractionResult.SUCCESS;
 				}

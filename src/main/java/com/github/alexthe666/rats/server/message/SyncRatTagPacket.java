@@ -10,8 +10,9 @@ import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import java.util.List;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.entity.player.Player;
 
 public record SyncRatTagPacket(int ratId, List<GlobalPos> nodes) implements CustomPacketPayload {
@@ -38,7 +39,8 @@ public record SyncRatTagPacket(int ratId, List<GlobalPos> nodes) implements Cust
         					if (entity instanceof TamedRat rat) {
         						rat.getPatrolNodes().clear();
         						rat.getPatrolNodes().addAll(packet.nodes());
-        						rat.addAdditionalSaveData(new CompoundTag());
+        						// 26.1: save data goes through ValueOutput; preserves the old "write to a scratch tag" behavior
+        						rat.addAdditionalSaveData(TagValueOutput.createWithContext(ProblemReporter.DISCARDING, rat.registryAccess()));
         					}
         				}
 

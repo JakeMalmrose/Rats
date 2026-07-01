@@ -8,6 +8,8 @@ import com.github.alexthe666.rats.server.entity.monster.boss.RatBaron;
 import com.github.alexthe666.rats.server.misc.RatsLangConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Difficulty;
@@ -24,19 +26,20 @@ import net.minecraft.world.item.Rarity;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
+import net.minecraft.world.level.redstone.Orientation;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.event.EventHooks;
+import org.jetbrains.annotations.Nullable;
 
 @SuppressWarnings("deprecation")
 public class AirRaidSirenBlock extends Block implements CustomItemRarity {
@@ -59,11 +62,11 @@ public class AirRaidSirenBlock extends Block implements CustomItemRarity {
 
 	@Override
 	protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult result) {
-		return this.spawnTheBaron(level, pos) ? InteractionResult.sidedSuccess(level.isClientSide()) : InteractionResult.PASS;
+		return this.spawnTheBaron(level, pos) ? InteractionResult.SUCCESS : InteractionResult.PASS;
 	}
 
 	@Override
-	public void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, BlockPos fromPos, boolean isMoving) {
+	protected void neighborChanged(BlockState state, Level level, BlockPos pos, Block block, @Nullable Orientation orientation, boolean movedByPiston) {
 		boolean flag = level.hasNeighborSignal(pos);
 		if (flag) {
 			this.spawnTheBaron(level, pos);
@@ -71,17 +74,19 @@ public class AirRaidSirenBlock extends Block implements CustomItemRarity {
 	}
 
 	private boolean spawnTheBaron(Level level, BlockPos pos) {
-		if (level.isClientSide()) return true;
-		if (level.getCurrentDifficultyAt(pos).getDifficulty() != Difficulty.PEACEFUL) {
+		// 26.1: getCurrentDifficultyAt now only exists on ServerLevelAccessor.
+		if (!(level instanceof ServerLevel serverLevel)) return true;
+		if (serverLevel.getCurrentDifficultyAt(pos).getDifficulty() != Difficulty.PEACEFUL) {
 			level.playSound(null, pos, RatsSoundRegistry.AIR_RAID_SIREN.get(), SoundSource.BLOCKS, 1, 1);
 
 			if (RatConfig.summonBaronOnlyInRatlantis && !level.dimension().equals(RatlantisDimensionRegistry.DIMENSION_KEY)) {
-				for (Player player : level.getEntitiesOfClass(Player.class, new AABB(pos).inflate(16.0D))) {
-					player.displayClientMessage(Component.translatable(RatsLangConstants.BARON_RATLANTIS_ONLY), true);
+				for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, new AABB(pos).inflate(16.0D))) {
+					// 26.1: displayClientMessage was removed; send an overlay message from the server instead.
+					player.sendSystemMessage(Component.translatable(RatsLangConstants.BARON_RATLANTIS_ONLY), true);
 				}
 				return true;
 			}
-			LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(level);
+			LightningBolt bolt = EntityType.LIGHTNING_BOLT.create(level, EntitySpawnReason.TRIGGERED);
 			assert bolt != null;
 			bolt.setPos(Vec3.atCenterOf(pos));
 			bolt.setVisualOnly(true);
@@ -89,10 +94,11 @@ public class AirRaidSirenBlock extends Block implements CustomItemRarity {
 			level.setBlockAndUpdate(pos, Blocks.OAK_FENCE.defaultBlockState());
 			RatBaron baron = new RatBaron(RatlantisEntityRegistry.RAT_BARON.get(), level);
 			baron.setPos(pos.getX() + 0.5D, pos.getY() + 5D, pos.getZ() + 0.5D);
-			EventHooks.finalizeMobSpawn(baron, (ServerLevelAccessor) level, level.getCurrentDifficultyAt(pos), EntitySpawnReason.MOB_SUMMONED, null);
-			baron.restrictTo(pos, 16);
+			EventHooks.finalizeMobSpawn(baron, serverLevel, serverLevel.getCurrentDifficultyAt(pos), EntitySpawnReason.MOB_SUMMONED, null);
+			// 26.1: Mob.restrictTo was renamed to setHomeTo.
+			baron.setHomeTo(pos, 16);
 
-			if (level.getGameRules().get(GameRules.RULE_DOBLOCKDROPS)) {
+			if (level.getGameRules().get(GameRules.BLOCK_DROPS)) {
 				for (int i = 0; i < 2; i++) {
 					RandomSource rand = level.getRandom();
 					level.addFreshEntity(new ItemEntity(level, pos.getX() + 0.5D + (rand.nextFloat() - 0.5D) * 3, pos.getY() - 1, pos.getZ() + 0.5D + (rand.nextFloat() - 0.5D) * 3, new ItemStack(Items.IRON_INGOT)));

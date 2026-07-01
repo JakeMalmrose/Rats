@@ -5,14 +5,17 @@ import net.minecraft.client.particle.BubbleParticle;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
 import net.minecraft.client.particle.SpriteSet;
+import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.util.RandomSource;
 
 public class MilkBubbleParticle extends BubbleParticle {
 
-	public MilkBubbleParticle(ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
-		super(level, x, y, z, xSpeed, ySpeed, zSpeed);
+	public MilkBubbleParticle(ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, TextureAtlasSprite sprite) {
+		super(level, x, y, z, xSpeed, ySpeed, zSpeed, sprite);
 	}
 
+	// vanilla BubbleParticle pops outside of water, milk bubbles shouldn't - hence no super call
 	@Override
 	public void tick() {
 		this.xo = this.x;
@@ -32,10 +35,8 @@ public class MilkBubbleParticle extends BubbleParticle {
 	public record Provider(SpriteSet sprite) implements ParticleProvider<SimpleParticleType> {
 
 		@Override
-		public Particle createParticle(SimpleParticleType type, ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed) {
-			MilkBubbleParticle particle = new MilkBubbleParticle(level, x, y, z, xSpeed, ySpeed, zSpeed);
-			particle.pickSprite(this.sprite);
-			return particle;
+		public Particle createParticle(SimpleParticleType type, ClientLevel level, double x, double y, double z, double xSpeed, double ySpeed, double zSpeed, RandomSource random) {
+			return new MilkBubbleParticle(level, x, y, z, xSpeed, ySpeed, zSpeed, this.sprite().get(random));
 		}
 	}
 }

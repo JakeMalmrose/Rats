@@ -13,8 +13,9 @@ import com.github.alexthe666.rats.server.misc.RatsLangConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.NonNullList;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
 import net.minecraft.world.Clearable;
@@ -22,7 +23,7 @@ import net.minecraft.world.MenuProvider;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.player.StackedContents;
+import net.minecraft.world.entity.player.StackedItemContents;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.CraftingContainer;
@@ -35,7 +36,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.common.util.INBTSerializable;
+import net.neoforged.neoforge.common.util.ValueIOSerializable;
 import net.neoforged.neoforge.items.IItemHandlerModifiable;
 import net.neoforged.neoforge.items.ItemHandlerHelper;
 import net.neoforged.neoforge.items.wrapper.CombinedInvWrapper;
@@ -46,7 +47,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
-import net.minecraft.core.HolderLookup;
 
 // 1.21: dropped vanilla RecipeHolder *interface* (net.minecraft.world.inventory.RecipeHolder gone).
 // Internally we now hold RecipeHolder<CraftingRecipe> records (item.crafting.RecipeHolder) so
@@ -60,7 +60,8 @@ public class RatCraftingTableBlockEntity extends BlockEntity implements MenuProv
 	private boolean hasRat;
 	public boolean hasValidRecipe;
 	private int cookTime;
-	protected final StackedContents itemHelper = new StackedContents();
+	// 26.1: recipe matching uses StackedItemContents (StackedContents is now the generic raw counter).
+	protected final StackedItemContents itemHelper = new StackedItemContents();
 	protected Optional<RecipeHolder<CraftingRecipe>> guideRecipe = Optional.empty();
 	protected Optional<RecipeHolder<CraftingRecipe>> recipeUsed = Optional.empty();
 	protected List<RecipeHolder<CraftingRecipe>> possibleRecipes = List.of();
@@ -124,9 +125,9 @@ public class RatCraftingTableBlockEntity extends BlockEntity implements MenuProv
 			}
 			if (te.cookTime >= te.totalCookTime) {
 				te.cookTime = 0;
-				// 1.21: CraftingRecipe.assemble takes CraftingInput, not CraftingContainer.
+				// 26.1: Recipe.assemble takes only the input (no registry access).
 				net.minecraft.world.item.crafting.CraftingInput craftingInput = makeCraftingInput(te.matrixWrapper);
-				ItemStack addStack = te.recipeUsed.map(r -> r.value().assemble(craftingInput, level.registryAccess())).orElse(ItemStack.EMPTY);
+				ItemStack addStack = te.recipeUsed.map(r -> r.value().assemble(craftingInput)).orElse(ItemStack.EMPTY);
 				if (!addStack.isEmpty()) {
 					IItemHandlerModifiable rh = te.resultHandler;
 					rh.setStackInSlot(0, addStack.copyWithCount(addStack.getCount() + rh.getStackInSlot(0).getCount()));
@@ -152,22 +153,24 @@ public class RatCraftingTableBlockEntity extends BlockEntity implements MenuProv
 
 	public void updateRecipe() {
 		AtomicBoolean flag = new AtomicBoolean(true);
-		if (this.getLevel() != null) {
+		// 26.1: recipes are server-only — Level.getRecipeManager is gone; ServerLevel.recipeAccess()
+		// returns the RecipeManager and lookups go through its (Neo-exposed) RecipeMap.
+		if (this.getLevel() instanceof ServerLevel serverLevel) {
 			{
-				// 1.21: RecipeManager.getRecipesFor takes (RecipeType, RecipeInput, Level) and returns List<RecipeHolder<T>>.
 				net.minecraft.world.item.crafting.CraftingInput input = makeCraftingInput(this.matrixWrapper);
-				this.possibleRecipes = this.getLevel().getRecipeManager()
-						.getRecipesFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING, input, this.getLevel());
+				this.possibleRecipes = serverLevel.recipeAccess().recipeMap()
+						.getRecipesFor(net.minecraft.world.item.crafting.RecipeType.CRAFTING, input, serverLevel)
+						.toList();
 				if (this.possibleRecipes.isEmpty()) {
 					flag.set(false);
 				} else {
 					this.selectedRecipeIndex = Mth.clamp(this.selectedRecipeIndex, 0, this.possibleRecipes.size() - 1);
 					this.guideRecipe = Optional.of(this.possibleRecipes.get(this.selectedRecipeIndex));
-					if (!this.checkIfResultFits(this.getLevel(), this.guideRecipe)) {
+					if (!this.checkIfResultFits(this.guideRecipe, input)) {
 						flag.set(false);
 					}
 					this.recipeUsed = Optional.of(this.possibleRecipes.get(this.selectedRecipeIndex))
-							.filter(r -> this.setRecipeUsed(this.getLevel(), null, r));
+							.filter(r -> this.setRecipeUsed(serverLevel, null, r));
 				}
 			}
 			if (flag.get()) {
@@ -181,17 +184,19 @@ public class RatCraftingTableBlockEntity extends BlockEntity implements MenuProv
 		}
 	}
 
-	private boolean checkIfResultFits(Level level, Optional<RecipeHolder<CraftingRecipe>> recipe) {
+	// 26.1: Recipe.getResultItem(RegistryAccess) is gone; the recipe already matched this input, so
+	// assembling it yields the concrete result stack to size-check against the output slot.
+	private boolean checkIfResultFits(Optional<RecipeHolder<CraftingRecipe>> recipe, net.minecraft.world.item.crafting.CraftingInput input) {
 		if (recipe.isPresent()) {
 			ItemStack checkStack = this.resultHandler.getStackInSlot(0);
-			ItemStack resultStack = recipe.get().value().getResultItem(level.registryAccess());
+			ItemStack resultStack = recipe.get().value().assemble(input);
 			return (ItemStack.isSameItemSameComponents(checkStack, resultStack) && checkStack.getCount() + resultStack.getCount() <= checkStack.getMaxStackSize()) || checkStack.isEmpty();
 		}
 		return false;
 	}
 
-	private void checkIfRecipeIsValid(Optional<RecipeHolder<CraftingRecipe>> recipe, StackedContents helper) {
-		this.hasValidRecipe = recipe.isPresent() && helper.getBiggestCraftableStack(recipe.get(), null) > 0;
+	private void checkIfRecipeIsValid(Optional<RecipeHolder<CraftingRecipe>> recipe, StackedItemContents helper) {
+		this.hasValidRecipe = recipe.isPresent() && helper.getBiggestCraftableStack(recipe.get().value(), null) > 0;
 	}
 
 	// 1.21: CraftingRecipe.assemble/getRemainingItems/getMatching take CraftingInput, not the legacy
@@ -228,7 +233,10 @@ public class RatCraftingTableBlockEntity extends BlockEntity implements MenuProv
 	}
 
 	public boolean setRecipeUsed(Level level, @Nullable ServerPlayer player, RecipeHolder<CraftingRecipe> recipe) {
-		return !level.getGameRules().get(GameRules.RULE_LIMITED_CRAFTING) || recipe.value().isSpecial();
+		// 26.1: game rules live on ServerLevel only; rule constant renamed to LIMITED_CRAFTING.
+		return !(level instanceof ServerLevel serverLevel)
+				|| !serverLevel.getGameRules().get(GameRules.LIMITED_CRAFTING)
+				|| recipe.value().isSpecial();
 	}
 
 	@Nullable
@@ -252,25 +260,26 @@ public class RatCraftingTableBlockEntity extends BlockEntity implements MenuProv
 
 	@Override
 	protected void loadAdditional(ValueInput tag) {
-		super.loadAdditional(tag, registries);
-		((INBTSerializable<CompoundTag>) this.bufferHandler).deserializeNBT(registries, tag.getCompoundOrEmpty("Buffer"));
-		((INBTSerializable<CompoundTag>) this.matrixHandler).deserializeNBT(registries, tag.getCompoundOrEmpty("Matrix"));
-		((INBTSerializable<CompoundTag>) this.resultHandler).deserializeNBT(registries, tag.getCompoundOrEmpty("Result"));
-		if (tag.contains("CustomName")) {
-			this.customName = Component.Serializer.fromJson(tag.getStringOr("CustomName", ""), registries);
-		}
+		super.loadAdditional(tag);
+		// 26.1: handlers implement ValueIOSerializable (serialize/deserialize on Value IO children).
+		((ValueIOSerializable) this.bufferHandler).deserialize(tag.childOrEmpty("Buffer"));
+		((ValueIOSerializable) this.matrixHandler).deserialize(tag.childOrEmpty("Matrix"));
+		((ValueIOSerializable) this.resultHandler).deserialize(tag.childOrEmpty("Result"));
+		this.customName = parseCustomNameSafe(tag, "CustomName");
 		this.cookTime = tag.getIntOr("CookTime", 0);
 		this.selectedRecipeIndex = tag.getIntOr("SelectedRecipe", 0);
+		// deserialize() no longer fires the handler's onLoad hook, so refill the crafting helper here.
+		this.updateHelper();
 	}
 
 	@Override
-	public void saveAdditional(ValueOutput tag) {
-		super.saveAdditional(tag, registries);
-		tag.put("Buffer", ((INBTSerializable<CompoundTag>) this.bufferHandler).serializeNBT(registries));
-		tag.put("Matrix", ((INBTSerializable<CompoundTag>) this.matrixHandler).serializeNBT(registries));
-		tag.put("Result", ((INBTSerializable<CompoundTag>) this.resultHandler).serializeNBT(registries));
+	protected void saveAdditional(ValueOutput tag) {
+		super.saveAdditional(tag);
+		((ValueIOSerializable) this.bufferHandler).serialize(tag.child("Buffer"));
+		((ValueIOSerializable) this.matrixHandler).serialize(tag.child("Matrix"));
+		((ValueIOSerializable) this.resultHandler).serialize(tag.child("Result"));
 		if (this.hasCustomName()) {
-			tag.putString("CustomName", Component.Serializer.toJson(this.customName, registries));
+			tag.store("CustomName", ComponentSerialization.CODEC, this.customName);
 		}
 		tag.putInt("CookTime", this.cookTime);
 		tag.putInt("SelectedRecipe", this.selectedRecipeIndex);
@@ -312,7 +321,8 @@ public class RatCraftingTableBlockEntity extends BlockEntity implements MenuProv
 
 			if (this.hasValidRecipe) {
 				IItemHandlerModifiable h = this.bufferHandler;
-				recipe.getIngredients().forEach(i -> {
+				// 26.1: getIngredients() is gone; placementInfo().ingredients() is the non-empty ingredient list.
+				recipe.placementInfo().ingredients().forEach(i -> {
 					for (int j = 0; j < h.getSlots(); j++) {
 						if (i.test(h.getStackInSlot(j))) {
 							h.extractItem(j, 1, false);
