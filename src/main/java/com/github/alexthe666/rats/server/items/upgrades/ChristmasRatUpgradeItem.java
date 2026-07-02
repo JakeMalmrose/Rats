@@ -87,8 +87,13 @@ public class ChristmasRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 		stack.translate(-0.025F, -0.2F, -0.05F);
 		stack.scale(0.35F, 0.35F, 0.35F);
 		// 26.1: MultiBufferSource.getBuffer is gone here; custom model geometry is submitted through the collector.
-		collector.submitCustomGeometry(stack, RenderTypes.entityCutout(Identifier.parse("textures/entity/chest/christmas.png")), (pose, consumer) ->
-				RatHeldItemLayer.CHRISTMAS_CHEST_MODEL.renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));
+		collector.submitCustomGeometry(stack, RenderTypes.entityCutout(Identifier.parse("textures/entity/chest/christmas.png")), (pose, consumer) -> {
+				PoseStack drawStack = new PoseStack();
+				drawStack.pushPose();
+				drawStack.last().set(pose);
+				RatHeldItemLayer.CHRISTMAS_CHEST_MODEL.renderToBuffer(drawStack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+				drawStack.popPose();
+			});
 		stack.popPose();
 		stack.popPose();
 	}

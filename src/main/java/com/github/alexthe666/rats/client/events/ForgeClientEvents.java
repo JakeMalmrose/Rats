@@ -313,8 +313,13 @@ public class ForgeClientEvents {
 				float f = (player.tickCount + partialTick) * 0.5F;
 				RAT_MODEL.setupAnim(player, f, 1, player.tickCount + partialTick, partialTick, 0);
 				// 26.1: deferred submit replaces direct buffer access on the living-render event.
-				event.getSubmitNodeCollector().submitCustomGeometry(stack, RatsRenderType.getGlowingTranslucent(RatProtectorRenderer.BASE_TEXTURE), (pose, consumer) ->
-						RAT_MODEL.renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, -1));
+				event.getSubmitNodeCollector().submitCustomGeometry(stack, RatsRenderType.getGlowingTranslucent(RatProtectorRenderer.BASE_TEXTURE), (pose, consumer) -> {
+						PoseStack drawStack = new PoseStack();
+						drawStack.pushPose();
+						drawStack.last().set(pose);
+						RAT_MODEL.renderToBuffer(drawStack, consumer, light, OverlayTexture.NO_OVERLAY, -1);
+						drawStack.popPose();
+					});
 				stack.popPose();
 				stack.popPose();
 			}

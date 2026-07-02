@@ -30,11 +30,21 @@ public class BuccaneerRatUpgradeItem extends BaseRatUpgradeItem implements Holds
 		stack.translate(0, -0.925F, 0.2F);
 		stack.scale(0.5F, 0.5F, 0.5F);
 		// 26.1: MultiBufferSource.getBuffer is gone here; custom model geometry is submitted through the collector.
-		collector.submitCustomGeometry(stack, RenderTypes.entityCutout(PiratBoatSailLayer.TEXTURE_PIRATE_CANNON), (pose, consumer) ->
-				PiratBoatSailLayer.MODEL_PIRAT_CANNON.renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));
+		collector.submitCustomGeometry(stack, RenderTypes.entityCutout(PiratBoatSailLayer.TEXTURE_PIRATE_CANNON), (pose, consumer) -> {
+				PoseStack drawStack = new PoseStack();
+				drawStack.pushPose();
+				drawStack.last().set(pose);
+				PiratBoatSailLayer.MODEL_PIRAT_CANNON.renderToBuffer(drawStack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+				drawStack.popPose();
+			});
 		if (rat.getVisualFlag()) {
-			collector.submitCustomGeometry(stack, RenderTypes.eyes(PiratBoatSailLayer.TEXTURE_PIRATE_CANNON_FIRE), (pose, fireConsumer) ->
-					PiratBoatSailLayer.MODEL_PIRAT_CANNON.renderToBuffer(stack, fireConsumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));
+			collector.submitCustomGeometry(stack, RenderTypes.eyes(PiratBoatSailLayer.TEXTURE_PIRATE_CANNON_FIRE), (pose, fireConsumer) -> {
+					PoseStack drawStack = new PoseStack();
+					drawStack.pushPose();
+					drawStack.last().set(pose);
+					PiratBoatSailLayer.MODEL_PIRAT_CANNON.renderToBuffer(drawStack, fireConsumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+					drawStack.popPose();
+				});
 		}
 		stack.popPose();
 		stack.popPose();
