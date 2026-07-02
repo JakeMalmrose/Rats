@@ -79,12 +79,14 @@ public class HatItem extends Item {
 		}
 		if (this == RatsItemRegistry.PIRAT_HAT.get()) {
 			stack.mulPose(Axis.XN.rotationDegrees(5.0F));
-			stack.translate(0.0F, -0.125F, 0.0F);
+			// 26.1: +0.5 vs the legacy -0.125 — the flattened geometry pivot leaves the tricorn
+			// ~0.3 blocks high on a pirat; this seats it on the skull.
+			stack.translate(0.0F, 0.375F, 0.0F);
 			stack.scale(1.425F, 1.425F, 1.425F);
 		}
 		if (this == RatlantisItemRegistry.GHOST_PIRAT_HAT.get()) {
 			float piratScale = rat instanceof GhostPirat ? 1.1F : 1.425F;
-			float piratTranslate = rat instanceof GhostPirat ? 0.05F : -0.125F;
+			float piratTranslate = rat instanceof GhostPirat ? 0.05F : 0.375F; // 26.1: match the pirat hat reseating
 			// 26.1: RenderSystem.setShaderColor is gone with the global shader-color state; the ghostly
 			// tint now has to come from the render layer's buffer/color, so the old 1.3F alpha boost is dropped.
 			stack.mulPose(Axis.XN.rotationDegrees(5.0F));
