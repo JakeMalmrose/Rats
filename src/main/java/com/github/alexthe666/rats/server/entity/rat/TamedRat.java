@@ -72,6 +72,7 @@ import net.minecraft.world.entity.ai.goal.SitWhenOrderedToGoal;
 import net.minecraft.world.entity.ai.navigation.AmphibiousPathNavigation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
+import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.item.DyeItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -1066,6 +1067,50 @@ public class TamedRat extends InventoryRat {
 		if (!this.hasFlightUpgrade()) {
 			super.checkFallDamage(y, onGround, state, pos);
 		}
+	}
+
+	// 26.1: Entity.startRiding gained a server-side guard rejecting vehicles whose EntityType can't
+	// serialize — which includes players (noSave). Shoulder-mounting therefore only happened on the
+	// client: the rat appeared to ride, but the server-side rat never left the pickup spot and
+	// "teleported back" on dismount. Rats deliberately ride player shoulders, so replicate the
+	// vanilla mount minus that guard. Player overrides neither couldAcceptPassenger (always true)
+	// nor canAddPassenger (passengers.isEmpty()), so those defaults are inlined here; the vehicle
+	// and passengers fields are opened via accesstransformer.cfg.
+	@Override
+	public boolean startRiding(Entity entityToRide, boolean force, boolean sendEventAndTriggers) {
+		if (!(entityToRide instanceof Player) || this.level().isClientSide()) {
+			return super.startRiding(entityToRide, force, sendEventAndTriggers);
+		}
+		if (entityToRide == this.getVehicle()) {
+			return false;
+		}
+		for (Entity vehicle = entityToRide; vehicle.getVehicle() != null; vehicle = vehicle.getVehicle()) {
+			if (vehicle.getVehicle() == this) {
+				return false;
+			}
+		}
+		if (!EventHooks.canMountEntity(this, entityToRide, true)) {
+			return false;
+		}
+		if (!force && !(this.canRide(entityToRide) && entityToRide.getPassengers().isEmpty())) {
+			return false;
+		}
+		if (this.isPassenger()) {
+			this.stopRiding();
+		}
+		this.setPose(Pose.STANDING);
+		this.vehicle = entityToRide;
+		entityToRide.passengers = com.google.common.collect.ImmutableList.<Entity>builder().addAll(entityToRide.passengers).add(this).build();
+		if (sendEventAndTriggers) {
+			this.level().gameEvent(this, GameEvent.ENTITY_MOUNT, entityToRide.position());
+			// vanilla also fires START_RIDING_TRIGGER for ServerPlayers riding the vehicle stack;
+			// only rats ride players here, so there is no player passenger to trigger for.
+		}
+		// Mob.startRiding drops the leash on a successful mount; mirror it since we bypassed super.
+		if (this.isLeashed()) {
+			this.dropLeash();
+		}
+		return true;
 	}
 
 	@Override
