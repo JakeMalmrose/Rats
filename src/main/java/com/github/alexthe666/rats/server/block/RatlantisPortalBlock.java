@@ -61,7 +61,14 @@ public class RatlantisPortalBlock extends BaseEntityBlock implements CustomItemR
 		// the Ratlantis portal is a single 1x2 frame; the cooldown set after changeDimension prevents the
 		// destination block from bouncing the entity straight back.
 		if (!(level instanceof ServerLevel sourceLevel)) return;
-		if (entity.isOnPortalCooldown() || entity.isPassenger() || entity.isVehicle() || !entity.canUsePortal(false)) return;
+		if (entity.isOnPortalCooldown()) {
+			// Vanilla semantics (Entity#setAsInsidePortal): standing inside a portal refreshes the
+			// cooldown every tick, so it can only expire once the entity has stepped out. Without this
+			// the cooldown runs out while still inside the destination portal → infinite ping-pong.
+			entity.setPortalCooldown();
+			return;
+		}
+		if (entity.isPassenger() || entity.isVehicle() || !entity.canUsePortal(false)) return;
 
 		TeleportTransition transition = this.getPortalDestination(sourceLevel, entity, pos);
 		if (transition == null) return;
