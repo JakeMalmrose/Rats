@@ -1,0 +1,7 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "rats:item/spawn_egg",
+    "layer1": "rats:item/spawn_egg_overlay"
+  }
+}
