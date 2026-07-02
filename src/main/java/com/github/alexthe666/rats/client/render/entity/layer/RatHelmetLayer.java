@@ -12,7 +12,13 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.HumanoidModel;
+import net.minecraft.client.model.Model;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.texture.OverlayTexture;
+import net.minecraft.resources.Identifier;
+import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
@@ -62,10 +68,24 @@ public class RatHelmetLayer<T extends AbstractRat> extends RenderLayer<LivingEnt
 			Equippable equippable = itemstack.get(DataComponents.EQUIPPABLE);
 			if (equippable != null && equippable.assetId().isPresent()) {
 				if (equippable.slot() == EquipmentSlot.HEAD) {
+					// 26.1: render the armor model directly via submitCustomGeometry (same pattern as
+					// Alex's Mobs 26.1 LayerKangarooArmor) — EquipmentLayerRenderer's deferred model
+					// submit re-poses the model from a humanoid state at draw time, which does not
+					// compose with the citadel-space transforms this layer builds on the stack.
+					Model replaced = IClientItemExtensions.of(itemstack)
+							.getHumanoidArmorModel(itemstack, EquipmentClientInfo.LayerType.HUMANOID, this.ratArmorModel);
+					HumanoidModel<?> armorModel = replaced instanceof HumanoidModel<?> humanoid ? humanoid : this.ratArmorModel;
 					//Rats: instead of using setPartVisibility, just toggle the helmet on. Its the only piece of armor we care about rendering anyway.
-					this.ratArmorModel.allParts().forEach(part -> part.visible = false); // 26.1: setAllVisible is gone
-					this.ratArmorModel.head.visible = true;
-					this.ratArmorModel.hat.visible = true;
+					armorModel.head.visible = true;
+					armorModel.hat.visible = true;
+					armorModel.body.visible = false;
+					armorModel.rightArm.visible = false;
+					armorModel.leftArm.visible = false;
+					armorModel.rightLeg.visible = false;
+					armorModel.leftLeg.visible = false;
+					// Zero the head chain so the PoseStack transform below does all the positioning.
+					zeroPart(armorModel.head);
+					zeroPart(armorModel.hat);
 					//Rats: do some extra transforms based on which model is being used and what item is rendering.
 					this.ratModel().translateToHead(stack);
 					if (rat.isBaby()) {
@@ -77,10 +97,16 @@ public class RatHelmetLayer<T extends AbstractRat> extends RenderLayer<LivingEnt
 					if (itemstack.getItem() instanceof HatItem hat) {
 						hat.transformOnHead(rat, stack);
 					}
-					// 26.1: EquipmentLayerRenderer now handles the model-replacement hook (IClientItemExtensions),
-					// per-stack textures (ClientHooks.getArmorTexture), dyed layers, foil and armor trims in one call.
-					this.equipmentRenderer.renderLayers(EquipmentClientInfo.LayerType.HUMANOID, equippable.assetId().orElseThrow(),
-							this.ratArmorModel, this.armorState, itemstack, stack, collector, light, state.outlineColor);
+					Identifier texture = IClientItemExtensions.of(itemstack)
+							.getArmorTexture(itemstack, EquipmentClientInfo.LayerType.HUMANOID, null, fallbackArmorTexture(equippable));
+					int tint = -1;
+					if (itemstack.has(DataComponents.DYED_COLOR)) {
+						tint = 0xFF000000 | itemstack.get(DataComponents.DYED_COLOR).rgb();
+					}
+					submitArmorModel(collector, stack, armorModel, RenderTypes.armorCutoutNoCull(texture), light, tint);
+					if (itemstack.hasFoil()) {
+						submitArmorModel(collector, stack, armorModel, RenderTypes.armorEntityGlint(), light, -1);
+					}
 				}
 			} else {
 				//Rats: handle some special case hats in the mod
@@ -128,6 +154,29 @@ public class RatHelmetLayer<T extends AbstractRat> extends RenderLayer<LivingEnt
 			}
 			stack.popPose();
 		}
+	}
+
+	private static void zeroPart(net.minecraft.client.model.geom.ModelPart part) {
+		part.setPos(0.0F, 0.0F, 0.0F);
+		part.xRot = 0.0F;
+		part.yRot = 0.0F;
+		part.zRot = 0.0F;
+	}
+
+	/** 26.1 equipment-asset layer texture layout: textures/entity/equipment/humanoid/&lt;asset&gt;.png */
+	private static Identifier fallbackArmorTexture(Equippable equippable) {
+		Identifier asset = equippable.assetId().orElseThrow().identifier();
+		return Identifier.fromNamespaceAndPath(asset.getNamespace(), "textures/entity/equipment/humanoid/" + asset.getPath() + ".png");
+	}
+
+	private static void submitArmorModel(SubmitNodeCollector collector, PoseStack stack, HumanoidModel<?> armorModel, RenderType renderType, int light, int tint) {
+		collector.submitCustomGeometry(stack, renderType, (pose, consumer) -> {
+			PoseStack drawStack = new PoseStack();
+			drawStack.pushPose();
+			drawStack.last().set(pose);
+			armorModel.renderToBuffer(drawStack, consumer, light, OverlayTexture.NO_OVERLAY, tint);
+			drawStack.popPose();
+		});
 	}
 
 	private AbstractRatModel<T> ratModel() {
