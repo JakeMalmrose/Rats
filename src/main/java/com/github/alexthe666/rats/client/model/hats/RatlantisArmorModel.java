@@ -25,6 +25,7 @@ public class RatlantisArmorModel extends AbstractHatModel {
 		PartDefinition partDefinition = mesh.getRoot();
 
 		partDefinition.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO);
+		partDefinition.getChild("head").addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO); // 26.1: empty the inherited vanilla hat cube (addOrReplaceChild keeps children)
 		partDefinition.getChild("head").addOrReplaceChild("nose", CubeListBuilder.create().texOffs(54, 15).addBox(-1.0F, -1.0F, -2.0F, 2.0F, 2.0F, 3.0F), PartPose.offsetAndRotation(0.0F, -4.0F, -8.0F, 0.2618F, 0.0F, 0.0F));
 		partDefinition.getChild("head").addOrReplaceChild("left_ear", CubeListBuilder.create().texOffs(24, 0).addBox(1.0F, -4.0F, -1.0F, 7.0F, 7.0F, 1.0F), PartPose.offsetAndRotation(4.0F, -8.0F, 4.0F, 0.0F, -0.7854F, 0.0F));
 		partDefinition.getChild("head").addOrReplaceChild("right_ear", CubeListBuilder.create().texOffs(24, 0).addBox(-8.0F, -4.0F, -1.0F, 7.0F, 7.0F, 1.0F), PartPose.offsetAndRotation(-4.0F, -8.0F, 4.0F, 0.0F, 0.7854F, 0.0F));

@@ -439,13 +439,16 @@ public abstract class AbstractRat extends TamableAnimal implements IAnimatedEnti
 		super.readAdditionalSaveData(tag);
 		this.setMale(tag.getBooleanOr("IsMale", false));
 		this.setOrderedToSit(tag.getBooleanOr("Sitting", false));
-		// 26.1: ValueInput has no typed contains(); probe for the legacy int variant via getInt
-		Optional<Integer> oldVariant = tag.getInt("ColorVariant");
-		if (oldVariant.isPresent()) {
-			this.setColorVariant(RatUtils.convertOldRatVariant(oldVariant.get()));
-			RatsMod.LOGGER.debug("Converted Rat variant for Rat {} from {} to {}.", this.getUUID(), oldVariant.get(), RatVariantRegistry.RAT_VARIANT_REGISTRY.getKey(RatUtils.convertOldRatVariant(oldVariant.get())).toString());
+		// 26.1: ValueInput has no typed contains(); read the modern string id first — probing the
+		// legacy int first makes the save loader log a type-mismatch warning for every rat.
+		Optional<String> variantId = tag.getString("ColorVariant");
+		if (variantId.isPresent()) {
+			this.setColorVariant(RatVariant.getVariant(variantId.get()));
 		} else {
-			tag.getString("ColorVariant").ifPresent(variant -> this.setColorVariant(RatVariant.getVariant(variant)));
+			tag.getInt("ColorVariant").ifPresent(oldVariant -> {
+				this.setColorVariant(RatUtils.convertOldRatVariant(oldVariant));
+				RatsMod.LOGGER.debug("Converted Rat variant for Rat {} from {} to {}.", this.getUUID(), oldVariant, RatVariantRegistry.RAT_VARIANT_REGISTRY.getKey(RatUtils.convertOldRatVariant(oldVariant)).toString());
+			});
 		}
 		this.raidCooldown = tag.getIntOr("RaidCooldown", 0);
 	}

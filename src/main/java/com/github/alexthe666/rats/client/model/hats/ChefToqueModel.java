@@ -17,6 +17,7 @@ public class ChefToqueModel extends AbstractHatModel {
 
 		partDefinition.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.ZERO);
 		partDefinition.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO);
+		partDefinition.getChild("head").addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO); // 26.1: empty the inherited vanilla hat cube (addOrReplaceChild keeps children)
 
 		partDefinition.getChild("head").addOrReplaceChild("toupe", CubeListBuilder.create()
 						.texOffs(0, 0)

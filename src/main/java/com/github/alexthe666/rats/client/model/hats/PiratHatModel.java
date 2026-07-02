@@ -25,6 +25,7 @@ public class PiratHatModel extends AbstractHatModel {
 
 		partdefinition.addOrReplaceChild("head", CubeListBuilder.create(), PartPose.ZERO);
 		partdefinition.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO);
+		partdefinition.getChild("head").addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO); // 26.1: empty the inherited vanilla hat cube (addOrReplaceChild keeps children)
 
 		PartDefinition hat = partdefinition.getChild("head").addOrReplaceChild("main_hat", CubeListBuilder.create().texOffs(36, 0).addBox(-4.0F, -5.0F, -3.0F, 8.0F, 5.0F, 6.0F, new CubeDeformation(0.0F))
 				.texOffs(23, 3).addBox(6.0F, -3.0F, -4.0F, 1.0F, 3.0F, 8.0F, new CubeDeformation(-0.01F))

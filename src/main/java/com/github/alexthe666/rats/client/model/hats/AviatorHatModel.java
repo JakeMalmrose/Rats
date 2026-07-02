@@ -32,6 +32,7 @@ public class AviatorHatModel extends AbstractHatModel {
 				PartPose.offsetAndRotation(4.0F, -8.0F, 0.0F, 0.0F, 0.0F, -0.2618F));
 
 		partdefinition.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO);
+		partdefinition.getChild("head").addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO); // 26.1: empty the inherited vanilla hat cube (addOrReplaceChild keeps children)
 
 		return LayerDefinition.create(mesh, 64, 32);
 	}

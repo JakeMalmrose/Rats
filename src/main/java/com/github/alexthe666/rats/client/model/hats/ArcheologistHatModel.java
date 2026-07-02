@@ -21,6 +21,7 @@ public class ArcheologistHatModel extends AbstractHatModel {
 				.texOffs(0, 0).addBox(-5.0F, -9.0F, -7.0F, 10.0F, 1.0F, 14.0F), PartPose.offset(0.0F, 32.0F, 0.0F));
 
 		partDefinition.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO);
+		partDefinition.getChild("head").addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO); // 26.1: empty the inherited vanilla hat cube (addOrReplaceChild keeps children)
 
 		return LayerDefinition.create(mesh, 64, 32);
 	}
