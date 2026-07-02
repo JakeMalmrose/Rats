@@ -85,14 +85,16 @@ public class FeralRatlantean extends Monster implements IAnimatedEntity {
 		super.aiStep();
 		AnimationHandler.INSTANCE.updateAnimations(this);
 		if (!this.level().isClientSide()) {
-			if (this.getTarget() != null && this.distanceToSqr(this.getTarget()) < 3.0D && this.hasLineOfSight(this.getTarget())) {
-				if (this.level() instanceof ServerLevel serverLevel && this.getTarget().hurtServer(serverLevel, this.damageSources().mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
+			// 26.1: capture the target once — if the hit kills it, getTarget() is nulled mid-tick.
+			var target = this.getTarget();
+			if (target != null && this.distanceToSqr(target) < 3.0D && this.hasLineOfSight(target)) {
+				if (this.level() instanceof ServerLevel serverLevel && target.hurtServer(serverLevel, this.damageSources().mobAttack(this), (float) this.getAttributeValue(Attributes.ATTACK_DAMAGE))) {
 					if (this.getAnimation() == NO_ANIMATION) {
 						this.setAnimation(this.getRandom().nextBoolean() ? ANIMATION_BITE : ANIMATION_SLASH);
 					}
-					this.lookAt(this.getTarget(), 360, 80);
-					this.doExtraEffect(this.getTarget());
-					this.getTarget().knockback(0.25F, this.getX() - this.getTarget().getX(), this.getZ() - this.getTarget().getZ());
+					this.lookAt(target, 360, 80);
+					this.doExtraEffect(target);
+					target.knockback(0.25F, this.getX() - target.getX(), this.getZ() - target.getZ());
 				}
 			}
 			if (!this.isNoAi()) {

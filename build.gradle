@@ -41,6 +41,12 @@ neoForge {
             client()
         }
 
+        // Boots straight into the "Rats26" singleplayer save (skips the title screen).
+        clientWorld {
+            client()
+            programArguments.addAll('--quickPlaySingleplayer', 'Rats26')
+        }
+
         server {
             server()
             programArgument '--nogui'
