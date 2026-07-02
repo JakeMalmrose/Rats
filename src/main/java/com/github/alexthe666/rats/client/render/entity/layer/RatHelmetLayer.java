@@ -84,8 +84,16 @@ public class RatHelmetLayer<T extends AbstractRat> extends RenderLayer<LivingEnt
 					armorModel.rightLeg.visible = false;
 					armorModel.leftLeg.visible = false;
 					// Zero the head chain so the PoseStack transform below does all the positioning.
+					// The hat geometry pivots were authored against the vanilla neck-level head pivot;
+					// translateToHead ends at the rat's skull, so those offsets must be flattened too —
+					// including models whose geometry isn't named "hat" (pirat's main_hat, toque's toupe).
 					zeroPart(armorModel.head);
 					zeroPart(armorModel.hat);
+					for (String geometryChild : new String[]{"main_hat", "toupe"}) {
+						if (armorModel.head.hasChild(geometryChild)) {
+							zeroPart(armorModel.head.getChild(geometryChild));
+						}
+					}
 					//Rats: do some extra transforms based on which model is being used and what item is rendering.
 					this.ratModel().translateToHead(stack);
 					if (rat.isBaby()) {
