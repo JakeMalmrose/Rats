@@ -1,16 +1,9 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "E": {
-      "item": "minecraft:ender_eye"
-    },
-    "P": {
-      "item": "minecraft:ender_pearl"
-    },
-    "U": {
-      "item": "rats:rat_upgrade_basic"
-    }
+    "E": "minecraft:ender_eye",
+    "P": "minecraft:ender_pearl",
+    "U": "rats:rat_upgrade_basic"
   },
   "pattern": [
     "PEP",
@@ -21,5 +14,6 @@
     "count": 1,
     "id": "rats:rat_upgrade_ender"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

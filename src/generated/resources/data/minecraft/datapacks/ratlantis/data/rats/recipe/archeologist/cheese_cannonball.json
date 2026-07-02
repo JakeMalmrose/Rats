@@ -1,10 +1,8 @@
 {
-  "type": "rats:archeologist",
-  "ingredient": {
-    "item": "minecraft:fire_charge"
-  },
+  "ingredient": "minecraft:fire_charge",
   "result": {
     "count": 1,
     "id": "rats:cheese_cannonball"
-  }
+  },
+  "type": "rats:archeologist"
 }

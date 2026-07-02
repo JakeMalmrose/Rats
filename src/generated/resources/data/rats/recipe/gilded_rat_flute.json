@@ -1,16 +1,9 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "F": {
-      "item": "rats:rat_flute"
-    },
-    "S": {
-      "item": "rats:golden_rat_skull"
-    },
-    "T": {
-      "item": "rats:tangled_rat_tails"
-    }
+    "F": "rats:rat_flute",
+    "S": "rats:golden_rat_skull",
+    "T": "rats:tangled_rat_tails"
   },
   "pattern": [
     "  S",
@@ -21,5 +14,6 @@
     "count": 1,
     "id": "rats:gilded_rat_flute"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

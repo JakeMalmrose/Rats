@@ -1,22 +1,14 @@
 {
-  "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "rats:golden_rat_skull"
-    },
-    {
-      "item": "rats:nether_cheese"
-    },
-    {
-      "item": "minecraft:glass_bottle"
-    },
-    {
-      "item": "minecraft:crimson_fungus"
-    }
+    "rats:golden_rat_skull",
+    "rats:nether_cheese",
+    "minecraft:glass_bottle",
+    "minecraft:crimson_fungus"
   ],
   "result": {
     "count": 1,
     "id": "rats:crimson_liquid"
-  }
+  },
+  "type": "minecraft:crafting_shapeless"
 }

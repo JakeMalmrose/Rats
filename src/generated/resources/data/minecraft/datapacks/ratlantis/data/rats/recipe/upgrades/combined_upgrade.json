@@ -1,16 +1,9 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "C": {
-      "item": "rats:feral_rat_claw"
-    },
-    "G": {
-      "tag": "c:ingots/ratlantis_gem"
-    },
-    "U": {
-      "item": "rats:rat_upgrade_basic_ratlantean"
-    }
+    "C": "rats:feral_rat_claw",
+    "G": "#c:ingots/ratlantis_gem",
+    "U": "rats:rat_upgrade_basic_ratlantean"
   },
   "pattern": [
     "CGC",
@@ -21,5 +14,6 @@
     "count": 1,
     "id": "rats:rat_upgrade_combined"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

@@ -1,13 +1,11 @@
 {
-  "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "rats:rat_skull"
-    }
+    "rats:rat_skull"
   ],
   "result": {
     "count": 1,
     "id": "minecraft:bone_meal"
-  }
+  },
+  "type": "minecraft:crafting_shapeless"
 }

@@ -1,19 +1,10 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "C": {
-      "item": "rats:feral_rat_claw"
-    },
-    "R": {
-      "item": "minecraft:rotten_flesh"
-    },
-    "S": {
-      "item": "minecraft:spider_eye"
-    },
-    "U": {
-      "item": "rats:rat_upgrade_basic_ratlantean"
-    }
+    "C": "rats:feral_rat_claw",
+    "R": "minecraft:rotten_flesh",
+    "S": "minecraft:spider_eye",
+    "U": "rats:rat_upgrade_basic_ratlantean"
   },
   "pattern": [
     "CCC",
@@ -24,5 +15,6 @@
     "count": 1,
     "id": "rats:rat_upgrade_feral_bite"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

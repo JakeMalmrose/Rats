@@ -1,13 +1,8 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "S": {
-      "tag": "c:string"
-    },
-    "W": {
-      "item": "minecraft:white_wool"
-    }
+    "S": "#c:strings",
+    "W": "minecraft:white_wool"
   },
   "pattern": [
     "WW",
@@ -18,5 +13,6 @@
     "count": 1,
     "id": "rats:chef_toque"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

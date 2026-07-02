@@ -1,11 +1,10 @@
 {
-  "parent": "minecraft:recipes/root",
   "criteria": {
     "has_string": {
       "conditions": {
         "items": [
           {
-            "tag": "c:string"
+            "tag": "c:strings"
           }
         ]
       },
@@ -30,6 +29,7 @@
       "trigger": "minecraft:inventory_changed"
     }
   },
+  "parent": "minecraft:recipes/root",
   "requirements": [
     [
       "has_wool",

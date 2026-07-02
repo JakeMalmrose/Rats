@@ -1,16 +1,9 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "L": {
-      "item": "minecraft:redstone_lamp"
-    },
-    "R": {
-      "tag": "c:dyes/red"
-    },
-    "S": {
-      "tag": "c:string"
-    }
+    "L": "minecraft:redstone_lamp",
+    "R": "#c:dyes/red",
+    "S": "#c:strings"
   },
   "pattern": [
     " S ",
@@ -21,5 +14,6 @@
     "count": 1,
     "id": "rats:rat_breeding_lantern"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

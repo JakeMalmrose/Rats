@@ -1,19 +1,13 @@
 {
-  "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "rats:plague_scythe"
-    },
-    {
-      "item": "rats:tangled_rat_tails"
-    },
-    {
-      "item": "rats:golden_rat_skull"
-    }
+    "rats:plague_scythe",
+    "rats:tangled_rat_tails",
+    "rats:golden_rat_skull"
   ],
   "result": {
     "count": 1,
     "id": "rats:corrupt_rat_skull"
-  }
+  },
+  "type": "minecraft:crafting_shapeless"
 }

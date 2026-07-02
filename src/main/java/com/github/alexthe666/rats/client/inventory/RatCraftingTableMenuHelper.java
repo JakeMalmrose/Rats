@@ -6,11 +6,8 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 // Split out of RatCraftingTableMenu so the menu class stays loadable on a dedicated server.
-@OnlyIn(Dist.CLIENT)
 public class RatCraftingTableMenuHelper {
 
 	public static RatCraftingTableBlockEntity resolveBlockEntity(BlockPos pos) {

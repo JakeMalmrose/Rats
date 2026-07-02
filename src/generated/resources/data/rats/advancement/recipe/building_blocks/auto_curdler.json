@@ -1,5 +1,4 @@
 {
-  "parent": "minecraft:recipes/root",
   "criteria": {
     "has_cauldron": {
       "conditions": {
@@ -27,7 +26,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:glass/colorless"
+            "tag": "c:glass_blocks/colorless"
           }
         ]
       },
@@ -52,6 +51,7 @@
       "trigger": "minecraft:recipe_unlocked"
     }
   },
+  "parent": "minecraft:recipes/root",
   "requirements": [
     [
       "has_cheese",

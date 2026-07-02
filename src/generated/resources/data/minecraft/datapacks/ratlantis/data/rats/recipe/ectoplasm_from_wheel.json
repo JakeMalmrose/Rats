@@ -1,13 +1,11 @@
 {
-  "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "rats:dutchrat_wheel"
-    }
+    "rats:dutchrat_wheel"
   ],
   "result": {
     "count": 10,
     "id": "rats:ghost_pirat_ectoplasm"
-  }
+  },
+  "type": "minecraft:crafting_shapeless"
 }

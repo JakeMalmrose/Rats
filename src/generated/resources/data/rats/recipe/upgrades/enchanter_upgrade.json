@@ -1,22 +1,11 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "item": "minecraft:book"
-    },
-    "E": {
-      "item": "minecraft:enchanting_table"
-    },
-    "S": {
-      "tag": "c:bookshelves"
-    },
-    "U": {
-      "item": "rats:rat_upgrade_basic"
-    },
-    "X": {
-      "item": "minecraft:experience_bottle"
-    }
+    "B": "minecraft:book",
+    "E": "minecraft:enchanting_table",
+    "S": "#c:bookshelves",
+    "U": "rats:rat_upgrade_basic",
+    "X": "minecraft:experience_bottle"
   },
   "pattern": [
     "BEB",
@@ -27,5 +16,6 @@
     "count": 1,
     "id": "rats:rat_upgrade_enchanter"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

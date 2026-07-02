@@ -1,13 +1,8 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "B": {
-      "item": "minecraft:hay_block"
-    },
-    "W": {
-      "tag": "c:crops/wheat"
-    }
+    "B": "minecraft:hay_block",
+    "W": "#c:crops/wheat"
   },
   "pattern": [
     " B ",
@@ -17,5 +12,6 @@
     "count": 1,
     "id": "rats:farmer_hat"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

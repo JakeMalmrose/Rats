@@ -1,13 +1,8 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "D": {
-      "tag": "c:dyes/black"
-    },
-    "M": {
-      "item": "rats:marbled_cheese"
-    }
+    "D": "#c:dyes/black",
+    "M": "rats:marbled_cheese"
   },
   "pattern": [
     "MMM",
@@ -18,5 +13,6 @@
     "count": 8,
     "id": "rats:black_marbled_cheese"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

@@ -18,7 +18,7 @@ public class RatlantisPackEvents {
 	@SubscribeEvent
 	public static void checkDatapackOnWorldLoad(LevelEvent.Load event) {
 		if (event.getLevel() instanceof ServerLevel server && server.dimension().equals(Level.OVERWORLD) && event.getLevel().getServer() != null) {
-			boolean enabled = event.getLevel().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains("ratlantis");
+			boolean enabled = event.getLevel().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains(RatsMod.RATLANTIS_PACK_ID);
 			RatsMod.RATLANTIS_DATAPACK_ENABLED = enabled;
 			PacketDistributor.sendToAllPlayers(new ChangeRatlantisStatusPacket(enabled));
 			RatsMod.LOGGER.debug("Overworld loaded! Ratlantis datapack is {} for this world.", enabled ? "enabled" : "disabled");
@@ -29,13 +29,13 @@ public class RatlantisPackEvents {
 	public static void checkDatapackOnSync(OnDatapackSyncEvent event) {
 		if (event.getPlayer() != null) {
 			// 26.1: ServerPlayer#serverLevel() was removed; level() now returns ServerLevel directly
-			boolean enabled = event.getPlayer().level().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains("ratlantis");
+			boolean enabled = event.getPlayer().level().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains(RatsMod.RATLANTIS_PACK_ID);
 			RatsMod.RATLANTIS_DATAPACK_ENABLED = enabled;
 			PacketDistributor.sendToPlayer(event.getPlayer(), new ChangeRatlantisStatusPacket(enabled));
 			RatsMod.LOGGER.debug("Ratlantis datapack flag has been set to {} for {} ({})", enabled, event.getPlayer().getDisplayName().getString(), event.getPlayer().getStringUUID());
 		} else {
 			event.getPlayerList().getPlayers().forEach(player -> {
-				boolean enabled = player.level().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains("ratlantis");
+				boolean enabled = player.level().getServer().getWorldData().getDataConfiguration().dataPacks().getEnabled().contains(RatsMod.RATLANTIS_PACK_ID);
 				RatsMod.RATLANTIS_DATAPACK_ENABLED = enabled;
 				PacketDistributor.sendToPlayer(player, new ChangeRatlantisStatusPacket(enabled));
 				RatsMod.LOGGER.debug("Ratlantis datapack flag has been set to {} for {} ({})", enabled, player.getDisplayName().getString(), player.getStringUUID());

@@ -1,13 +1,8 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "item": "rats:little_black_squash_balls"
-    },
-    "P": {
-      "item": "rats:potato_pancake"
-    }
+    "B": "rats:little_black_squash_balls",
+    "P": "rats:potato_pancake"
   },
   "pattern": [
     "BPB",
@@ -18,5 +13,6 @@
     "count": 1,
     "id": "rats:little_black_worm"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

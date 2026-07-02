@@ -1,16 +1,9 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "B": {
-      "tag": "c:storage_blocks/blue_cheese"
-    },
-    "C": {
-      "tag": "c:crafting_tables"
-    },
-    "D": {
-      "tag": "c:gems/diamond"
-    }
+    "B": "#c:storage_blocks/blue_cheese",
+    "C": "#c:crafting_tables",
+    "D": "#c:gems/diamond"
   },
   "pattern": [
     "BDB",
@@ -21,5 +14,6 @@
     "count": 1,
     "id": "rats:rat_quarry"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

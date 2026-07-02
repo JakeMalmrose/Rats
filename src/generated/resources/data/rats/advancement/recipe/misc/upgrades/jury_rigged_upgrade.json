@@ -1,5 +1,4 @@
 {
-  "parent": "minecraft:recipes/root",
   "criteria": {
     "has_diamond": {
       "conditions": {
@@ -45,7 +44,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:slimeballs"
+            "tag": "c:slime_balls"
           }
         ]
       },
@@ -55,7 +54,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:string"
+            "tag": "c:strings"
           }
         ]
       },
@@ -80,6 +79,7 @@
       "trigger": "minecraft:inventory_changed"
     }
   },
+  "parent": "minecraft:recipes/root",
   "requirements": [
     [
       "has_diamond",

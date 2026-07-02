@@ -1,10 +1,7 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "P": {
-      "item": "rats:pirat_planks"
-    }
+    "P": "rats:pirat_planks"
   },
   "pattern": [
     "PP"
@@ -13,5 +10,6 @@
     "count": 1,
     "id": "rats:pirat_pressure_plate"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

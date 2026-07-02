@@ -7,8 +7,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.common.Tags;
 import org.jetbrains.annotations.Nullable;
 
@@ -17,7 +15,6 @@ import java.util.Comparator;
 import java.util.List;
 
 // Split out of RatsCreativeTabRegistry so the registry class stays loadable on a dedicated server.
-@OnlyIn(Dist.CLIENT)
 public class CreativeTabClientHelper {
 
 	@Nullable

@@ -1,17 +1,13 @@
 {
-  "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "group": "chest_boat",
   "ingredients": [
-    {
-      "item": "rats:pirat_boat"
-    },
-    {
-      "tag": "c:chests/wooden"
-    }
+    "rats:pirat_boat",
+    "#c:chests/wooden"
   ],
   "result": {
     "count": 1,
     "id": "rats:pirat_chest_boat"
-  }
+  },
+  "type": "minecraft:crafting_shapeless"
 }

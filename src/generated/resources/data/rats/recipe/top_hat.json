@@ -1,16 +1,9 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "C": {
-      "item": "minecraft:black_carpet"
-    },
-    "R": {
-      "tag": "c:dyes/red"
-    },
-    "W": {
-      "item": "minecraft:black_wool"
-    }
+    "C": "minecraft:black_carpet",
+    "R": "#c:dyes/red",
+    "W": "minecraft:black_wool"
   },
   "pattern": [
     " W ",
@@ -21,5 +14,6 @@
     "count": 1,
     "id": "rats:top_hat"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

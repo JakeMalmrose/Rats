@@ -1,16 +1,12 @@
 {
-  "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "rats:military_hat"
-    },
-    {
-      "item": "minecraft:paper"
-    }
+    "rats:military_hat",
+    "minecraft:paper"
   ],
   "result": {
     "count": 1,
     "id": "rats:rat_and_sickle_banner_pattern"
-  }
+  },
+  "type": "minecraft:crafting_shapeless"
 }

@@ -1,22 +1,11 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "C": {
-      "item": "rats:ghost_pirat_cutlass"
-    },
-    "E": {
-      "item": "rats:ghost_pirat_ectoplasm"
-    },
-    "H": {
-      "item": "rats:ghost_pirat_hat"
-    },
-    "M": {
-      "item": "minecraft:phantom_membrane"
-    },
-    "U": {
-      "item": "rats:rat_upgrade_basic_ratlantean"
-    }
+    "C": "rats:ghost_pirat_cutlass",
+    "E": "rats:ghost_pirat_ectoplasm",
+    "H": "rats:ghost_pirat_hat",
+    "M": "minecraft:phantom_membrane",
+    "U": "rats:rat_upgrade_basic_ratlantean"
   },
   "pattern": [
     "HEC",
@@ -27,5 +16,6 @@
     "count": 1,
     "id": "rats:rat_upgrade_ethereal"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

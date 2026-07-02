@@ -26,12 +26,9 @@ import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 // Client-side packet handling lives here (instead of inside the packet classes) so that packet
 // classes never reference client-only types — loading them on a dedicated server would crash.
-@OnlyIn(Dist.CLIENT)
 public final class ClientPacketHandlers {
 
 	private ClientPacketHandlers() {

@@ -1,10 +1,7 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "redstone",
   "key": {
-    "P": {
-      "item": "rats:pirat_planks"
-    }
+    "P": "rats:pirat_planks"
   },
   "pattern": [
     "PPP",
@@ -14,5 +11,6 @@
     "count": 2,
     "id": "rats:pirat_trapdoor"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

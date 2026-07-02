@@ -1,5 +1,4 @@
 {
-  "parent": "minecraft:recipes/root",
   "criteria": {
     "has_bucket": {
       "conditions": {
@@ -29,7 +28,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:gravel"
+            "tag": "c:gravels"
           }
         ]
       },
@@ -39,7 +38,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:sand"
+            "tag": "c:sands"
           }
         ]
       },
@@ -64,6 +63,7 @@
       "trigger": "minecraft:inventory_changed"
     }
   },
+  "parent": "minecraft:recipes/root",
   "requirements": [
     [
       "has_gravel",

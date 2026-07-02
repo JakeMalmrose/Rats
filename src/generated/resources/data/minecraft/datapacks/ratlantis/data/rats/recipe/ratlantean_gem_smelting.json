@@ -1,12 +1,10 @@
 {
-  "type": "minecraft:smelting",
   "category": "misc",
   "cookingtime": 200,
   "experience": 0.5,
-  "ingredient": {
-    "item": "rats:ratlantean_gem_ore"
-  },
+  "ingredient": "rats:ratlantean_gem_ore",
   "result": {
     "id": "rats:gem_of_ratlantis"
-  }
+  },
+  "type": "minecraft:smelting"
 }

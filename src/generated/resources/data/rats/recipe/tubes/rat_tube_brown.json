@@ -1,13 +1,8 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "D": {
-      "tag": "c:dyes/brown"
-    },
-    "T": {
-      "tag": "rats:tubes"
-    }
+    "D": "#c:dyes/brown",
+    "T": "#rats:tubes"
   },
   "pattern": [
     "TTT",
@@ -18,5 +13,6 @@
     "count": 8,
     "id": "rats:rat_tube_brown"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

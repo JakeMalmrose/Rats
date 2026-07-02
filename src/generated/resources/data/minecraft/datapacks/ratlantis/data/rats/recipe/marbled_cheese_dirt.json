@@ -1,16 +1,12 @@
 {
-  "type": "minecraft:crafting_shapeless",
   "category": "building",
   "ingredients": [
-    {
-      "item": "rats:marbled_cheese"
-    },
-    {
-      "tag": "minecraft:dirt"
-    }
+    "rats:marbled_cheese",
+    "#minecraft:dirt"
   ],
   "result": {
     "count": 1,
     "id": "rats:marbled_cheese_dirt"
-  }
+  },
+  "type": "minecraft:crafting_shapeless"
 }

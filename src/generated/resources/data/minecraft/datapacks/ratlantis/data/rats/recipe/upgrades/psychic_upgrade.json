@@ -1,25 +1,12 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "B": {
-      "item": "rats:psionic_rat_brain"
-    },
-    "C": {
-      "item": "minecraft:end_crystal"
-    },
-    "E": {
-      "item": "minecraft:ender_pearl"
-    },
-    "P": {
-      "tag": "c:gems/prismarine"
-    },
-    "S": {
-      "tag": "c:dusts/prismarine"
-    },
-    "U": {
-      "item": "rats:rat_upgrade_basic_ratlantean"
-    }
+    "B": "rats:psionic_rat_brain",
+    "C": "minecraft:end_crystal",
+    "E": "minecraft:ender_pearl",
+    "P": "#c:gems/prismarine",
+    "S": "#c:dusts/prismarine",
+    "U": "rats:rat_upgrade_basic_ratlantean"
   },
   "pattern": [
     "SES",
@@ -30,5 +17,6 @@
     "count": 1,
     "id": "rats:rat_upgrade_psychic"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

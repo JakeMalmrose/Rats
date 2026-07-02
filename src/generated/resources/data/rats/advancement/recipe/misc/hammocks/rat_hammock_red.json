@@ -1,5 +1,4 @@
 {
-  "parent": "minecraft:recipes/root",
   "criteria": {
     "has_cheese": {
       "conditions": {
@@ -15,7 +14,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:string"
+            "tag": "c:strings"
           }
         ]
       },
@@ -40,6 +39,7 @@
       "trigger": "minecraft:inventory_changed"
     }
   },
+  "parent": "minecraft:recipes/root",
   "requirements": [
     [
       "has_string",

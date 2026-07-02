@@ -1,10 +1,7 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "U": {
-      "item": "rats:rat_upgrade_basic_ratlantean"
-    }
+    "U": "rats:rat_upgrade_basic_ratlantean"
   },
   "pattern": [
     "UU",
@@ -14,5 +11,6 @@
     "count": 1,
     "id": "rats:ratlantis_upgrade_block"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

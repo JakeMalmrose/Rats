@@ -1,13 +1,11 @@
 {
-  "type": "minecraft:crafting_shapeless",
   "category": "redstone",
   "ingredients": [
-    {
-      "item": "rats:pirat_planks"
-    }
+    "rats:pirat_planks"
   ],
   "result": {
     "count": 1,
     "id": "rats:pirat_button"
-  }
+  },
+  "type": "minecraft:crafting_shapeless"
 }

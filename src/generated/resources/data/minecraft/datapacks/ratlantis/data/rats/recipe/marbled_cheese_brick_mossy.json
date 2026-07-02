@@ -1,16 +1,12 @@
 {
-  "type": "minecraft:crafting_shapeless",
   "category": "building",
   "ingredients": [
-    {
-      "item": "rats:marbled_cheese_brick"
-    },
-    {
-      "item": "minecraft:vine"
-    }
+    "rats:marbled_cheese_brick",
+    "minecraft:vine"
   ],
   "result": {
     "count": 1,
     "id": "rats:marbled_cheese_brick_mossy"
-  }
+  },
+  "type": "minecraft:crafting_shapeless"
 }

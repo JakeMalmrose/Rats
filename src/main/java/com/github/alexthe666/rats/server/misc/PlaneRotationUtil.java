@@ -5,7 +5,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.LivingEntity;
 import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 @SuppressWarnings("unused")
 public class PlaneRotationUtil {
@@ -226,7 +225,6 @@ public class PlaneRotationUtil {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	public void applyChainSwingBuffer(BasicModelPart... boxes) {
 		this.applyChainSwingBuffer(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true), boxes);
 	}
@@ -243,7 +241,6 @@ public class PlaneRotationUtil {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	public void applyChainWaveBuffer(BasicModelPart... boxes) {
 		this.applyChainWaveBuffer(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true), boxes);
 	}
@@ -260,7 +257,6 @@ public class PlaneRotationUtil {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	public void applyChainFlapBuffer(BasicModelPart... boxes) {
 		this.applyChainFlapBuffer(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true), boxes);
 	}
@@ -277,7 +273,6 @@ public class PlaneRotationUtil {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	public void applyChainFlapBufferReverse(BasicModelPart... boxes) {
 		this.applyChainFlapBufferReverse(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true), boxes);
 	}
@@ -289,7 +284,6 @@ public class PlaneRotationUtil {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	public void applyChainSwingBufferReverse(BasicModelPart... boxes) {
 		this.applyChainSwingBufferReverse(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true), boxes);
 	}
@@ -301,7 +295,6 @@ public class PlaneRotationUtil {
 		}
 	}
 
-	@OnlyIn(Dist.CLIENT)
 	public void applyChainWaveBufferReverse(BasicModelPart... boxes) {
 		this.applyChainWaveBufferReverse(Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaPartialTick(true), boxes);
 	}

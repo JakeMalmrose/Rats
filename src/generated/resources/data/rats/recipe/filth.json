@@ -1,10 +1,7 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "G": {
-      "item": "rats:compressed_garbage"
-    }
+    "G": "rats:compressed_garbage"
   },
   "pattern": [
     "GGG",
@@ -15,5 +12,6 @@
     "count": 1,
     "id": "rats:filth"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

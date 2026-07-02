@@ -14,8 +14,6 @@ import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.equipment.ArmorType;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
 import java.util.function.Consumer;
@@ -40,7 +38,7 @@ public class RatlantisArmorItem extends Item {
 
 	// 26.1: Item#initializeClient is gone; client extensions are registered from client code via
 	// RegisterClientExtensionsEvent (see the client event handlers), which is why this class is public now.
-	@OnlyIn(Dist.CLIENT)
+	// 26.1: @OnlyIn no longer strips members; class is only referenced from client-side code.
 	public static final class ClientExtensions implements IClientItemExtensions {
 		private final RatlantisArmorItem armor;
 

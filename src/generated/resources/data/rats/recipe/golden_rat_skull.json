@@ -1,13 +1,8 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "G": {
-      "tag": "c:ingots/gold"
-    },
-    "S": {
-      "item": "rats:rat_skull"
-    }
+    "G": "#c:ingots/gold",
+    "S": "rats:rat_skull"
   },
   "pattern": [
     "GGG",
@@ -18,5 +13,6 @@
     "count": 1,
     "id": "rats:golden_rat_skull"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

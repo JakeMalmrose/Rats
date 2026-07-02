@@ -1,5 +1,4 @@
 {
-  "parent": "minecraft:recipes/root",
   "criteria": {
     "has_fish": {
       "conditions": {
@@ -27,7 +26,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:string"
+            "tag": "c:strings"
           }
         ]
       },
@@ -40,6 +39,7 @@
       "trigger": "minecraft:recipe_unlocked"
     }
   },
+  "parent": "minecraft:recipes/root",
   "requirements": [
     [
       "has_fish",

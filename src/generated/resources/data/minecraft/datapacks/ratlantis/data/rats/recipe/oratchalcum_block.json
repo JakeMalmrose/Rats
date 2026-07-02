@@ -1,10 +1,7 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "I": {
-      "item": "rats:oratchalcum_ingot"
-    }
+    "I": "rats:oratchalcum_ingot"
   },
   "pattern": [
     "III",
@@ -15,5 +12,6 @@
     "count": 1,
     "id": "rats:oratchalcum_block"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

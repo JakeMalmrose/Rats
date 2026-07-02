@@ -1,10 +1,7 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "C": {
-      "tag": "c:cheese"
-    }
+    "C": "#c:cheese"
   },
   "pattern": [
     "CCC",
@@ -15,5 +12,6 @@
     "count": 1,
     "id": "rats:rat_upgrade_basic"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

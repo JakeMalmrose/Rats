@@ -1,10 +1,8 @@
 {
-  "type": "rats:chef",
-  "ingredient": {
-    "item": "rats:centipede"
-  },
+  "ingredient": "rats:centipede",
   "result": {
     "count": 1,
     "id": "rats:potato_knishes"
-  }
+  },
+  "type": "rats:chef"
 }

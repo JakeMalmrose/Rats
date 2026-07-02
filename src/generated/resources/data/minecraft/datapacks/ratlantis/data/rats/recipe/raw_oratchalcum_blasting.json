@@ -1,12 +1,10 @@
 {
-  "type": "minecraft:blasting",
   "category": "misc",
   "cookingtime": 100,
   "experience": 1.0,
-  "ingredient": {
-    "item": "rats:raw_oratchalcum"
-  },
+  "ingredient": "rats:raw_oratchalcum",
   "result": {
     "id": "rats:oratchalcum_ingot"
-  }
+  },
+  "type": "minecraft:blasting"
 }

@@ -1,10 +1,7 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "building",
   "key": {
-    "P": {
-      "item": "rats:pirat_planks"
-    }
+    "P": "rats:pirat_planks"
   },
   "pattern": [
     "PPP"
@@ -13,5 +10,6 @@
     "count": 6,
     "id": "rats:pirat_slab"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

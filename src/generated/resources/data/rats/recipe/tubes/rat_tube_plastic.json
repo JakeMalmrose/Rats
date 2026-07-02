@@ -1,10 +1,7 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "P": {
-      "item": "rats:raw_plastic"
-    }
+    "P": "rats:raw_plastic"
   },
   "pattern": [
     "PPP",
@@ -15,5 +12,6 @@
     "count": 16,
     "id": "rats:rat_tube_white"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

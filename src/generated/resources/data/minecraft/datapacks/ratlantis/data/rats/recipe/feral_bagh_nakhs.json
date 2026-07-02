@@ -1,16 +1,9 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "equipment",
   "key": {
-    "C": {
-      "item": "rats:feral_rat_claw"
-    },
-    "F": {
-      "item": "minecraft:rotten_flesh"
-    },
-    "S": {
-      "tag": "c:string"
-    }
+    "C": "rats:feral_rat_claw",
+    "F": "minecraft:rotten_flesh",
+    "S": "#c:strings"
   },
   "pattern": [
     " FC",
@@ -21,5 +14,6 @@
     "count": 1,
     "id": "rats:feral_bagh_nakhs"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

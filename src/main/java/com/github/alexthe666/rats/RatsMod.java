@@ -84,12 +84,30 @@ public class RatsMod {
 		SoundEvents.NETHER_WOOD_BUTTON_CLICK_OFF, SoundEvents.NETHER_WOOD_BUTTON_CLICK_ON);
 	public static final WoodType PIRAT_WOOD_TYPE = WoodType.register(new WoodType(Identifier.fromNamespaceAndPath(MODID, "pirat").toString(), PIRAT_WOOD_SET, SoundType.NETHER_WOOD, SoundType.NETHER_WOOD_HANGING_SIGN, SoundEvents.NETHER_WOOD_FENCE_GATE_CLOSE, SoundEvents.NETHER_WOOD_FENCE_GATE_OPEN));
 
-	public static final GameRule<Boolean> SPAWN_RATS = GameRules.registerBoolean("doRatSpawning", GameRuleCategory.SPAWNING, true);
-	public static final GameRule<Boolean> SPAWN_PIPERS = GameRules.registerBoolean("doPiperSpawning", GameRuleCategory.SPAWNING, true);
-	public static final GameRule<Boolean> SPAWN_PLAGUE_DOCTORS = GameRules.registerBoolean("doPlagueDoctorSpawning", GameRuleCategory.SPAWNING, true);
+	// 26.1: gamerules are registry objects; construct the instances here and register them through
+	// the mod-bus DeferredRegister below (calling GameRules.registerBoolean at class-init hits a frozen registry).
+	public static final GameRule<Boolean> SPAWN_RATS = makeBooleanRule(GameRuleCategory.SPAWNING, true);
+	public static final GameRule<Boolean> SPAWN_PIPERS = makeBooleanRule(GameRuleCategory.SPAWNING, true);
+	public static final GameRule<Boolean> SPAWN_PLAGUE_DOCTORS = makeBooleanRule(GameRuleCategory.SPAWNING, true);
+	public static final net.neoforged.neoforge.registries.DeferredRegister<GameRule<?>> GAME_RULES = net.neoforged.neoforge.registries.DeferredRegister.create(Registries.GAME_RULE, MODID);
+	static {
+		GAME_RULES.register("do_rat_spawning", () -> SPAWN_RATS);
+		GAME_RULES.register("do_piper_spawning", () -> SPAWN_PIPERS);
+		GAME_RULES.register("do_plague_doctor_spawning", () -> SPAWN_PLAGUE_DOCTORS);
+	}
+
+	private static GameRule<Boolean> makeBooleanRule(GameRuleCategory category, boolean defaultValue) {
+		return new GameRule<>(category, net.minecraft.world.level.gamerules.GameRuleType.BOOL,
+				com.mojang.brigadier.arguments.BoolArgumentType.bool(),
+				net.minecraft.world.level.gamerules.GameRuleTypeVisitor::visitBoolean,
+				com.mojang.serialization.Codec.BOOL, b -> b ? 1 : 0, defaultValue,
+				net.minecraft.world.flag.FeatureFlagSet.of());
+	}
 
 	public static boolean ICEANDFIRE_LOADED;
 	public static boolean RATLANTIS_DATAPACK_ENABLED = false;
+	// Pack id assigned by AddPackFindersEvent#addPackFinders: "mod/" + the pack location Identifier.
+	public static final String RATLANTIS_PACK_ID = "mod/" + MODID + ":data/minecraft/datapacks/ratlantis";
 	public static final List<Item> RATLANTIS_ITEMS = new ArrayList<>();
 	private static final List<Pair<String, Component>> MOB_CACHE = new ArrayList<>();
 
@@ -101,6 +119,7 @@ public class RatsMod {
 		NeoForgeMod.enableMilkFluid();
 
 		RatVariantRegistry.RAT_VARIANTS.register(bus);
+		GAME_RULES.register(bus);
 
 		
 		RatsBlockRegistry.BLOCKS.register(bus);

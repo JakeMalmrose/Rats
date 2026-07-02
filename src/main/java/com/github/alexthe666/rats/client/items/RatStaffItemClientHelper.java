@@ -5,13 +5,10 @@ import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.function.Consumer;
 
 // Split out of RatStaffItem so the item class stays loadable on a dedicated server.
-@OnlyIn(Dist.CLIENT)
 public class RatStaffItemClientHelper {
 
 	public static void appendStaffTooltip(Consumer<Component> tooltip) {

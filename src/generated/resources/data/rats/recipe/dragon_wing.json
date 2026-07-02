@@ -1,13 +1,8 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "L": {
-      "tag": "c:leather"
-    },
-    "R": {
-      "tag": "c:rods/blaze"
-    }
+    "L": "#c:leathers",
+    "R": "#c:rods/blaze"
   },
   "pattern": [
     "RRR",
@@ -18,5 +13,6 @@
     "count": 1,
     "id": "rats:dragon_wing"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

@@ -1,5 +1,4 @@
 {
-  "parent": "minecraft:recipes/root",
   "criteria": {
     "has_bucket": {
       "conditions": {
@@ -17,7 +16,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:glass"
+            "tag": "c:glass_blocks"
           }
         ]
       },
@@ -42,6 +41,7 @@
       "trigger": "minecraft:inventory_changed"
     }
   },
+  "parent": "minecraft:recipes/root",
   "requirements": [
     [
       "has_bucket",

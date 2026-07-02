@@ -1,22 +1,11 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "E": {
-      "item": "minecraft:echo_shard"
-    },
-    "P": {
-      "item": "rats:rat_paw"
-    },
-    "S": {
-      "item": "minecraft:sculk"
-    },
-    "U": {
-      "item": "rats:rat_upgrade_basic"
-    },
-    "W": {
-      "tag": "minecraft:wool"
-    }
+    "E": "minecraft:echo_shard",
+    "P": "rats:rat_paw",
+    "S": "minecraft:sculk",
+    "U": "rats:rat_upgrade_basic",
+    "W": "#minecraft:wool"
   },
   "pattern": [
     "SES",
@@ -27,5 +16,6 @@
     "count": 1,
     "id": "rats:rat_upgrade_sculked"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

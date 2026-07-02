@@ -1,10 +1,7 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "misc",
   "key": {
-    "P": {
-      "item": "rats:rat_pelt"
-    }
+    "P": "rats:rat_pelt"
   },
   "pattern": [
     "PP",
@@ -14,5 +11,6 @@
     "count": 1,
     "id": "minecraft:leather"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

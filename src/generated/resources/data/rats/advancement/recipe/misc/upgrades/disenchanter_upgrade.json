@@ -1,5 +1,4 @@
 {
-  "parent": "minecraft:recipes/root",
   "criteria": {
     "has_book": {
       "conditions": {
@@ -29,7 +28,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:stone"
+            "tag": "c:stones"
           }
         ]
       },
@@ -66,6 +65,7 @@
       "trigger": "minecraft:inventory_changed"
     }
   },
+  "parent": "minecraft:recipes/root",
   "requirements": [
     [
       "has_book",

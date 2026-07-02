@@ -1,10 +1,8 @@
 {
-  "type": "rats:archeologist",
-  "ingredient": {
-    "item": "minecraft:dispenser"
-  },
+  "ingredient": "minecraft:dispenser",
   "result": {
     "count": 1,
     "id": "rats:ratbot_barrel"
-  }
+  },
+  "type": "rats:archeologist"
 }

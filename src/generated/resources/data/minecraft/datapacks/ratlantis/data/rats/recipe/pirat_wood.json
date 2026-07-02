@@ -1,11 +1,8 @@
 {
-  "type": "minecraft:crafting_shaped",
   "category": "building",
   "group": "bark",
   "key": {
-    "L": {
-      "item": "rats:pirat_log"
-    }
+    "L": "rats:pirat_log"
   },
   "pattern": [
     "LL",
@@ -15,5 +12,6 @@
     "count": 3,
     "id": "rats:pirat_wood"
   },
-  "show_notification": true
+  "show_notification": true,
+  "type": "minecraft:crafting_shaped"
 }

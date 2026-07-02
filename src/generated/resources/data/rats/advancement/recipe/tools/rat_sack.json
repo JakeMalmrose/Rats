@@ -1,5 +1,4 @@
 {
-  "parent": "minecraft:recipes/root",
   "criteria": {
     "has_cheese": {
       "conditions": {
@@ -15,7 +14,7 @@
       "conditions": {
         "items": [
           {
-            "tag": "c:leather"
+            "tag": "c:leathers"
           }
         ]
       },
@@ -28,6 +27,7 @@
       "trigger": "minecraft:recipe_unlocked"
     }
   },
+  "parent": "minecraft:recipes/root",
   "requirements": [
     [
       "has_cheese",

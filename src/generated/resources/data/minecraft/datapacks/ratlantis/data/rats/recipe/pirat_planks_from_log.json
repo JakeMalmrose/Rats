@@ -1,14 +1,12 @@
 {
-  "type": "minecraft:crafting_shapeless",
   "category": "building",
   "group": "planks",
   "ingredients": [
-    {
-      "tag": "rats:pirat_logs"
-    }
+    "#rats:pirat_logs"
   ],
   "result": {
     "count": 4,
     "id": "rats:pirat_planks"
-  }
+  },
+  "type": "minecraft:crafting_shapeless"
 }

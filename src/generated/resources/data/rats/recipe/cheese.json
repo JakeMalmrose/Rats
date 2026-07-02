@@ -1,13 +1,11 @@
 {
-  "type": "minecraft:crafting_shapeless",
   "category": "misc",
   "ingredients": [
-    {
-      "item": "rats:block_of_cheese"
-    }
+    "rats:block_of_cheese"
   ],
   "result": {
     "count": 4,
     "id": "rats:cheese"
-  }
+  },
+  "type": "minecraft:crafting_shapeless"
 }
