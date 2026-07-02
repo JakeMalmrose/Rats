@@ -322,7 +322,7 @@ public class ForgeClientEvents {
 	}
 
 	@SubscribeEvent
-	public static void onRenderWorld(RenderLevelStageEvent event) {
+	public static void onRenderWorld(RenderLevelStageEvent.AfterTranslucentBlocks event) {
 		// TODO(26.1): the cheese/radius/patrol staff world overlays used immediate-mode drawing
 		// (Tesselator + BufferUploader.drawWithShader), which was removed with the render-pipeline
 		// rework. Reimplement on the submit/level-render-state path once the rest of the port settles.

@@ -1,14 +1,4 @@
 {
-  "parent": "minecraft:item/generated",
-  "loader": "neoforge:item_layers",
-  "neoforge_data": {
-    "layers": {
-      "0": {
-        "block_light": 15,
-        "sky_light": 15
-      }
-    }
-  },
   "overrides": [
     {
       "model": "rats:item/ratbow_essence_agender",
@@ -71,11 +61,7 @@
       }
     }
   ],
-  "render_types": {
-    "minecraft:translucent": [
-      0
-    ]
-  },
+  "parent": "minecraft:item/generated",
   "textures": {
     "layer0": "rats:item/ratbow_essence"
   }

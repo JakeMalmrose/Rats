@@ -18,7 +18,16 @@ import net.minecraft.world.item.ItemStack;
 
 public class DutchratSwordRenderer extends EntityRenderer<DutchratSword, DutchratSwordRenderer.DutchratSwordRenderState> {
 
-	private static final ItemStack PIRAT_SWORD = new ItemStack(RatlantisItemRegistry.GHOST_PIRAT_CUTLASS.get());
+	// 26.1: created lazily — building an ItemStack during renderer construction runs before
+	// item data components are bound and throws "Components not bound yet".
+	private static ItemStack piratSword;
+
+	private static ItemStack getPiratSword() {
+		if (piratSword == null) {
+			piratSword = new ItemStack(RatlantisItemRegistry.GHOST_PIRAT_CUTLASS.get());
+		}
+		return piratSword;
+	}
 
 	private final ItemModelResolver itemModelResolver;
 
@@ -52,7 +61,7 @@ public class DutchratSwordRenderer extends EntityRenderer<DutchratSword, Dutchra
 		super.extractRenderState(entity, state, partialTicks);
 		state.yRot = Mth.lerp(partialTicks, entity.yRotO, entity.getYRot());
 		state.xRot = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
-		this.itemModelResolver.updateForNonLiving(state.item, PIRAT_SWORD, ItemDisplayContext.GROUND, entity);
+		this.itemModelResolver.updateForNonLiving(state.item, getPiratSword(), ItemDisplayContext.GROUND, entity);
 	}
 
 	public static class DutchratSwordRenderState extends EntityRenderState {
