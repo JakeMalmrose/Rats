@@ -4,6 +4,8 @@ import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.data.tags.RatsEntityTags;
 import com.github.alexthe666.rats.registry.RatlantisEntityRegistry;
 import com.github.alexthe666.rats.registry.RatsEntityRegistry;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.EntityTypeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
@@ -15,7 +17,7 @@ import org.jetbrains.annotations.Nullable;
 // removed 1.21 datagen API and the shipped JSON under src/generated/resources is canonical.
 public class RatlantisEntityTags {
 
-	public static final TagKey<EntityType<?>> RATLANTEAN = RatsEntityTags.create("ratlantean");
+	public static final TagKey<EntityType<?>> RATLANTEAN = create("ratlantean");
 
 
 	private static TagKey<EntityType<?>> create(String name) {

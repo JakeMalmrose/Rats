@@ -68,7 +68,7 @@ public final class ClientPacketHandlers {
 	public static void handleSyncPlague(SyncPlaguePacket packet) {
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.level != null && mc.level.getEntity(packet.entityId()) instanceof LivingEntity living) {
-			Holder<MobEffect> effect = BuiltInRegistries.MOB_EFFECT.getHolder(packet.effectId()).orElse(null);
+			Holder<MobEffect> effect = BuiltInRegistries.MOB_EFFECT.get(packet.effectId()).map(h -> (Holder<MobEffect>) h).orElse(null);
 			if (effect != null) {
 				if (packet.duration() == 0) {
 					living.removeEffect(effect);
@@ -93,7 +93,7 @@ public final class ClientPacketHandlers {
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.level != null && mc.level.getEntity(packet.id()) instanceof TamedRat rat) {
 			mc.getSoundManager().queueTickingSound(new RatRecordSoundInstance(rat, packet.record().value()));
-			mc.gui.setNowPlaying(packet.record().value().getDescription());
+			mc.gui.setNowPlaying(packet.record().value().getName(new net.minecraft.world.item.ItemStack(packet.record().value())));
 		}
 	}
 

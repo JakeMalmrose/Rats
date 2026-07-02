@@ -28,7 +28,7 @@ public class CreativeTabClientHelper {
 	public static List<ItemStack> getOreNuggets(Level level) {
 		List<ItemStack> uniqueOres = new ArrayList<>();
 		if (level != null) {
-			for (Item item : BuiltInRegistries.ITEM.holders().filter(holder -> holder.is(Tags.Items.ORES)).map(Holder::value).toList()) {
+			for (Item item : BuiltInRegistries.ITEM.listElements().filter(holder -> holder.is(Tags.Items.ORES)).map(Holder::value).toList()) {
 				ItemStack oreDrop = OreRatNuggetItem.getIngot(level, new ItemStack(item));
 				if (!uniqueOres.contains(oreDrop) && !oreDrop.isEmpty()) {
 					uniqueOres.add(oreDrop);

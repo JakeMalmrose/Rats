@@ -17,4 +17,7 @@ public class RatsBiomeTags {
 	public static final TagKey<Biome> PIPER_SPAWN_BIOMES = create(Identifier.fromNamespaceAndPath(RatsMod.MODID, "piper_spawn_biomes"));
 	public static final TagKey<Biome> DEMON_RAT_SPAWN_BIOMES = create(Identifier.fromNamespaceAndPath(RatsMod.MODID, "demon_rat_spawn_biomes"));
 
+	private static TagKey<Biome> create(Identifier id) {
+		return TagKey.create(Registries.BIOME, id);
+	}
 }

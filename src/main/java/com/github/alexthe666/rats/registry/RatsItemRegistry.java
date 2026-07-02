@@ -57,7 +57,7 @@ public class RatsItemRegistry {
 	public static final DeferredHolder<Item, Item> GILDED_RAT_FLUTE = ITEMS.register("gilded_rat_flute", key -> new GildedRatFluteItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).durability(100)));
 	public static final DeferredHolder<Item, Item> CHEF_TOQUE = ITEMS.register("chef_toque", key -> new HatItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1), RatsArmorMaterialRegistry.CHEF_TOQUE, 0));
 	public static final DeferredHolder<Item, Item> PIPER_HAT = ITEMS.register("piper_hat", key -> new HatItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1), RatsArmorMaterialRegistry.PIPER_HAT, 1));
-	public static final DeferredHolder<Item, Item> STRING_CHEESE = ITEMS.register("string_cheese", key -> new LoreTagItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).food(new FoodProperties.Builder().nutrition(2).saturationModifier(0.4F).fast().build()), 1));
+	public static final DeferredHolder<Item, Item> STRING_CHEESE = ITEMS.register("string_cheese", key -> new LoreTagItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).food(new FoodProperties.Builder().nutrition(2).saturationModifier(0.4F).build(), net.minecraft.world.item.component.Consumables.defaultFood().consumeSeconds(0.8F).build()), 1));
 	public static final DeferredHolder<Item, Item> CREATIVE_CHEESE = ITEMS.register("creative_cheese", key -> new LoreTagItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1).rarity(Rarity.EPIC).fireResistant(), 1, true));
 	public static final DeferredHolder<Item, Item> BLUE_CHEESE = ITEMS.register("blue_cheese", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).food(new FoodProperties.Builder().nutrition(3).saturationModifier(0.5F).build())));
 	public static final DeferredHolder<Item, Item> NETHER_CHEESE = ITEMS.register("nether_cheese", key -> new Item(RatsRegistryHelper.withItemId(key, new Item.Properties()).food(new FoodProperties.Builder().nutrition(3).saturationModifier(0.5F).build()).fireResistant()) {
@@ -85,10 +85,10 @@ public class RatsItemRegistry {
 					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(RatsEffectRegistry.PLAGUE, 2400), 0.3F))
 					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.POISON, 2400), 0.3F))
 					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.HUNGER, 2400), 0.3F))
-					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.CONFUSION, 2400), 0.3F))
+					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.NAUSEA, 2400), 0.3F))
 					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.WEAKNESS, 2400), 0.3F))
 					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.WITHER, 2400), 0.3F))
-					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 2400), 0.3F))
+					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.SLOWNESS, 2400), 0.3F))
 					.onConsume(new ApplyStatusEffectsConsumeEffect(new MobEffectInstance(MobEffects.UNLUCK, 2400), 1.0F))
 					.build())));
 	public static final DeferredHolder<Item, Item> PURIFYING_LIQUID = ITEMS.register("purifying_liquid", key -> new PurifyingLiquidItem(RatsRegistryHelper.withItemId(key, new Item.Properties()).stacksTo(1), false));

@@ -60,7 +60,7 @@ public class VialOfSentience extends ThrowableItemProjectile {
 									}
 								}
 							} else {
-								// 26.1: MobEffects.CONFUSION was renamed to NAUSEA.
+								// 26.1: MobEffects.NAUSEA was renamed to NAUSEA.
 								living.addEffect(new MobEffectInstance(MobEffects.NAUSEA, 600, 4));
 								living.addEffect(new MobEffectInstance(MobEffects.DARKNESS, 600));
 								living.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 600));

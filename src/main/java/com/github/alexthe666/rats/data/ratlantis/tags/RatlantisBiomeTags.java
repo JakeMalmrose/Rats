@@ -17,4 +17,7 @@ public class RatlantisBiomeTags {
 	public static final TagKey<Biome> DUTCHRAT_SHIP_SPAWNS = create(Identifier.fromNamespaceAndPath(RatsMod.MODID, "has_structure/dutchrat_ship"));
 	public static final TagKey<Biome> BARON_RUNWAY_SPAWNS = create(Identifier.fromNamespaceAndPath(RatsMod.MODID, "has_structure/baron_runway"));
 
+	private static TagKey<Biome> create(Identifier id) {
+		return TagKey.create(Registries.BIOME, id);
+	}
 }
