@@ -2,32 +2,41 @@ package com.github.alexthe666.rats.client.render.entity;
 
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.client.model.entity.RatlanteanRatbotModel;
+import com.github.alexthe666.rats.client.render.RatsEntityModelBridge;
 import com.github.alexthe666.rats.client.render.entity.layer.RatbotEyesLayer;
 import com.github.alexthe666.rats.server.entity.monster.RatlanteanRatbot;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.resources.Identifier;
 
-public class RatlanteanRatbotRenderer extends MobRenderer<RatlanteanRatbot, RatlanteanRatbotModel<RatlanteanRatbot>> {
+public class RatlanteanRatbotRenderer extends MobRenderer<RatlanteanRatbot, LivingEntityRenderState, RatsEntityModelBridge<RatlanteanRatbot>> {
 	private static final Identifier RATBOT_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/ratlantean_ratbot/ratlantean_ratbot.png");
 
 	public RatlanteanRatbotRenderer(EntityRendererProvider.Context context) {
-		super(context, new RatlanteanRatbotModel<>(0.0F), 0.5F);
+		super(context, new RatsEntityModelBridge<>(new RatlanteanRatbotModel<>(0.0F)), 0.5F);
 		this.addLayer(new RatbotEyesLayer(this));
-
 	}
 
-	public Identifier getTextureLocation(RatlanteanRatbot entity) {
+	@Override
+	public LivingEntityRenderState createRenderState() {
+		return new LivingEntityRenderState();
+	}
+
+	@Override
+	public Identifier getTextureLocation(LivingEntityRenderState state) {
 		return RATBOT_TEXTURE;
 	}
 
-	protected void scale(RatlanteanRatbot rat, PoseStack stack, float partialTickTime) {
-		super.scale(rat, stack, partialTickTime);
+	@Override
+	protected void scale(LivingEntityRenderState state, PoseStack stack) {
+		super.scale(state, stack);
 		stack.scale(1.9F, 1.9F, 1.9F);
-		if (!((double) rat.walkAnimation.speed() < 0.01D)) {
-			float f1 = rat.walkAnimation.position() - rat.walkAnimation.speed() * (1.0F - partialTickTime) + 6.0F;
+		if (!((double) state.walkAnimationSpeed < 0.01D)) {
+			// 26.1: walkAnimationPos is already partial-tick lerped, replacing position() - speed() * (1 - partialTick).
+			float f1 = state.walkAnimationPos + 6.0F;
 			float f2 = (Math.abs(f1 % 13.0F - 6.5F) - 3.25F) / 3.25F;
 			stack.mulPose(Axis.ZP.rotationDegrees(6.5F * f2));
 		}

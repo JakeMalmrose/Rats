@@ -4,45 +4,28 @@ import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.client.render.RatsRenderType;
 import com.github.alexthe666.rats.server.block.entity.RatlantisPortalBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.blockentity.AbstractEndPortalRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
-import net.minecraft.core.Direction;
+import net.minecraft.client.renderer.blockentity.state.EndPortalRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.resources.Identifier;
-import org.joml.Matrix4f;
 
-public class RatlantisPortalRenderer implements BlockEntityRenderer<RatlantisPortalBlockEntity> {
+public class RatlantisPortalRenderer extends AbstractEndPortalRenderer<RatlantisPortalBlockEntity, EndPortalRenderState> {
 	public static final Identifier PORTAL_BG = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/environment/ratlantis_sky_portal.png");
 	public static final Identifier PORTAL_FG = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/environment/ratlantis_portal.png");
 
 	public RatlantisPortalRenderer(BlockEntityRendererProvider.Context context) {
 	}
 
-	public void render(RatlantisPortalBlockEntity entity, float partialTicks, PoseStack stack, MultiBufferSource buffer, int light, int overlay) {
-		Matrix4f matrix4f = stack.last().pose();
-		this.renderCube(entity, matrix4f, buffer.getBuffer(RatsRenderType.getRatlantisPortal()));
+	@Override
+	public EndPortalRenderState createRenderState() {
+		return new EndPortalRenderState();
 	}
 
-	private void renderCube(RatlantisPortalBlockEntity entity, Matrix4f matrix, VertexConsumer consumer) {
-		float f = 1.0F;
-		float f1 = 1.0F;
-		float f2 = 1.0F;
-		this.renderFace(entity, matrix, consumer, 0.0F, 1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, f, f1, f2, Direction.SOUTH);
-		this.renderFace(entity, matrix, consumer, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, f, f1, f2, Direction.NORTH);
-		this.renderFace(entity, matrix, consumer, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 1.0F, 0.0F, f, f1, f2, Direction.EAST);
-		this.renderFace(entity, matrix, consumer, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.0F, f, f1, f2, Direction.WEST);
-		this.renderFace(entity, matrix, consumer, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F, 1.0F, f, f1, f2, Direction.DOWN);
-		this.renderFace(entity, matrix, consumer, 0.0F, 1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, f, f1, f2, Direction.UP);
-	}
-
-	private void renderFace(RatlantisPortalBlockEntity entity, Matrix4f matrix, VertexConsumer consumer, float xMin, float xMax, float yMin, float yMax, float p_228884_8_, float p_228884_9_, float p_228884_10_, float p_228884_11_, float red, float green, float blue, Direction direction) {
-		if (entity.shouldRenderFace(direction)) {
-			consumer.addVertex(matrix, xMin, yMin, p_228884_8_).setColor(red, green, blue, 1.0F);
-			consumer.addVertex(matrix, xMax, yMin, p_228884_9_).setColor(red, green, blue, 1.0F);
-			consumer.addVertex(matrix, xMax, yMax, p_228884_10_).setColor(red, green, blue, 1.0F);
-			consumer.addVertex(matrix, xMin, yMax, p_228884_11_).setColor(red, green, blue, 1.0F);
-		}
-
+	@Override
+	public void submit(EndPortalRenderState state, PoseStack poseStack, SubmitNodeCollector collector, CameraRenderState camera) {
+		// unlike vanilla's end portal this fills the full block cube, matching the 1.20 renderer
+		submitCube(state.facesToShow, RatsRenderType.getRatlantisPortal(), poseStack, collector);
 	}
 }

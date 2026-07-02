@@ -2,11 +2,19 @@ package com.github.alexthe666.rats.client.render;
 
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.server.items.OreRatNuggetItem;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.color.item.ItemTintSource;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.resources.model.sprite.Material;
+import net.minecraft.util.RandomSource;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.neoforged.neoforge.client.model.data.ModelData;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -42,23 +50,30 @@ public class NuggetColorRegister {
 		float count = 0;
 		int uMax = image.contents().width();
 		int vMax = image.contents().height();
+		// 26.1: getPixelRGBA now delegates to NativeImage#getPixel and returns ARGB (it used to be ABGR),
+		// so red/blue channel shifts are swapped relative to the 1.20 code.
 		for (float i = 0; i < uMax; i++)
 			for (float j = 0; j < vMax; j++) {
 				int alpha = image.getPixelRGBA(0, (int) i, (int) j) >> 24 & 0xFF;
 				if (alpha != 255) {
 					continue;
 				}
-				red += image.getPixelRGBA(0, (int) i, (int) j) & 0xFF;
+				red += image.getPixelRGBA(0, (int) i, (int) j) >> 16 & 0xFF;
 				green += image.getPixelRGBA(0, (int) i, (int) j) >> 8 & 0xFF;
-				blue += image.getPixelRGBA(0, (int) i, (int) j) >> 16 & 0xFF;
+				blue += image.getPixelRGBA(0, (int) i, (int) j) & 0xFF;
 				count++;
 			}
 		//Average color
 		return new Color((int) (red / count), (int) (green / count), (int) (blue / count));
 	}
 
+	// 26.1: ItemModelShaper/BakedModel#getParticleIcon are gone; resolve the item's render state and
+	// take a layer's particle material instead.
 	private static TextureAtlasSprite getTextureAtlas(ItemStack oreStack) {
-		return Objects.requireNonNull(Minecraft.getInstance().getItemRenderer().getItemModelShaper().getItemModel(oreStack.getItem())).getParticleIcon(ModelData.EMPTY);
+		ItemStackRenderState renderState = new ItemStackRenderState();
+		Minecraft.getInstance().getItemModelResolver().updateForTopItem(renderState, oreStack, ItemDisplayContext.GUI, Minecraft.getInstance().level, null, 0);
+		Material.Baked material = renderState.pickParticleMaterial(RandomSource.create(42L));
+		return Objects.requireNonNull(material).sprite();
 	}
 
 	//java.awt bad
@@ -79,6 +94,26 @@ public class NuggetColorRegister {
 
 		public int getARGB() {
 			return this.value;
+		}
+	}
+
+	/**
+	 * 26.1 item tint source replacing the old ItemColor handler for the ore rat nugget
+	 * (layer 1 tinting); register as {@code rats:nugget} via RegisterColorHandlersEvent.ItemTintSources
+	 * and reference it from assets/rats/items/rat_nugget_ore.json.
+	 */
+	public record NuggetTintSource() implements ItemTintSource {
+
+		public static final MapCodec<NuggetTintSource> MAP_CODEC = MapCodec.unit(new NuggetTintSource());
+
+		@Override
+		public int calculate(ItemStack stack, @Nullable ClientLevel level, @Nullable LivingEntity entity) {
+			return 0xFF000000 | getNuggetColor(stack);
+		}
+
+		@Override
+		public MapCodec<? extends ItemTintSource> type() {
+			return MAP_CODEC;
 		}
 	}
 }

@@ -1,21 +1,24 @@
 package com.github.alexthe666.rats.client.gui;
 
-import net.neoforged.neoforge.network.PacketDistributor;
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.server.inventory.RatCraftingTableMenu;
 import com.github.alexthe666.rats.server.message.CycleRatRecipePacket;
 import com.github.alexthe666.rats.server.misc.RatsLangConstants;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.crafting.CraftingInput;
 import net.minecraft.world.item.crafting.CraftingRecipe;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 // 1.21: RecipeBookComponent / RecipeUpdateListener require the menu to be a RecipeBookMenu<I,R>,
@@ -28,10 +31,10 @@ public class RatCraftingTableScreen extends AbstractContainerScreen<RatCraftingT
 	private final RatCraftingTableMenu table;
 
 	public RatCraftingTableScreen(RatCraftingTableMenu container, Inventory inv, Component name) {
-		super(container, inv, name);
+		// 26.1: imageWidth/imageHeight are final; dimensions go through the super constructor.
+		super(container, inv, name, 176, 211);
 		this.playerInventory = inv;
 		this.table = container;
-		this.imageHeight = 211;
 	}
 
 	@Override
@@ -40,74 +43,71 @@ public class RatCraftingTableScreen extends AbstractContainerScreen<RatCraftingT
 		this.renderables.clear();
 		this.addRenderableWidget(new CycleResultButton(this.leftPos + 100, this.topPos + 58, false, button -> {
 			this.table.incrementRecipeIndex(false);
-			PacketDistributor.sendToServer(new CycleRatRecipePacket(this.table.getCraftingTable().getBlockPos().asLong(), false));
+			ClientPacketDistributor.sendToServer(new CycleRatRecipePacket(this.table.getCraftingTable().getBlockPos().asLong(), false));
 		}));
 		this.addRenderableWidget(new CycleResultButton(this.leftPos + 100, this.topPos + 28, true, button -> {
 			this.table.incrementRecipeIndex(true);
-			PacketDistributor.sendToServer(new CycleRatRecipePacket(this.table.getCraftingTable().getBlockPos().asLong(), true));
+			ClientPacketDistributor.sendToServer(new CycleRatRecipePacket(this.table.getCraftingTable().getBlockPos().asLong(), true));
 		}));
 	}
 
+	// 26.1: the z=300/disableDepthTest overlay hack is gone; drawing after super.extractContents
+	// layers the ghost-grid shading and guide item above the slot items.
 	@Override
-	public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
-		this.renderBackground(graphics, mouseX, mouseY, partialTicks);
-		super.render(graphics, mouseX, mouseY, partialTicks);
-		this.renderTooltip(graphics, mouseX, mouseY);
+	public void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+		super.extractContents(graphics, mouseX, mouseY, partialTicks);
 
-		RenderSystem.disableDepthTest();
 		for (int i = 0; i < 3; ++i) {
 			for (int j = 0; j < 3; ++j) {
-				int xPos = 36 + i * 18;
-				int yPos = 22 + j * 18;
-				graphics.pose().pushPose();
-				graphics.pose().translate(this.leftPos, this.topPos, 300.0D);
+				int xPos = this.leftPos + 36 + i * 18;
+				int yPos = this.topPos + 22 + j * 18;
 				graphics.fill(xPos, yPos, xPos + 16, yPos + 16, 0x9f8b8b8b);
-				graphics.pose().popPose();
 			}
 		}
-		RenderSystem.enableDepthTest();
 
 		Optional<CraftingRecipe> recipe = this.table.getCraftingTable().getGuideRecipe();
 		if (recipe.isPresent() && !this.table.getSlot(0).hasItem()) {
-			graphics.renderItem(recipe.get().getResultItem(Minecraft.getInstance().level.registryAccess()), this.leftPos + 130, this.topPos + 40);
-			RenderSystem.disableDepthTest();
-			graphics.pose().pushPose();
-			graphics.pose().translate(this.leftPos, this.topPos, 300.0D);
-			graphics.fill(130, 40, 146, 56, 0x9f8b8b8b);
-			graphics.pose().popPose();
-			RenderSystem.enableDepthTest();
+			// 26.1: Recipe.getResultItem(RegistryAccess) is gone; the guide recipe matched the ghost
+			// matrix, so assembling against it yields the display result.
+			var matrix = this.table.getCraftingTable().matrixHandler;
+			List<ItemStack> items = new ArrayList<>(matrix.getSlots());
+			for (int slot = 0; slot < matrix.getSlots(); slot++) {
+				items.add(matrix.getStackInSlot(slot));
+			}
+			ItemStack result = recipe.get().assemble(CraftingInput.of(3, 3, items));
+			graphics.item(result, this.leftPos + 130, this.topPos + 40);
+			graphics.fill(this.leftPos + 130, this.topPos + 40, this.leftPos + 146, this.topPos + 56, 0x9f8b8b8b);
 		}
 	}
 
 	@Override
-	protected void renderBg(GuiGraphics graphics, float partialTicks, int mouseX, int mouseY) {
-		graphics.blit(TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight);
+	public void extractBackground(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
+		super.extractBackground(graphics, mouseX, mouseY, partialTicks);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 		int l = this.table.getCookProgressionScaled();
-		graphics.blit(TEXTURE, this.leftPos + 96, this.topPos + 39, 0, 211, l, 16);
+		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos + 96, this.topPos + 39, 0, 211, l, 16, 256, 256);
 		if (this.table.getCraftingTable().hasRat()) {
-			graphics.blit(TEXTURE, this.leftPos + 8, this.topPos + 20, 176, 0, 21, 21);
+			graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos + 8, this.topPos + 20, 176, 0, 21, 21, 256, 256);
 		} else {
-			graphics.blit(TEXTURE, this.leftPos + 7, this.topPos + 40, 198, 0, 21, 21);
+			graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos + 7, this.topPos + 40, 198, 0, 21, 21, 256, 256);
 		}
 		if (this.table.getCraftingTable().getRecipeUsed() == null) {
-			graphics.blit(TEXTURE, this.leftPos + 95, this.topPos + 38, 220, 0, 21, 21);
+			graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos + 95, this.topPos + 38, 220, 0, 21, 21, 256, 256);
 		}
 	}
 
 	@Override
-	protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
-		Font font = this.font;
+	protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		String s = this.getTitle().getString();
-		graphics.drawString(this.font, s, this.imageWidth / 2.0F - font.width(s) / 2.0F, 5, 4210752, false);
-		graphics.drawString(this.font, this.playerInventory.getDisplayName().getString(), 8, this.imageHeight - 93, 4210752, false);
-		graphics.drawString(this.font, Component.translatable(RatsLangConstants.CRAFTING_INPUT), 8, this.imageHeight - 125, 4210752, false);
-		int screenW = (this.width - 248) / 2;
-		int screenH = (this.height - 166) / 2;
+		graphics.text(this.font, s, this.imageWidth / 2 - this.font.width(s) / 2, 5, 4210752, false);
+		graphics.text(this.font, this.playerInventory.getDisplayName().getString(), 8, this.imageHeight - 93, 4210752, false);
+		graphics.text(this.font, Component.translatable(RatsLangConstants.CRAFTING_INPUT), 8, this.imageHeight - 125, 4210752, false);
 
 		if (!this.table.getCraftingTable().hasRat()) {
 			if (this.isHovering(6, 34, 25, 29, mouseX, mouseY)) {
 				Component ratDesc = Component.translatable(RatsLangConstants.CRAFTING_NEEDS_RAT);
-				graphics.renderTooltip(this.font, this.font.split(ratDesc, 200), mouseX - screenW - 40, mouseY - screenH + 10);
+				// 26.1: tooltips are queued via setTooltipForNextFrame (absolute screen coordinates) instead of drawn immediately.
+				graphics.setTooltipForNextFrame(this.font, this.font.split(ratDesc, 200), mouseX - 4, mouseY - 12);
 			}
 		}
 	}
@@ -124,22 +124,21 @@ public class RatCraftingTableScreen extends AbstractContainerScreen<RatCraftingT
 			this.up = up;
 		}
 
+		// 26.1: renderWidget(GuiGraphics, ...) became extractContents(GuiGraphicsExtractor, ...); the visible check is handled by AbstractWidget.
 		@Override
-		public void renderWidget(GuiGraphics graphics, int mouseX, int mouseY, float partialTicks) {
+		protected void extractContents(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTicks) {
 			if (Minecraft.getInstance().screen instanceof RatCraftingTableScreen table && !table.shouldRenderButtons())
 				return;
-			if (this.visible) {
-				this.isHovered = mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.width && mouseY < this.getY() + this.height;
+			boolean hovered = mouseX >= this.getX() && mouseY >= this.getY() && mouseX < this.getX() + this.width && mouseY < this.getY() + this.height;
 
-				int textureX = 22;
-				int textureY = 211;
+			int textureX = 22;
+			int textureY = 211;
 
-				if (this.isHovered) textureX += this.width;
+			if (hovered) textureX += this.width;
 
-				if (!this.up) textureY += this.height;
+			if (!this.up) textureY += this.height;
 
-				graphics.blit(TEXTURE, this.getX(), this.getY(), textureX, textureY, this.width, this.height);
-			}
+			graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.getX(), this.getY(), textureX, textureY, this.width, this.height, 256, 256);
 		}
 	}
 }

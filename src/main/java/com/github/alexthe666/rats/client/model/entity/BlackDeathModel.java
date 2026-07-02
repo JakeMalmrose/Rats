@@ -1,16 +1,16 @@
 package com.github.alexthe666.rats.client.model.entity;
 
+import com.github.alexthe666.rats.client.render.RatsClientKeys;
 import com.github.alexthe666.rats.server.entity.monster.boss.BlackDeath;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import net.minecraft.client.model.AnimationUtils;
 import net.minecraft.client.model.HumanoidModel;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
 import net.minecraft.util.Mth;
 
-public class BlackDeathModel<T extends BlackDeath> extends HumanoidModel<T> {
+public class BlackDeathModel extends HumanoidModel<HumanoidRenderState> {
 	public final ModelPart arms;
 
 	public BlackDeathModel(ModelPart root) {
@@ -29,7 +29,8 @@ public class BlackDeathModel<T extends BlackDeath> extends HumanoidModel<T> {
 						.addBox(-7.0F, -7.0F, -7.0F, 14.0F, 0.0F, 14.0F),
 				PartPose.offset(0.0F, 0.0F, 0.0F));
 
-		partdefinition.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO);
+		// 26.1: HumanoidModel now looks the hat part up as a child of the head, not of the root.
+		head.addOrReplaceChild("hat", CubeListBuilder.create(), PartPose.ZERO);
 
 		PartDefinition nose = head.addOrReplaceChild("nose", CubeListBuilder.create()
 						.texOffs(28, 42)
@@ -81,36 +82,39 @@ public class BlackDeathModel<T extends BlackDeath> extends HumanoidModel<T> {
 	}
 
 	@Override
-	public void setupAnim(T entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-		this.head.yRot = netHeadYaw * Mth.DEG_TO_RAD;
-		this.head.xRot = headPitch * Mth.DEG_TO_RAD;
-		this.rightLeg.xRot = Mth.cos(limbSwing * 0.6662F) * 1.4F * limbSwingAmount * 0.5F;
-		this.leftLeg.xRot = Mth.cos(limbSwing * 0.6662F + (float) Math.PI) * 1.4F * limbSwingAmount * 0.5F;
+	public void setupAnim(HumanoidRenderState state) {
+		// 26.1: skip HumanoidModel's arm-pose/bobbing logic; this model fully poses itself as it did in 1.20.
+		this.resetPose();
+		this.head.yRot = state.yRot * Mth.DEG_TO_RAD;
+		this.head.xRot = state.xRot * Mth.DEG_TO_RAD;
+		this.rightLeg.xRot = Mth.cos(state.walkAnimationPos * 0.6662F) * 1.4F * state.walkAnimationSpeed * 0.5F;
+		this.leftLeg.xRot = Mth.cos(state.walkAnimationPos * 0.6662F + (float) Math.PI) * 1.4F * state.walkAnimationSpeed * 0.5F;
 		this.rightLeg.yRot = 0.0F;
 		this.leftLeg.yRot = 0.0F;
-		if (entity.isSummoning()) {
-			this.rightArm.xRot = Mth.cos(ageInTicks * 0.6662F) * 0.25F;
-			this.leftArm.xRot = Mth.cos(ageInTicks * 0.6662F) * 0.25F;
+		boolean summoning = false;
+		boolean meleeAttacking = false;
+		if (RatsClientKeys.getLiving(state) instanceof BlackDeath death) {
+			summoning = death.isSummoning();
+			meleeAttacking = death.isMeleeAttacking();
+		}
+		if (summoning) {
+			this.rightArm.xRot = Mth.cos(state.ageInTicks * 0.6662F) * 0.25F;
+			this.leftArm.xRot = Mth.cos(state.ageInTicks * 0.6662F) * 0.25F;
 			this.rightArm.zRot = 135.0F * Mth.DEG_TO_RAD;
 			this.leftArm.zRot = -135.0F * Mth.DEG_TO_RAD;
 			this.rightArm.yRot = Mth.PI;
 			this.leftArm.yRot = Mth.PI;
 		} else {
-			if (entity.isMeleeAttacking()) {
-				AnimationUtils.swingWeaponDown(this.rightArm, this.leftArm, entity, this.attackTime, ageInTicks);
+			if (meleeAttacking) {
+				AnimationUtils.swingWeaponDown(this.rightArm, this.leftArm, state.mainArm, state.attackTime, state.ageInTicks);
 			} else {
 				this.rightArm.setRotation(0.0F, 0.0F, 0.0F);
 				this.leftArm.setRotation(0.0F, 0.0F, 0.0F);
 			}
 		}
-		boolean flag = entity.isSummoning() || entity.isMeleeAttacking();
+		boolean flag = summoning || meleeAttacking;
 		this.arms.visible = !flag;
 		this.leftArm.visible = flag;
 		this.rightArm.visible = flag;
-	}
-
-	@Override
-	protected Iterable<ModelPart> bodyParts() {
-		return Iterables.concat(super.bodyParts(), ImmutableList.of(this.arms));
 	}
 }

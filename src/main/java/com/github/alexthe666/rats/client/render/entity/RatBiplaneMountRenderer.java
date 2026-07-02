@@ -2,20 +2,29 @@ package com.github.alexthe666.rats.client.render.entity;
 
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.client.model.entity.BiplaneModel;
+import com.github.alexthe666.rats.client.render.RatsEntityModelBridge;
 import com.github.alexthe666.rats.server.entity.mount.RatBiplaneMount;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.MobRenderer;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.resources.Identifier;
 
-public class RatBiplaneMountRenderer extends MobRenderer<RatBiplaneMount, BiplaneModel<RatBiplaneMount>> {
+// Keep the BiplaneModel behind the bridge: AbstractRatRenderer.scale() unwraps it to seat riding rats.
+public class RatBiplaneMountRenderer extends MobRenderer<RatBiplaneMount, LivingEntityRenderState, RatsEntityModelBridge<RatBiplaneMount>> {
 
 	private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/mounts/biplane_mount.png");
 
 	public RatBiplaneMountRenderer(EntityRendererProvider.Context context) {
-		super(context, new BiplaneModel<>(), 1.65F);
+		super(context, new RatsEntityModelBridge<>(new BiplaneModel<>()), 1.65F);
 	}
 
-	public Identifier getTextureLocation(RatBiplaneMount entity) {
+	@Override
+	public LivingEntityRenderState createRenderState() {
+		return new LivingEntityRenderState();
+	}
+
+	@Override
+	public Identifier getTextureLocation(LivingEntityRenderState state) {
 		return TEXTURE;
 	}
 }

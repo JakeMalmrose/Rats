@@ -4,40 +4,60 @@ import com.github.alexthe666.rats.registry.RatlantisItemRegistry;
 import com.github.alexthe666.rats.server.entity.projectile.DutchratSword;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.state.EntityRenderState;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
-public class DutchratSwordRenderer extends EntityRenderer<DutchratSword> {
+public class DutchratSwordRenderer extends EntityRenderer<DutchratSword, DutchratSwordRenderer.DutchratSwordRenderState> {
 
 	private static final ItemStack PIRAT_SWORD = new ItemStack(RatlantisItemRegistry.GHOST_PIRAT_CUTLASS.get());
 
+	private final ItemModelResolver itemModelResolver;
+
 	public DutchratSwordRenderer(EntityRendererProvider.Context context) {
 		super(context);
-	}
-
-	public void render(DutchratSword entity, float entityYaw, float partialTicks, PoseStack stack, MultiBufferSource buffer, int light) {
-		stack.pushPose();
-		stack.mulPose(Axis.YP.rotationDegrees(Mth.lerp(partialTicks, entity.yRotO, entity.getYRot()) - 180.0F));
-		stack.mulPose(Axis.ZP.rotationDegrees(Mth.lerp(partialTicks, entity.xRotO, entity.getXRot())));
-		stack.translate(0.0F, 0.5F, 0.0F);
-		stack.scale(3.0F, 3.0F, 3.0F);
-		stack.mulPose(Axis.YP.rotationDegrees(90.0F));
-		stack.mulPose(Axis.ZP.rotationDegrees((entity.tickCount + partialTicks) * 20.0F));
-		stack.translate(0.0F, -0.15F, 0.0F);
-		Minecraft.getInstance().getItemRenderer().renderStatic(PIRAT_SWORD, ItemDisplayContext.GROUND, light, OverlayTexture.NO_OVERLAY, stack, buffer, null, 0);
-		stack.popPose();
+		this.itemModelResolver = context.getItemModelResolver();
 	}
 
 	@Override
-	public Identifier getTextureLocation(DutchratSword entity) {
-		return InventoryMenu.BLOCK_ATLAS;
+	public void submit(DutchratSwordRenderState state, PoseStack stack, SubmitNodeCollector collector, CameraRenderState camera) {
+		stack.pushPose();
+		stack.mulPose(Axis.YP.rotationDegrees(state.yRot - 180.0F));
+		stack.mulPose(Axis.ZP.rotationDegrees(state.xRot));
+		stack.translate(0.0F, 0.5F, 0.0F);
+		stack.scale(3.0F, 3.0F, 3.0F);
+		stack.mulPose(Axis.YP.rotationDegrees(90.0F));
+		stack.mulPose(Axis.ZP.rotationDegrees(state.ageInTicks * 20.0F));
+		stack.translate(0.0F, -0.15F, 0.0F);
+		state.item.submit(stack, collector, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor);
+		stack.popPose();
+		super.submit(state, stack, collector, camera);
+	}
+
+	@Override
+	public DutchratSwordRenderState createRenderState() {
+		return new DutchratSwordRenderState();
+	}
+
+	@Override
+	public void extractRenderState(DutchratSword entity, DutchratSwordRenderState state, float partialTicks) {
+		super.extractRenderState(entity, state, partialTicks);
+		state.yRot = Mth.lerp(partialTicks, entity.yRotO, entity.getYRot());
+		state.xRot = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
+		this.itemModelResolver.updateForNonLiving(state.item, PIRAT_SWORD, ItemDisplayContext.GROUND, entity);
+	}
+
+	public static class DutchratSwordRenderState extends EntityRenderState {
+		public float yRot;
+		public float xRot;
+		public final ItemStackRenderState item = new ItemStackRenderState();
 	}
 }

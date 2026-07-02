@@ -5,65 +5,79 @@ import com.github.alexthe666.rats.client.model.RatsModelLayers;
 import com.github.alexthe666.rats.client.model.entity.PinkieModel;
 import com.github.alexthe666.rats.client.model.entity.StaticRatModel;
 import com.github.alexthe666.rats.client.model.hats.PartyHatModel;
+import com.github.alexthe666.rats.client.render.RatsClientKeys;
+import com.github.alexthe666.rats.client.render.RatsEntityModelBridge;
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import com.github.alexthe666.rats.server.items.PartyHatItem;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.HumanoidModel;
-import net.minecraft.client.model.Model;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.client.renderer.entity.ItemRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.state.HumanoidRenderState;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 
-public class PartyHatLayer<T extends LivingEntity, M extends EntityModel<T>, A extends HumanoidModel<T>> extends RenderLayer<T, M> {
-	private final A outerModel;
+public class PartyHatLayer<S extends LivingEntityRenderState, M extends EntityModel<? super S>> extends RenderLayer<S, M> {
+	private final HumanoidModel<?> outerModel;
 	private final PartyHatModel partyHat = new PartyHatModel(Minecraft.getInstance().getEntityModels().bakeLayer(RatsModelLayers.PARTY_HAT));
+	// 26.1: models pose from a render state at draw time; feed the hat a neutral humanoid state so it stays
+	// at the model origin and the PoseStack transform below does the positioning (same trick as RatHelmetLayer).
+	private final HumanoidRenderState hatState = new HumanoidRenderState();
 
-	public PartyHatLayer(RenderLayerParent<T, M> parent, A outerModel) {
+	public PartyHatLayer(RenderLayerParent<S, M> parent, HumanoidModel<?> outerModel) {
 		super(parent);
 		this.outerModel = outerModel;
 	}
 
 	@Override
-	public void render(PoseStack stack, MultiBufferSource source, int light, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
+	public void submit(PoseStack stack, SubmitNodeCollector collector, int light, S state, float netHeadYaw, float headPitch) {
+		LivingEntity entity = RatsClientKeys.getLiving(state);
+		if (entity == null) {
+			return;
+		}
 		ItemStack itemstack = entity.getItemBySlot(EquipmentSlot.HEAD);
 		if (entity instanceof TamedRat rat && rat.getRespawnCountdown() > 0) return;
 		if (itemstack.getItem() instanceof PartyHatItem hat) {
 			stack.pushPose();
-			this.getParentModel().copyPropertiesTo(this.outerModel);
+			// 26.1: copyPropertiesTo is gone with the render-state split; the outer model was never drawn here, so it just stays hidden.
 			this.outerModel.setAllVisible(false);
 			if (this.getParentModel() instanceof HumanoidModel<?> human) {
 				human.head.translateAndRotate(stack);
 				stack.translate(0.0F, -0.875F, 0.0F);
-			} else if (this.getParentModel() instanceof StaticRatModel<?> rat) {
-				if (entity.isBaby()) {
-					((PinkieModel<?>) this.getParentModel()).body.translateRotate(stack);
+			} else if (this.getParentModel() instanceof RatsEntityModelBridge<?> bridge) {
+				// 26.1: rat renderers wrap their Citadel model in the bridge (and swap to PinkieModel for babies); unwrap to reach the parts.
+				boolean positioned = true;
+				if (entity.isBaby() && bridge.citadel() instanceof PinkieModel<?> pinkie) {
+					pinkie.body.translateRotate(stack);
 					stack.translate(0.0D, -0.01D, -0.05D);
 					stack.scale(0.65F, 0.65F, 0.65F);
-				} else {
+				} else if (bridge.citadel() instanceof StaticRatModel<?> rat) {
 					rat.body1.translateRotate(stack);
 					rat.body2.translateRotate(stack);
 					rat.neck.translateRotate(stack);
 					rat.head.translateRotate(stack);
+				} else {
+					positioned = false;
 				}
-				stack.translate(0.0F, -0.35F, 0.0F);
-				stack.scale(0.75F, 0.75F, 0.75F);
+				if (positioned) {
+					stack.translate(0.0F, -0.35F, 0.0F);
+					stack.scale(0.75F, 0.75F, 0.75F);
+				}
 			}
 			boolean flag1 = itemstack.hasFoil();
 			int i = hat.getColor(itemstack);
-			this.renderModel(stack, source, light, flag1, this.partyHat, (float) (i >> 16 & 255) / 255.0F, (float) (i >> 8 & 255) / 255.0F, (float) (i & 255) / 255.0F, Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/model/hat/party_hat_layer_1.png"));
+			this.submitHat(stack, collector, light, state, flag1, i, Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/model/hat/party_hat_layer_1.png"));
 			i = this.invertColor(hat.getColor(itemstack));
-			this.renderModel(stack, source, light, flag1, this.partyHat, (float) (i >> 16 & 255) / 255.0F, (float) (i >> 8 & 255) / 255.0F, (float) (i & 255) / 255.0F, Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/model/hat/party_hat_layer_2.png"));
+			this.submitHat(stack, collector, light, state, flag1, i, Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/model/hat/party_hat_layer_2.png"));
 			stack.popPose();
 		}
 	}
@@ -80,9 +94,12 @@ public class PartyHatLayer<T extends LivingEntity, M extends EntityModel<T>, A e
 		return (a & 0xff) << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);
 	}
 
-	private void renderModel(PoseStack stack, MultiBufferSource source, int light, boolean glint, Model model, float red, float green, float blue, Identifier texture) {
-		// 1.21: ItemRenderer.getArmorFoilBuffer dropped the `boolean noCullValue` arg.
-		VertexConsumer vertexconsumer = ItemRenderer.getArmorFoilBuffer(source, RenderTypes.armorCutoutNoCull(texture), glint);
-		model.renderToBuffer(stack, vertexconsumer, light, OverlayTexture.NO_OVERLAY, net.minecraft.util.FastColor.ARGB32.colorFromFloat(1.0F, red, green, blue));
+	private void submitHat(PoseStack stack, SubmitNodeCollector collector, int light, S state, boolean glint, int color, Identifier texture) {
+		int argb = ARGB.color(255, color);
+		collector.submitModel(this.partyHat, this.hatState, stack, RenderTypes.armorCutoutNoCull(texture), light, OverlayTexture.NO_OVERLAY, argb, null, state.outlineColor, null);
+		if (glint) {
+			// 26.1: ItemRenderer.getArmorFoilBuffer is gone; foil is an extra armorEntityGlint pass (see vanilla EquipmentLayerRenderer).
+			collector.submitModel(this.partyHat, this.hatState, stack, RenderTypes.armorEntityGlint(), light, OverlayTexture.NO_OVERLAY, argb, null, state.outlineColor, null);
+		}
 	}
 }

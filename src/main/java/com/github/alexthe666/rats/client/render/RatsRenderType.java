@@ -2,6 +2,7 @@ package com.github.alexthe666.rats.client.render;
 
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.client.render.block.RatlantisPortalRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexMultiConsumer;
 import net.minecraft.util.Util;
@@ -17,6 +18,7 @@ import org.joml.Matrix4f;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Custom {@link RenderType} factories for Rats. Minecraft 26.1 uses {@link RenderSetup} instead of the
@@ -113,6 +115,22 @@ public class RatsRenderType {
 	/** 1.21.1 used the energy-swirl shader for this; the vanilla factory matches. */
 	public static RenderType getGlowingTranslucent(Identifier location) {
 		return RenderTypes.energySwirl(location, 0.0F, 0.0F);
+	}
+
+	/**
+	 * {@code SubmitNodeCollector#submitCustomGeometry} replays geometry later with the {@link PoseStack.Pose}
+	 * captured at submit time; Citadel models build quads from {@link PoseStack#last()} at draw time, so seed a
+	 * scratch stack with the replayed pose before drawing (the live renderer stack may already be popped).
+	 */
+	public static void withSubmitPose(PoseStack.Pose pose, PoseStack scratch, Consumer<PoseStack> draw) {
+		while (!scratch.isEmpty()) {
+			scratch.popPose();
+		}
+		scratch.last().set(pose);
+		draw.accept(scratch);
+		while (!scratch.isEmpty()) {
+			scratch.popPose();
+		}
 	}
 
 	private static boolean encounteredMultiConsumerError = false;

@@ -21,6 +21,7 @@ import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
+import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
@@ -31,7 +32,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
@@ -308,7 +309,8 @@ public class MobFilterScreen extends Screen {
 		} else {
 			if (this.searchBar.getValue().startsWith("#")) {
 				String tagName = this.searchBar.getValue().substring(1).trim();
-				List<TagKey<EntityType<?>>> tags = BuiltInRegistries.ENTITY_TYPE.getTagNames().filter(key -> key.location().toString().contains(tagName)).toList();
+				// 26.1: Registry#getTagNames is gone; getTags() streams HolderSet.Named, whose key() is the TagKey.
+				List<TagKey<EntityType<?>>> tags = BuiltInRegistries.ENTITY_TYPE.getTags().map(HolderSet.Named::key).filter(key -> key.location().toString().contains(tagName)).toList();
 				if (!tags.isEmpty()) {
 					tags.forEach(key -> {
 						this.filteredMobs.addAll(this.allMobs.stream().filter(pair -> {
@@ -332,7 +334,7 @@ public class MobFilterScreen extends Screen {
 
 	@Override
 	public void onClose() {
-		PacketDistributor.sendToServer(new UpdateMobFilterPacket(this.hand, this.isWhitelist, this.selectedMobs));
+		ClientPacketDistributor.sendToServer(new UpdateMobFilterPacket(this.hand, this.isWhitelist, this.selectedMobs));
 		super.onClose();
 	}
 

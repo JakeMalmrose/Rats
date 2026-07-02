@@ -1,13 +1,13 @@
 package com.github.alexthe666.rats.client.gui;
 
-import net.neoforged.neoforge.network.PacketDistributor;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import com.github.alexthe666.rats.client.util.EntityRenderingUtil;
 import com.github.alexthe666.rats.registry.RatsItemRegistry;
 import com.github.alexthe666.rats.server.entity.rat.TamedRat;
 import com.github.alexthe666.rats.server.message.SyncRatStaffPacket;
 import com.github.alexthe666.rats.server.misc.RatsLangConstants;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
@@ -43,29 +43,29 @@ public class CheeseStaffScreen extends Screen {
 		Component topText = Component.translatable(RatsLangConstants.RAT_STAFF_DEPOSIT_POS, this.getPosName(), Component.translatable("rats.direction." + this.clickedFace.getName()));
 		int maxLength = Math.max(150, Minecraft.getInstance().font.width(topText.getString()) + 20);
 		this.addRenderableWidget(Button.builder(topText, button -> {
-			PacketDistributor.sendToServer(new SyncRatStaffPacket(this.rat.getId(), this.pos, this.clickedFace, 0));
+			ClientPacketDistributor.sendToServer(new SyncRatStaffPacket(this.rat.getId(), this.pos, this.clickedFace, 0));
 			Minecraft.getInstance().setScreen(null);
 			this.init();
 		}).bounds(i - maxLength / 2, j + 60, maxLength, 20).build());
 		this.addRenderableWidget(Button.builder(Component.translatable(RatsLangConstants.RAT_STAFF_PICKUP_POS, this.getPosName(), Component.translatable("rats.direction." + this.clickedFace.getName())), button -> {
-			PacketDistributor.sendToServer(new SyncRatStaffPacket(this.rat.getId(), this.pos, this.clickedFace, 1));
+			ClientPacketDistributor.sendToServer(new SyncRatStaffPacket(this.rat.getId(), this.pos, this.clickedFace, 1));
 			Minecraft.getInstance().setScreen(null);
 			this.init();
 		}).bounds(i - maxLength / 2, j + 85, maxLength, 20).build());
 		this.addRenderableWidget(Button.builder(Component.translatable(RatsLangConstants.RAT_STAFF_SET_HOME, getPosName()), button -> {
 			this.rat.setHomePoint(GlobalPos.of(Minecraft.getInstance().player.level().dimension(), this.pos));
-			PacketDistributor.sendToServer(new SyncRatStaffPacket(this.rat.getId(), this.pos, Direction.UP, 2));
+			ClientPacketDistributor.sendToServer(new SyncRatStaffPacket(this.rat.getId(), this.pos, Direction.UP, 2));
 			this.init();
 		}).bounds(i - maxLength / 2, j + 110, maxLength, 20).build());
 		this.addRenderableWidget(Button.builder(Component.translatable(RatsLangConstants.RAT_STAFF_REMOVE_HOME), button -> {
 			this.rat.setHomePoint(null);
-			PacketDistributor.sendToServer(new SyncRatStaffPacket(this.rat.getId(), this.pos, Direction.UP, 3));
+			ClientPacketDistributor.sendToServer(new SyncRatStaffPacket(this.rat.getId(), this.pos, Direction.UP, 3));
 			this.init();
 		}).bounds(i - maxLength / 2, j + 135, maxLength, 20).build());
 		this.addRenderableWidget(Button.builder(Component.translatable(RatsLangConstants.RAT_STAFF_REMOVE_TRANSPORT_POS), button -> {
 			this.rat.setPickupPos(null);
 			this.rat.setDepositPos(null);
-			PacketDistributor.sendToServer(new SyncRatStaffPacket(this.rat.getId(), this.pos, Direction.UP, 7));
+			ClientPacketDistributor.sendToServer(new SyncRatStaffPacket(this.rat.getId(), this.pos, Direction.UP, 7));
 			this.init();
 		}).bounds(i - maxLength / 2, j + 160, maxLength, 20).build());
 		((Button) this.renderables.get(0)).visible = !this.isNoInventoryAtPos();
@@ -79,7 +79,8 @@ public class CheeseStaffScreen extends Screen {
 		if (this.pos != null) {
 			BlockState state = this.rat.level().getBlockState(this.pos);
 			List<Component> namelist = null;
-			ItemStack pick = state.getBlock().getCloneItemStack(this.rat.level(), this.pos, state);
+			// 26.1: getCloneItemStack moved onto BlockState and takes an includeData flag.
+			ItemStack pick = state.getCloneItemStack(this.rat.level(), this.pos, false);
 			try {
 				// 1.21: ItemStack.getTooltipLines now takes (Item.TooltipContext, Player, TooltipFlag).
 				namelist = pick.getTooltipLines(net.minecraft.world.item.Item.TooltipContext.of(Minecraft.getInstance().level), Minecraft.getInstance().player, TooltipFlag.Default.NORMAL);
@@ -100,14 +101,14 @@ public class CheeseStaffScreen extends Screen {
 		return true;
 	}
 
+	// 26.1: render(GuiGraphics, ...) became extraction-based; the transparent background is handled by extractBackground.
 	@Override
-	public void render(GuiGraphics graphics, int x, int y, float partialTicks) {
-		this.renderBackground(graphics, x, y, partialTicks);
-		super.render(graphics, x, y, partialTicks);
+	public void extractRenderState(GuiGraphicsExtractor graphics, int x, int y, float partialTicks) {
+		super.extractRenderState(graphics, x, y, partialTicks);
 		int i = (this.width - 248) / 2 + 10;
 		int j = (this.height - 166) / 2 + 8;
 		if (this.rat != null) {
-			EntityRenderingUtil.drawEntityOnScreen(graphics, i + 114, j + 40, 70, 0, 0, this.rat, true);
+			EntityRenderingUtil.drawEntityOnScreen(graphics, i + 114, j + 40, 70, 0, 0, this.rat);
 		}
 
 	}

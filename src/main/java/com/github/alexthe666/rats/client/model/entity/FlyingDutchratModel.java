@@ -8,10 +8,9 @@ import com.github.alexthe666.rats.server.entity.monster.boss.Dutchrat;
 import com.google.common.collect.ImmutableList;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
-import net.minecraft.client.model.ArmedModel;
 import net.minecraft.world.entity.HumanoidArm;
 
-public class FlyingDutchratModel<T extends Dutchrat> extends AdvancedEntityModel<T> implements ArmedModel {
+public class FlyingDutchratModel<T extends Dutchrat> extends AdvancedEntityModel<T> {
 	public final AdvancedModelBox body1;
 	public final AdvancedModelBox body2;
 	public final AdvancedModelBox neck;
@@ -365,7 +364,8 @@ public class FlyingDutchratModel<T extends Dutchrat> extends AdvancedEntityModel
 				this.paw);
 	}
 
-	@Override
+	// 26.1: vanilla ArmedModel is now state-typed and only fits vanilla EntityModels; DutchratRenderer's
+	// sword layer calls this directly on the Citadel model instead.
 	public void translateToHand(HumanoidArm arm, PoseStack stack) {
 		this.body1.translateRotate(stack);
 		this.rightArm1.translateRotate(stack);

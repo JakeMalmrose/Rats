@@ -46,7 +46,7 @@ public class AbstractHatModel extends HumanoidModel<HumanoidRenderState> {
 			this.rightLeg.yRot = 0.017453292F * stand.rightLegPose.y();
 			this.rightLeg.zRot = 0.017453292F * stand.rightLegPose.z();
 			this.rightLeg.setPos(-1.9F, 11.0F, 0.0F);
-			this.hat.copyFrom(this.head);
+			// 26.1: ModelPart.copyFrom is gone and the hat part is now a child of the head, so it follows it automatically.
 		} else {
 			super.setupAnim(state);
 			// 26.1: dispatch to the legacy entity-based hook so subclasses animating off the live entity keep working.

@@ -1,37 +1,40 @@
 package com.github.alexthe666.rats.client.render.entity.layer;
 
 import com.github.alexthe666.rats.client.model.entity.RatlanteanAutomatonModel;
+import com.github.alexthe666.rats.client.render.RatsEntityModelBridge;
 import com.github.alexthe666.rats.registry.RatlantisItemRegistry;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 
-public class GlowingOverlayLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
+public class GlowingOverlayLayer<T extends LivingEntity> extends RenderLayer<LivingEntityRenderState, RatsEntityModelBridge<T>> {
 	private final RenderType renderType;
 
-	public GlowingOverlayLayer(RenderLayerParent<T, M> parent, Identifier texture) {
+	public GlowingOverlayLayer(RenderLayerParent<LivingEntityRenderState, RatsEntityModelBridge<T>> parent, Identifier texture) {
 		super(parent);
 		this.renderType = RenderTypes.eyes(texture);
 	}
 
 	@Override
-	public void render(PoseStack stack, MultiBufferSource buffer, int light, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-		VertexConsumer consumer = buffer.getBuffer(this.renderType);
-		this.getParentModel().renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+	public void submit(PoseStack stack, SubmitNodeCollector collector, int light, LivingEntityRenderState state, float netHeadYaw, float headPitch) {
+		this.getParentModel().setupAnim(state);
+		collector.submitCustomGeometry(stack, this.renderType, (pose, consumer) ->
+				this.getParentModel().renderCitadelToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, -1));
 
-		if (this.getParentModel() instanceof RatlanteanAutomatonModel<?> automaton) {
+		if (this.getParentModel().citadel() instanceof RatlanteanAutomatonModel<?> automaton) {
 			stack.pushPose();
 			automaton.armLeft1.translateAndRotate(stack);
 			automaton.armLeft2.translateAndRotate(stack);
@@ -40,7 +43,11 @@ public class GlowingOverlayLayer<T extends LivingEntity, M extends EntityModel<T
 			automaton.blade.translateAndRotate(stack);
 			stack.mulPose(Axis.YP.rotationDegrees(90));
 
-			Minecraft.getInstance().getItemRenderer().renderStatic(new ItemStack(RatlantisItemRegistry.ANCIENT_SAWBLADE.get()), ItemDisplayContext.FIXED, light, OverlayTexture.NO_OVERLAY, stack, buffer, null, 0);
+			// 26.1: ItemRenderer.renderStatic is gone; items render through ItemStackRenderState.
+			ItemStackRenderState sawblade = new ItemStackRenderState();
+			Minecraft mc = Minecraft.getInstance();
+			mc.getItemModelResolver().updateForTopItem(sawblade, new ItemStack(RatlantisItemRegistry.ANCIENT_SAWBLADE.get()), ItemDisplayContext.FIXED, mc.level instanceof ClientLevel cl ? cl : null, null, 0);
+			sawblade.submit(stack, collector, light, OverlayTexture.NO_OVERLAY, state.outlineColor);
 			stack.popPose();
 		}
 	}

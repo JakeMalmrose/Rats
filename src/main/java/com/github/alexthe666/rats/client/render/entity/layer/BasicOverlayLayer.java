@@ -1,28 +1,30 @@
 package com.github.alexthe666.rats.client.render.entity.layer;
 
+import com.github.alexthe666.rats.client.render.RatsEntityModelBridge;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.model.EntityModel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 
-public class BasicOverlayLayer<T extends LivingEntity, M extends EntityModel<T>> extends RenderLayer<T, M> {
+public class BasicOverlayLayer<T extends LivingEntity> extends RenderLayer<LivingEntityRenderState, RatsEntityModelBridge<T>> {
 	private final RenderType renderType;
 
-	public BasicOverlayLayer(RenderLayerParent<T, M> parent, Identifier texture) {
+	public BasicOverlayLayer(RenderLayerParent<LivingEntityRenderState, RatsEntityModelBridge<T>> parent, Identifier texture) {
 		super(parent);
-		this.renderType = RenderTypes.entityNoOutline(texture);
+		// 26.1: entityNoOutline was removed; entityTranslucent with affectsOutline=false is the equivalent no-outline pass.
+		this.renderType = RenderTypes.entityTranslucent(texture, false);
 	}
 
 	@Override
-	public void render(PoseStack stack, MultiBufferSource buffer, int light, T entity, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-		VertexConsumer consumer = buffer.getBuffer(this.renderType);
-		this.getParentModel().renderToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+	public void submit(PoseStack stack, SubmitNodeCollector collector, int light, LivingEntityRenderState state, float netHeadYaw, float headPitch) {
+		this.getParentModel().setupAnim(state);
+		collector.submitCustomGeometry(stack, this.renderType, (pose, consumer) ->
+				this.getParentModel().renderCitadelToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, -1));
 	}
 }

@@ -1,7 +1,7 @@
 package com.github.alexthe666.rats.client.render;
 
-import com.github.alexthe666.rats.server.items.DemonRatUpgradeItem;
 import com.github.alexthe666.rats.server.items.RatSackItem;
+import com.github.alexthe666.rats.server.items.upgrades.DemonRatUpgradeItem;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.item.properties.conditional.ConditionalItemModelProperty;
