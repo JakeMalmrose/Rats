@@ -7,39 +7,71 @@ import com.github.alexthe666.rats.server.block.entity.RatlantisTokenBlockEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
+import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
+import net.minecraft.client.renderer.feature.ModelFeatureRenderer;
+import net.minecraft.client.renderer.item.ItemModelResolver;
+import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
+import org.jspecify.annotations.Nullable;
 
-public class RatlantisTokenRenderer implements BlockEntityRenderer<RatlantisTokenBlockEntity> {
+public class RatlantisTokenRenderer implements BlockEntityRenderer<RatlantisTokenBlockEntity, RatlantisTokenRenderer.RatlantisTokenRenderState> {
 
 	private static final float HALF_SQRT_3 = (float) (Math.sqrt(3.0D) / 2.0D);
 
+	private final ItemModelResolver itemModelResolver;
+
+	public static final class RatlantisTokenRenderState extends BlockEntityRenderState {
+		public float progress;
+		public float rotation;
+		public ItemStackRenderState token = new ItemStackRenderState();
+		public ItemStackRenderState marbledCheese = new ItemStackRenderState();
+	}
+
 	public RatlantisTokenRenderer(BlockEntityRendererProvider.Context context) {
+		this.itemModelResolver = context.itemModelResolver();
 	}
 
 	@Override
-	public void render(RatlantisTokenBlockEntity entity, float partialTicks, PoseStack stack, MultiBufferSource buffer, int light, int overlay) {
-		float progress = 0;
-		float f1;
-		float f2 = 0;
-		if (entity.getLevel() != null && entity.getLevel().getBlockState(entity.getBlockPos()).getBlock() instanceof ChunkyCheeseTokenBlock) {
-			progress = entity.tickCount - 1 + partialTicks;
+	public RatlantisTokenRenderState createRenderState() {
+		return new RatlantisTokenRenderState();
+	}
 
+	@Override
+	public void extractRenderState(RatlantisTokenBlockEntity entity, RatlantisTokenRenderState state, float partialTicks, Vec3 cameraPos, ModelFeatureRenderer.@Nullable CrumblingOverlay breakProgress) {
+		BlockEntityRenderer.super.extractRenderState(entity, state, partialTicks, cameraPos, breakProgress);
+		state.progress = 0;
+		state.rotation = 0;
+		if (entity.getLevel() != null && entity.getLevel().getBlockState(entity.getBlockPos()).getBlock() instanceof ChunkyCheeseTokenBlock) {
+			state.progress = entity.tickCount - 1 + partialTicks;
+
+			float f1;
 			for (f1 = entity.ratRotation - entity.ratRotationPrev; f1 >= (float) Math.PI; f1 -= ((float) Math.PI * 2F)) {
 			}
 			while (f1 < -(float) Math.PI) {
 				f1 += ((float) Math.PI * 2F);
 			}
-			f2 = entity.ratRotationPrev + f1 * Minecraft.getInstance().getTimer().getGameTimeDeltaPartialTick(true);
+			state.rotation = entity.ratRotationPrev + f1 * partialTicks;
 		}
+		// 26.1: ItemRenderer.renderStatic is gone; items render through ItemStackRenderState.
+		this.itemModelResolver.updateForTopItem(state.token, new ItemStack(RatlantisBlockRegistry.CHUNKY_CHEESE_TOKEN.get()), ItemDisplayContext.FIXED, entity.getLevel(), null, 0);
+		this.itemModelResolver.updateForTopItem(state.marbledCheese, new ItemStack(RatsBlockRegistry.MARBLED_CHEESE_RAW.get()), ItemDisplayContext.FIXED, entity.getLevel(), null, 0);
+	}
+
+	@Override
+	public void submit(RatlantisTokenRenderState state, PoseStack stack, SubmitNodeCollector collector, CameraRenderState camera) {
+		float progress = state.progress;
+		float f2 = state.rotation;
+		int light = state.lightCoords;
 		stack.pushPose();
 		stack.translate(0.5D, 0.5D, 0.5D);
 		stack.pushPose();
@@ -51,7 +83,7 @@ public class RatlantisTokenRenderer implements BlockEntityRenderer<RatlantisToke
 		float masterRot = rotateSpeed - f2 * (180F / (float) Math.PI) - 90F;
 		stack.scale(tokenScale, tokenScale, tokenScale);
 		stack.mulPose(Axis.YP.rotationDegrees(masterRot));
-		Minecraft.getInstance().getItemRenderer().renderStatic(new ItemStack(RatlantisBlockRegistry.CHUNKY_CHEESE_TOKEN.get()), ItemDisplayContext.FIXED, light, overlay, stack, buffer, null, 0);
+		state.token.submit(stack, collector, light, OverlayTexture.NO_OVERLAY, 0);
 		stack.popPose();
 		stack.pushPose();
 		if (progress > 150) {
@@ -61,35 +93,42 @@ public class RatlantisTokenRenderer implements BlockEntityRenderer<RatlantisToke
 				amplifier = 0.2F;
 			}
 
-			RandomSource random = RandomSource.create(432L);
-			VertexConsumer consumer = buffer.getBuffer(RenderTypes.lightning());
-			stack.pushPose();
-			stack.translate(0.0D, 0.0D, -0.0D);
-			stack.scale(0.2F, 0.8F, 0.2F);
+			// The lightning bolt fan applies random pose rotations per bolt, so the whole loop runs inside
+			// the deferred callback on a stack rebuilt from the captured pose.
+			float finalAmplifier = amplifier;
+			collector.submitCustomGeometry(stack, RenderTypes.lightning(), (pose, consumer) -> {
+				RandomSource random = RandomSource.create(432L);
+				PoseStack bolts = new PoseStack();
+				bolts.pushPose();
+				bolts.last().set(pose);
+				bolts.pushPose();
+				bolts.scale(0.2F, 0.8F, 0.2F);
 
-			for (int i = 0; (float) i < (elapsedTime + elapsedTime * elapsedTime) / 2.0F * 10.0F; ++i) {
-				stack.mulPose(Axis.XP.rotationDegrees(random.nextFloat() * 360.0F));
-				stack.mulPose(Axis.YP.rotationDegrees(random.nextFloat() * 360.0F));
-				stack.mulPose(Axis.ZP.rotationDegrees(random.nextFloat() * 360.0F));
-				stack.mulPose(Axis.XP.rotationDegrees(random.nextFloat() * 360.0F));
-				stack.mulPose(Axis.YP.rotationDegrees(random.nextFloat() * 360.0F));
-				stack.mulPose(Axis.ZP.rotationDegrees(random.nextFloat() * 360.0F + elapsedTime * 90.0F));
-				float yAngle = random.nextFloat() * 20.0F + 5.0F + amplifier * 2.0F;
-				float xAngle = random.nextFloat() * 2.0F + 1.0F + amplifier * 2.0F;
-				Matrix4f matrix = stack.last().pose();
-				int alpha = (int) (255.0F * (1.0F - amplifier));
-				vertex01(consumer, matrix, alpha);
-				vertex2(consumer, matrix, yAngle, xAngle);
-				vertex3(consumer, matrix, yAngle, xAngle);
-				vertex01(consumer, matrix, alpha);
-				vertex3(consumer, matrix, yAngle, xAngle);
-				vertex4(consumer, matrix, yAngle, xAngle);
-				vertex01(consumer, matrix, alpha);
-				vertex4(consumer, matrix, yAngle, xAngle);
-				vertex2(consumer, matrix, yAngle, xAngle);
-			}
+				for (int i = 0; (float) i < (elapsedTime + elapsedTime * elapsedTime) / 2.0F * 10.0F; ++i) {
+					bolts.mulPose(Axis.XP.rotationDegrees(random.nextFloat() * 360.0F));
+					bolts.mulPose(Axis.YP.rotationDegrees(random.nextFloat() * 360.0F));
+					bolts.mulPose(Axis.ZP.rotationDegrees(random.nextFloat() * 360.0F));
+					bolts.mulPose(Axis.XP.rotationDegrees(random.nextFloat() * 360.0F));
+					bolts.mulPose(Axis.YP.rotationDegrees(random.nextFloat() * 360.0F));
+					bolts.mulPose(Axis.ZP.rotationDegrees(random.nextFloat() * 360.0F + elapsedTime * 90.0F));
+					float yAngle = random.nextFloat() * 20.0F + 5.0F + finalAmplifier * 2.0F;
+					float xAngle = random.nextFloat() * 2.0F + 1.0F + finalAmplifier * 2.0F;
+					Matrix4f matrix = bolts.last().pose();
+					int alpha = (int) (255.0F * (1.0F - finalAmplifier));
+					vertex01(consumer, matrix, alpha);
+					vertex2(consumer, matrix, yAngle, xAngle);
+					vertex3(consumer, matrix, yAngle, xAngle);
+					vertex01(consumer, matrix, alpha);
+					vertex3(consumer, matrix, yAngle, xAngle);
+					vertex4(consumer, matrix, yAngle, xAngle);
+					vertex01(consumer, matrix, alpha);
+					vertex4(consumer, matrix, yAngle, xAngle);
+					vertex2(consumer, matrix, yAngle, xAngle);
+				}
 
-			stack.popPose();
+				bolts.popPose();
+				bolts.popPose();
+			});
 		}
 		stack.popPose();
 		stack.pushPose();
@@ -100,11 +139,11 @@ public class RatlantisTokenRenderer implements BlockEntityRenderer<RatlantisToke
 			stack.translate(0, 0, 0);
 			stack.pushPose();
 			stack.translate(0, 0.75F * blocksScale * 0.5F, 0);
-			Minecraft.getInstance().getItemRenderer().renderStatic(new ItemStack(RatsBlockRegistry.MARBLED_CHEESE_RAW.get()), ItemDisplayContext.FIXED, light, overlay, stack, buffer, null, 0);
+			state.marbledCheese.submit(stack, collector, light, OverlayTexture.NO_OVERLAY, 0);
 			stack.popPose();
 			stack.pushPose();
 			stack.translate(0, 0.5 - 1.25F * blocksScale * 0.5F, 0);
-			Minecraft.getInstance().getItemRenderer().renderStatic(new ItemStack(RatsBlockRegistry.MARBLED_CHEESE_RAW.get()), ItemDisplayContext.FIXED, light, overlay, stack, buffer, null, 0);
+			state.marbledCheese.submit(stack, collector, light, OverlayTexture.NO_OVERLAY, 0);
 			stack.popPose();
 
 		}

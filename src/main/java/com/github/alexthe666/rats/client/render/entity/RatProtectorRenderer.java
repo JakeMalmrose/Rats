@@ -2,18 +2,19 @@ package com.github.alexthe666.rats.client.render.entity;
 
 import com.github.alexthe666.rats.RatsMod;
 import com.github.alexthe666.rats.client.model.entity.RatModel;
+import com.github.alexthe666.rats.client.render.RatsEntityModelBridge;
 import com.github.alexthe666.rats.client.render.RatsRenderType;
 import com.github.alexthe666.rats.server.entity.misc.RatProtector;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.RenderLayerParent;
 import net.minecraft.client.renderer.entity.layers.RenderLayer;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 
-public class RatProtectorRenderer extends AbstractRatRenderer<RatProtector, RatModel<RatProtector>> {
+public class RatProtectorRenderer extends AbstractRatRenderer<RatProtector> {
 
 	public static final Identifier BASE_TEXTURE = Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat_protector.png");
 
@@ -22,22 +23,22 @@ public class RatProtectorRenderer extends AbstractRatRenderer<RatProtector, RatM
 		this.addLayer(new Overlay(this));
 	}
 
-	public Identifier getTextureLocation(RatProtector entity) {
+	@Override
+	public Identifier getTextureLocation(LivingEntityRenderState state) {
 		return BASE_TEXTURE;
 	}
 
-	private static class Overlay extends RenderLayer<RatProtector, RatModel<RatProtector>> {
+	private static class Overlay extends RenderLayer<LivingEntityRenderState, RatsEntityModelBridge<RatProtector>> {
 
-		public Overlay(RenderLayerParent<RatProtector, RatModel<RatProtector>> parent) {
+		public Overlay(RenderLayerParent<LivingEntityRenderState, RatsEntityModelBridge<RatProtector>> parent) {
 			super(parent);
 		}
 
 		@Override
-		public void render(PoseStack stack, MultiBufferSource buffer, int light, RatProtector rat, float limbSwing, float limbSwingAmount, float partialTicks, float ageInTicks, float netHeadYaw, float headPitch) {
-			VertexConsumer vertexBuilder = buffer.getBuffer(RatsRenderType.getYellowGlint());
-			this.getParentModel().setupAnim(rat, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
-			this.getParentModel().renderToBuffer(stack, vertexBuilder, light, OverlayTexture.NO_OVERLAY, 0xFF808080);
-
+		public void submit(PoseStack stack, SubmitNodeCollector collector, int light, LivingEntityRenderState state, float netHeadYaw, float headPitch) {
+			this.getParentModel().setupAnim(state);
+			collector.submitCustomGeometry(stack, RatsRenderType.getYellowGlint(), (pose, consumer) ->
+					this.getParentModel().renderCitadelToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFF808080));
 		}
 	}
 }

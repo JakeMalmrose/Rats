@@ -8,10 +8,11 @@ import net.minecraft.world.item.DyeColor;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public class RatHammockItem extends Item implements RatCageDecoration {
 	public final DyeColor color;
@@ -27,7 +28,7 @@ public class RatHammockItem extends Item implements RatCageDecoration {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		tooltip.add(Component.translatable(RatsLangConstants.CAGE_DECORATION).withStyle(ChatFormatting.GRAY));
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+		tooltip.accept(Component.translatable(RatsLangConstants.CAGE_DECORATION).withStyle(ChatFormatting.GRAY));
 	}
 }

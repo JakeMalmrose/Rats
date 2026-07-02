@@ -63,7 +63,7 @@ public class RatHelmetLayer<T extends AbstractRat> extends RenderLayer<LivingEnt
 			if (equippable != null && equippable.assetId().isPresent()) {
 				if (equippable.slot() == EquipmentSlot.HEAD) {
 					//Rats: instead of using setPartVisibility, just toggle the helmet on. Its the only piece of armor we care about rendering anyway.
-					this.ratArmorModel.setAllVisible(false);
+					this.ratArmorModel.allParts().forEach(part -> part.visible = false); // 26.1: setAllVisible is gone
 					this.ratArmorModel.head.visible = true;
 					this.ratArmorModel.hat.visible = true;
 					//Rats: do some extra transforms based on which model is being used and what item is rendering.

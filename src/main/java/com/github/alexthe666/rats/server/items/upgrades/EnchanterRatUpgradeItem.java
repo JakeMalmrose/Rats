@@ -70,8 +70,8 @@ public class EnchanterRatUpgradeItem extends BaseRatUpgradeItem implements TickR
 					rat.setItemInHand(InteractionHand.MAIN_HAND, burntItem);
 				} else {
 					if (!rat.tryDepositItemInContainers(burntItem)) {
-						if (!rat.level().isClientSide()) {
-							rat.spawnAtLocation(burntItem, 0.25F);
+						if (rat.level() instanceof net.minecraft.server.level.ServerLevel _serverLevel) {
+							rat.spawnAtLocation(_serverLevel, burntItem, 0.25F);
 						}
 					}
 				}

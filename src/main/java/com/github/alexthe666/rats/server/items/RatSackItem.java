@@ -75,7 +75,8 @@ public class RatSackItem extends Item {
 				TamedRat rat = new TamedRat(RatsEntityRegistry.TAMED_RAT.get(), level);
 				rat.readAdditionalSaveData(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), ratTag));
 				ratTag.read("CustomName", ComponentSerialization.CODEC).ifPresent(rat::setCustomName);
-				rat.moveTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, 0.0F, 0.0F);
+				// 26.1: Entity#moveTo was renamed to snapTo.
+				rat.snapTo(pos.getX() + 0.5D, pos.getY(), pos.getZ() + 0.5D, 0.0F, 0.0F);
 				if (!level.isClientSide()) {
 					level.addFreshEntity(rat);
 				}
@@ -123,7 +124,10 @@ public class RatSackItem extends Item {
 			int ratCount = ejectRatsFromSack(stack, context.getLevel(), context.getClickedPos().relative(context.getClickedFace()));
 
 			if (ratCount > 0) {
-				context.getPlayer().displayClientMessage(Component.translatable(RatsLangConstants.RAT_SACK_RELEASED_RATS, ratCount), true);
+				// 26.1: displayClientMessage was removed; send an overlay message from the server instead.
+				if (context.getPlayer() instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+					serverPlayer.sendSystemMessage(Component.translatable(RatsLangConstants.RAT_SACK_RELEASED_RATS, ratCount), true);
+				}
 				writeTag(stack, new CompoundTag());
 				return InteractionResult.SUCCESS;
 			}

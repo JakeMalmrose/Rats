@@ -1,1 +1,1 @@
-{"model": {"type": "minecraft:model", "model": "rats:item/marbled_cheese_grass"}}
+{"model": {"type": "minecraft:model", "model": "rats:item/marbled_cheese_grass", "tints": [{"type": "minecraft:grass", "temperature": 0.5, "downfall": 1.0}]}}

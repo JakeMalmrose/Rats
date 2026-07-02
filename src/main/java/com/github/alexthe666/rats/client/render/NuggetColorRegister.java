@@ -36,7 +36,8 @@ public class NuggetColorRegister {
 				Color texColour = getAverageColour(getTextureAtlas(poopStack));
 				color = texColour.getARGB();
 			} catch (NullPointerException e) {
-				RatsMod.LOGGER.warn("Could not fetch average nugget color for resource {}, defaulting to white.", poopStack.getItem().getDescription().getString());
+				// 26.1: Item#getDescription is gone; getName(stack) is the equivalent display name lookup.
+				RatsMod.LOGGER.warn("Could not fetch average nugget color for resource {}, defaulting to white.", poopStack.getItem().getName(poopStack).getString());
 			}
 			TEXTURES_TO_COLOR.put(poopName, color);
 			return color;

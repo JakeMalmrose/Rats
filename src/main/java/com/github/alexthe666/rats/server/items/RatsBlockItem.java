@@ -1,11 +1,9 @@
 package com.github.alexthe666.rats.server.items;
 
 import com.github.alexthe666.rats.RatsMod;
-import com.github.alexthe666.rats.client.render.RatsBEWLR;
 import com.github.alexthe666.rats.registry.RatlantisBlockRegistry;
 import com.github.alexthe666.rats.server.block.CustomItemRarity;
 import com.github.alexthe666.rats.server.block.WearableOnHead;
-import net.minecraft.client.renderer.BlockEntityWithoutLevelRenderer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,11 +11,6 @@ import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
-
-import java.util.function.Consumer;
 
 public class RatsBlockItem extends BlockItem {
 
@@ -54,18 +47,7 @@ public class RatsBlockItem extends BlockItem {
 		return super.useOn(context);
 	}
 
-	@Override
-	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-		// A separate @OnlyIn class (not an anonymous one) keeps client-only types out of this
-		// class's constant pool so it stays loadable on a dedicated server.
-		consumer.accept(new ClientExtensions());
-	}
-
-	@OnlyIn(Dist.CLIENT)
-	private static final class ClientExtensions implements IClientItemExtensions {
-		@Override
-		public BlockEntityWithoutLevelRenderer getCustomRenderer() {
-			return new RatsBEWLR();
-		}
-	}
+	// 26.1: Item#initializeClient and IClientItemExtensions#getCustomRenderer are gone. The custom item
+	// renderer is now RatsBEWLR (a SpecialModelRenderer) swapped in for these block items during
+	// ModelEvent.ModifyBakingResult on the client — see com.github.alexthe666.rats.client.render.RatsBEWLR.
 }

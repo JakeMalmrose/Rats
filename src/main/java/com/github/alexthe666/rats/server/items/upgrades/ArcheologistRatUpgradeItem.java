@@ -45,8 +45,8 @@ public class ArcheologistRatUpgradeItem extends BaseRatUpgradeItem implements Ti
 					rat.setItemInHand(InteractionHand.MAIN_HAND, burntItem);
 				} else {
 					if (!rat.tryDepositItemInContainers(burntItem)) {
-						if (!rat.level().isClientSide()) {
-							rat.spawnAtLocation(burntItem, 0.25F);
+						if (rat.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+							rat.spawnAtLocation(serverLevel, burntItem, 0.25F);
 						}
 					}
 				}

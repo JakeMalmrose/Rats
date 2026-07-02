@@ -9,11 +9,12 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public class MountRatUpgradeItem<T extends Mob & RatMount> extends BaseRatUpgradeItem {
 
@@ -29,8 +30,8 @@ public class MountRatUpgradeItem<T extends Mob & RatMount> extends BaseRatUpgrad
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(stack, context, tooltip, flag);
-		tooltip.add(Component.translatable(RatsLangConstants.MOUNT_RESPAWN_TIMER).withStyle(ChatFormatting.GRAY));
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+		super.appendHoverText(stack, context, display, tooltip, flag);
+		tooltip.accept(Component.translatable(RatsLangConstants.MOUNT_RESPAWN_TIMER).withStyle(ChatFormatting.GRAY));
 	}
 }

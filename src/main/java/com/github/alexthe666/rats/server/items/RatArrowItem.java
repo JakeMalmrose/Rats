@@ -32,7 +32,8 @@ public class RatArrowItem extends ArrowItem {
 		BlockPos offset = context.getClickedPos().relative(context.getClickedFace());
 		rat.readAdditionalSaveData(net.minecraft.world.level.storage.TagValueInput.create(ProblemReporter.DISCARDING, context.getLevel().registryAccess(), ratTag));
 		ratTag.read("CustomName", ComponentSerialization.CODEC).ifPresent(rat::setCustomName);
-		rat.moveTo(offset.getX() + 0.5D, offset.getY(), offset.getZ() + 0.5D, 0, 0);
+		// 26.1: Entity#moveTo was renamed to snapTo.
+		rat.snapTo(offset.getX() + 0.5D, offset.getY(), offset.getZ() + 0.5D, 0.0F, 0.0F);
 		if (!context.getLevel().isClientSide()) {
 			context.getLevel().addFreshEntity(rat);
 		}

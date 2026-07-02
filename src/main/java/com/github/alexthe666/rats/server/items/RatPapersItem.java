@@ -88,7 +88,10 @@ public class RatPapersItem extends Item {
 					return InteractionResult.SUCCESS;
 				}
 			} catch (Exception e) {
-				player.displayClientMessage(Component.literal("Couldnt transfer ownership! Check the log and report this!").withStyle(ChatFormatting.RED), true);
+				// 26.1: displayClientMessage was removed; send an overlay message from the server instead.
+				if (player instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
+					serverPlayer.sendSystemMessage(Component.literal("Couldnt transfer ownership! Check the log and report this!").withStyle(ChatFormatting.RED), true);
+				}
 				RatsMod.LOGGER.error("Couldnt transfer rat ownership to {}!", transferTo.getStringUUID(), e);
 			}
 			return InteractionResult.PASS;

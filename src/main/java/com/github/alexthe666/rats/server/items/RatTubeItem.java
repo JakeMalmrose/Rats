@@ -36,16 +36,17 @@ public class RatTubeItem extends Item {
 		this.color = color;
 	}
 
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flagIn) {
-		tooltip.add(Component.translatable("block.rats.rat_tube.desc0").withStyle(ChatFormatting.GRAY));
-		tooltip.add(Component.translatable("block.rats.rat_tube.desc1").withStyle(ChatFormatting.GRAY));
-		tooltip.add(Component.translatable("block.rats.rat_tube.desc2").withStyle(ChatFormatting.GRAY));
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, net.minecraft.world.item.component.TooltipDisplay display, java.util.function.Consumer<Component> tooltip, TooltipFlag flagIn) {
+		tooltip.accept(Component.translatable("block.rats.rat_tube.desc0").withStyle(ChatFormatting.GRAY));
+		tooltip.accept(Component.translatable("block.rats.rat_tube.desc1").withStyle(ChatFormatting.GRAY));
+		tooltip.accept(Component.translatable("block.rats.rat_tube.desc2").withStyle(ChatFormatting.GRAY));
 	}
 
 	@Override
 	public InteractionResult useOn(UseOnContext context) {
 		InteractionResult actionresulttype = this.tryPlace(new BlockPlaceContext(context));
-		return actionresulttype != InteractionResult.SUCCESS && (this.components().has(net.minecraft.core.component.DataComponents.FOOD)) ? this.use(context.getLevel(), context.getPlayer(), context.getHand()).getResult() : actionresulttype;
+		// 26.1: InteractionResultHolder is gone; Item#use returns InteractionResult directly.
+		return actionresulttype != InteractionResult.SUCCESS && (this.components().has(net.minecraft.core.component.DataComponents.FOOD)) ? this.use(context.getLevel(), context.getPlayer(), context.getHand()) : actionresulttype;
 	}
 
 	public InteractionResult tryPlace(BlockPlaceContext context) {
@@ -123,15 +124,10 @@ public class RatTubeItem extends Item {
 		BlockEntity be = level.getBlockEntity(pos);
 		if (be instanceof com.github.alexthe666.rats.server.block.entity.RatTubeBlockEntity tube) {
 			tube.setColor(this.color.getId());
-			net.minecraft.world.item.component.CustomData customData = stack.getOrDefault(net.minecraft.core.component.DataComponents.BLOCK_ENTITY_DATA, net.minecraft.world.item.component.CustomData.EMPTY);
-			if (!customData.isEmpty()) {
-				CompoundTag tag = customData.copyTag();
-				tag.remove("x"); tag.remove("y"); tag.remove("z"); tag.remove("id");
-				if (!tag.isEmpty()) {
-					CompoundTag full = be.saveWithoutMetadata(level.registryAccess());
-					full.merge(tag);
-					be.loadWithComponents(full, level.registryAccess());
-				}
+			// 26.1: BLOCK_ENTITY_DATA holds a TypedEntityData now; loadInto does the save/merge/load dance itself.
+			net.minecraft.world.item.component.TypedEntityData<net.minecraft.world.level.block.entity.BlockEntityType<?>> entityData = stack.get(net.minecraft.core.component.DataComponents.BLOCK_ENTITY_DATA);
+			if (entityData != null) {
+				entityData.loadInto(be, level.registryAccess());
 			}
 			be.setChanged();
 		}

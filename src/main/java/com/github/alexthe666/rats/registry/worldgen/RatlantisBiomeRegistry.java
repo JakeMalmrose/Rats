@@ -99,9 +99,7 @@ public class RatlantisBiomeRegistry {
 						// 26.1: sky color and ambient mood moved to environment attributes (biome JSON `attributes`)
 						.foliageColorOverride(2546944)
 						.grassColorOverride(8177920)
-						.fogColor(16767615)
 						.waterColor(4445678)
-						.waterFogColor(270131)
 						.build())
 				.build()
 		);

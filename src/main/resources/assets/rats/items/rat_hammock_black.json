@@ -1,1 +1,1 @@
-{"model": {"type": "minecraft:model", "model": "rats:item/rat_hammock_black"}}
+{"model": {"type": "minecraft:model", "model": "rats:item/rat_hammock_black", "tints": [{"type": "minecraft:constant", "value": -14804197}]}}

@@ -31,12 +31,10 @@ public class RatRecordSoundInstance extends AbstractTickableSoundInstance {
 	private static SoundEvent resolveSound(Item item) {
 		ItemStack stack = new ItemStack(item);
 		JukeboxPlayable playable = stack.get(DataComponents.JUKEBOX_PLAYABLE);
-		if (playable != null && Minecraft.getInstance().level != null) {
-			var songHolder = playable.song().unwrap(Minecraft.getInstance().level.registryAccess());
-			if (songHolder.isPresent()) {
-				JukeboxSong song = songHolder.get().value();
-				return song.soundEvent().value();
-			}
+		if (playable != null) {
+			// 26.1: JukeboxPlayable holds a direct Holder<JukeboxSong> (no registry unwrap needed).
+			JukeboxSong song = playable.song().value();
+			return song.soundEvent().value();
 		}
 		return SoundEvents.MUSIC_DISC_13.value();
 	}

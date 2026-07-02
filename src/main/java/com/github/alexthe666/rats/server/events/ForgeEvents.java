@@ -344,7 +344,7 @@ public class ForgeEvents {
 	@SubscribeEvent
 	public static void onLivingHurt(LivingDamageEvent.Pre event) {
 		if (event.getEntity() instanceof Player) {
-			List<TamedRat> list = event.getEntity().level().getEntitiesOfClass(TamedRat.class, event.getEntity().getBoundingBox().inflate(RatConfig.ratVoodooDistance), rat -> rat.isTame() && rat.isOwnedBy(event.getEntity()) && !rat.isInvulnerable() && !rat.isInvulnerableTo(event.getSource()) && RatUpgradeUtils.hasUpgrade(rat, RatsItemRegistry.RAT_UPGRADE_VOODOO.get()));
+			List<TamedRat> list = event.getEntity().level().getEntitiesOfClass(TamedRat.class, event.getEntity().getBoundingBox().inflate(RatConfig.ratVoodooDistance), rat -> rat.isTame() && rat.isOwnedBy(event.getEntity()) && !rat.isInvulnerable() && (!(rat.level() instanceof net.minecraft.server.level.ServerLevel sl) || !rat.isInvulnerableTo(sl, event.getSource())) && RatUpgradeUtils.hasUpgrade(rat, RatsItemRegistry.RAT_UPGRADE_VOODOO.get()));
 			if (!list.isEmpty()) {
 				float damage = event.getNewDamage() / list.size();
 				event.setNewDamage(0F);

@@ -33,7 +33,7 @@ public class PlagueShotRenderer extends EntityRenderer<PlagueShot, PlagueShotRen
 		stack.mulPose(Axis.XP.rotationDegrees(-state.xRot));
 		stack.translate(0F, -1.5F, 0F);
 		// 26.1: ItemRenderer.getFoilBuffer is gone; a foiled model is a base submit plus an entityGlint submit.
-		collector.submitCustomGeometry(stack, RenderTypes.entityCutoutNoCull(TEXTURE), (pose, consumer) ->
+		collector.submitCustomGeometry(stack, RenderTypes.entityCutout(TEXTURE), (pose, consumer) ->
 				MODEL_SPIRIT.renderToBuffer(rebuildStack(pose), consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));
 		collector.submitCustomGeometry(stack, RenderTypes.entityGlint(), (pose, consumer) ->
 				MODEL_SPIRIT.renderToBuffer(rebuildStack(pose), consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));

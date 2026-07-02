@@ -45,7 +45,7 @@ public class RatShotRenderer extends EntityRenderer<RatShot, RatShotRenderer.Rat
 		float age = state.ageInTicks;
 		int overlay = OverlayTexture.pack(OverlayTexture.u(0), OverlayTexture.v(false));
 		// setupAnim runs inside the deferred callback so the shared static model holds this entity's pose when it draws.
-		collector.submitCustomGeometry(stack, RenderTypes.entityCutoutNoCull(state.texture), (pose, consumer) -> {
+		collector.submitCustomGeometry(stack, RenderTypes.entityCutout(state.texture), (pose, consumer) -> {
 			MODEL_STATIC_RAT.setupAnim(shot, f, f1, age, 0, 0);
 			MODEL_STATIC_RAT.renderToBuffer(rebuildStack(pose), consumer, light, overlay, 0xFFFFFFFF);
 		});
@@ -80,7 +80,8 @@ public class RatShotRenderer extends EntityRenderer<RatShot, RatShotRenderer.Rat
 		state.yRot = Mth.lerp(partialTicks, entity.yRotO, entity.getYRot());
 		state.xRot = Mth.lerp(partialTicks, entity.xRotO, entity.getXRot());
 		state.texture = entity.getColorVariant().getTexture();
-		long roundedTime = entity.level().getDayTime() % 24000;
+		// 26.1: getDayTime is gone; day time now comes from the world clock system.
+		long roundedTime = entity.level().getOverworldClockTime() % 24000;
 		boolean night = roundedTime >= 13000 && roundedTime <= 22000;
 		BlockPos ratPos = entity.getLightPosition();
 		int brightI = entity.level().getBrightness(LightLayer.SKY, ratPos);

@@ -40,7 +40,7 @@ public class LaserPortalRenderer extends EntityRenderer<LaserPortal, LaserPortal
 		stack.mulPose(Axis.ZP.rotationDegrees(state.yRot - 90.0F));
 		stack.mulPose(Axis.YP.rotationDegrees(state.ageInTicks * 10));
 		// 26.1: ItemRenderer.getFoilBuffer is gone; a foiled model is a base submit plus an entityGlint submit.
-		collector.submitCustomGeometry(stack, RenderTypes.entityCutoutNoCull(PORTAL), (pose, consumer) ->
+		collector.submitCustomGeometry(stack, RenderTypes.entityCutout(PORTAL), (pose, consumer) ->
 				MODEL_NEO_RATLANTEAN.renderToBuffer(rebuildStack(pose), consumer, 240, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));
 		collector.submitCustomGeometry(stack, RenderTypes.entityGlint(), (pose, consumer) ->
 				MODEL_NEO_RATLANTEAN.renderToBuffer(rebuildStack(pose), consumer, 240, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));

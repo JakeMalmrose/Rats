@@ -101,6 +101,21 @@ public class ModClientEvents {
 	@SubscribeEvent
 	public static void registerItemTintSources(RegisterColorHandlersEvent.ItemTintSources event) {
 		event.register(Identifier.fromNamespaceAndPath(RatsMod.MODID, "spawn_egg_layer"), RatsSpawnEggTintSource.MAP_CODEC);
+		event.register(Identifier.fromNamespaceAndPath(RatsMod.MODID, "nugget"), com.github.alexthe666.rats.client.render.RatsNuggetTintSource.MAP_CODEC);
+	}
+
+	// 26.1: Item#initializeClient is gone — armor model/texture extensions register here instead.
+	@SubscribeEvent
+	public static void registerClientExtensions(net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent event) {
+		java.util.stream.Stream.concat(RatsItemRegistry.ITEMS.getEntries().stream(), RatlantisItemRegistry.ITEMS.getEntries().stream())
+				.map(DeferredHolder::get)
+				.forEach(item -> {
+					if (item instanceof HatItem hat) {
+						event.registerItem(new HatItem.ClientExtensions(hat), hat);
+					} else if (item instanceof RatlantisArmorItem armor) {
+						event.registerItem(new RatlantisArmorItem.ClientExtensions(armor), armor);
+					}
+				});
 	}
 
 	// Citadel-driven models need the live entity during setupAnim; stash it into every render state.
@@ -220,7 +235,7 @@ public class ModClientEvents {
 		event.registerEntityRenderer(RatlantisEntityRegistry.LASER_BEAM.get(), LaserBeamRenderer::new);
 		event.registerEntityRenderer(RatlantisEntityRegistry.LASER_PORTAL.get(), LaserPortalRenderer::new);
 		event.registerEntityRenderer(RatlantisEntityRegistry.VIAL_OF_SENTIENCE.get(), ThrownItemRenderer::new);
-		event.registerEntityRenderer(RatlantisEntityRegistry.PIRAT_BOAT.get(), context -> new PiratBoatRenderer<>(context, new PiratBoatModel<>(context.bakeLayer(RatsModelLayers.PIRAT_BOAT))));
+		event.registerEntityRenderer(RatlantisEntityRegistry.PIRAT_BOAT.get(), context -> new PiratBoatRenderer(context, new PiratBoatModel(context.bakeLayer(RatsModelLayers.PIRAT_BOAT))));
 		event.registerEntityRenderer(RatlantisEntityRegistry.CHEESE_CANNONBALL.get(), ThrownItemRenderer::new);
 		event.registerEntityRenderer(RatlantisEntityRegistry.BOAT.get(), context -> new PiratWoodBoatRenderer(context, false));
 		event.registerEntityRenderer(RatlantisEntityRegistry.CHEST_BOAT.get(), context -> new PiratWoodBoatRenderer(context, true));
@@ -249,59 +264,41 @@ public class ModClientEvents {
 		event.registerSpriteSet(RatsParticleRegistry.UPGRADE_COMBINER.get(), UpgradeCombinerParticle.Provider::new);
 	}
 
+	// 26.1: block color handlers register BlockTintSource lists per block.
 	@SubscribeEvent
-	public static void onBlockColors(RegisterColorHandlersEvent.Block event) {
-		event.register((state, level, pos, tint) -> {
-			int meta = 0;
-			if (level != null && pos != null && level.getBlockEntity(pos) instanceof RatTubeBlockEntity tube) {
-				meta = tube.getColor();
+	public static void onBlockColors(RegisterColorHandlersEvent.BlockTintSources event) {
+		event.register(java.util.List.of(new net.minecraft.client.color.block.BlockTintSource() {
+			@Override
+			public int color(net.minecraft.world.level.block.state.BlockState state) {
+				return DyeColor.WHITE.getFireworkColor();
 			}
-			DyeColor color = DyeColor.byId(meta);
-			return color.getFireworkColor();
-		}, RatsBlockRegistry.RAT_TUBE_COLOR.get());
 
+			@Override
+			public int colorInWorld(net.minecraft.world.level.block.state.BlockState state, net.minecraft.client.renderer.block.BlockAndTintGetter level, net.minecraft.core.BlockPos pos) {
+				int meta = 0;
+				if (level != null && pos != null && level.getBlockEntity(pos) instanceof RatTubeBlockEntity tube) {
+					meta = tube.getColor();
+				}
+				return DyeColor.byId(meta).getFireworkColor();
+			}
+		}), RatsBlockRegistry.RAT_TUBE_COLOR.get());
 
-		event.register((state, level, pos, tint) -> level != null && pos != null ? BiomeColors.getAverageFoliageColor(level, pos) : FoliageColor.get(0.5D, 1.0D), RatlantisBlockRegistry.MARBLED_CHEESE_GRASS.get());
+		event.register(java.util.List.of(new net.minecraft.client.color.block.BlockTintSource() {
+			@Override
+			public int color(net.minecraft.world.level.block.state.BlockState state) {
+				return FoliageColor.get(0.5D, 1.0D);
+			}
+
+			@Override
+			public int colorInWorld(net.minecraft.world.level.block.state.BlockState state, net.minecraft.client.renderer.block.BlockAndTintGetter level, net.minecraft.core.BlockPos pos) {
+				return level != null && pos != null ? BiomeColors.getAverageFoliageColor(level, pos) : FoliageColor.get(0.5D, 1.0D);
+			}
+		}), RatlantisBlockRegistry.MARBLED_CHEESE_GRASS.get());
 	}
 
-	@SubscribeEvent
-	public static void onItemColors(RegisterColorHandlersEvent.Item event) {
-		event.register((stack, tint) -> FoliageColor.get(0.5D, 1.0D), RatlantisBlockRegistry.MARBLED_CHEESE_GRASS.get().asItem());
-
-		// 1.21: Item color handlers now respect the alpha byte; DyeColor.getFireworkColor() returns 0x00RRGGBB,
-		// which would render the tinted layer fully transparent. OR in opaque alpha to keep them visible.
-		for (DeferredHolder<Item, Item> item : RatsItemRegistry.RAT_TUBES) {
-			event.register((stack, tint) -> 0xFF000000 | ((RatTubeItem) item.get()).color.getFireworkColor(), item.get());
-		}
-		for (DeferredHolder<Item, Item> item : RatsItemRegistry.RAT_IGLOOS) {
-			event.register((stack, tint) -> 0xFF000000 | ((RatIglooItem) item.get()).color.getFireworkColor(), item.get());
-		}
-		for (DeferredHolder<Item, Item> item : RatsItemRegistry.RAT_HAMMOCKS) {
-			event.register((stack, tint) -> 0xFF000000 | ((RatHammockItem) item.get()).color.getFireworkColor(), item.get());
-		}
-		event.register((stack, tint) -> {
-			if (tint == 1) {
-				return NuggetColorRegister.getNuggetColor(stack);
-			} else {
-				return -1;
-			}
-		}, RatsItemRegistry.RAT_NUGGET_ORE.get());
-
-		event.register((stack, tintIndex) -> {
-					int colorToUse;
-					if (tintIndex == 0) {
-						colorToUse = stack.getItem() instanceof PartyHatItem hat
-								? hat.getColor(stack)
-								: 0x25C9E7;
-					} else {
-						colorToUse = stack.getItem() instanceof PartyHatItem hat
-								? invertColor(hat.getColor(stack))
-								: invertColor(0x25C9E7);
-					}
-					return colorToUse;
-				},
-				RatsItemRegistry.PARTY_HAT.get());
-	}
+	// 26.1: per-item color handlers are data-driven now — dyed deco items (tubes/igloos/hammocks)
+	// get constant tints in assets/rats/items/*.json, marbled grass items use minecraft:grass, and
+	// the ore nugget uses the rats:nugget item tint source registered in registerItemTintSources.
 
 	private static int invertColor(int color) {
 		int a = (color >> 24) & 0xff;
@@ -315,40 +312,37 @@ public class ModClientEvents {
 		return (a & 0xff) << 24 | (r & 0xff) << 16 | (g & 0xff) << 8 | (b & 0xff);
 	}
 
-	private static Field field_EntityRenderersEvent$AddLayers_renderers;
-
 	@SubscribeEvent
-	@SuppressWarnings("unchecked")
 	public static void attachRenderLayers(EntityRenderersEvent.AddLayers event) {
-		if (field_EntityRenderersEvent$AddLayers_renderers == null) {
-			try {
-				field_EntityRenderersEvent$AddLayers_renderers = EntityRenderersEvent.AddLayers.class.getDeclaredField("renderers");
-				field_EntityRenderersEvent$AddLayers_renderers.setAccessible(true);
-			} catch (NoSuchFieldException e) {
-				e.printStackTrace();
+		// 26.1: player renderers are AvatarRenderers keyed by PlayerModelType; other renderers via getRenderer.
+		event.getSkins().forEach(skin -> {
+			var renderer = event.getPlayerRenderer(skin);
+			if (renderer != null) {
+				attachRenderLayers(renderer);
 			}
+		});
+		for (EntityType<?> type : RatsEntityRegistry.ENTITIES.getEntries().stream().map(DeferredHolder::get).toList()) {
+			attachToType(event, type);
 		}
-		if (field_EntityRenderersEvent$AddLayers_renderers != null) {
-			event.getSkins().forEach(renderer -> {
-				LivingEntityRenderer<Player, EntityModel<Player>> skin = event.getSkin(renderer);
-				attachRenderLayers(Objects.requireNonNull(skin));
-			});
-			try {
-				((Map<EntityType<?>, EntityRenderer<?>>) field_EntityRenderersEvent$AddLayers_renderers.get(event))
-						.values().stream()
-						.filter(LivingEntityRenderer.class::isInstance)
-						.map(LivingEntityRenderer.class::cast)
-						.forEach(ModClientEvents::attachRenderLayers);
-			} catch (IllegalAccessException e) {
-				e.printStackTrace();
-			}
+		// vanilla mobs also get the plague layer (matches 1.21.1 behavior of decorating every living renderer)
+		for (EntityType<?> type : net.minecraft.core.registries.BuiltInRegistries.ENTITY_TYPE) {
+			attachToType(event, type);
 		}
 	}
 
-	private static <T extends LivingEntity, M extends EntityModel<T>> void attachRenderLayers(LivingEntityRenderer<T, M> renderer) {
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private static void attachToType(EntityRenderersEvent.AddLayers event, EntityType<?> type) {
+		var renderer = event.getRenderer((EntityType) type);
+		if (renderer instanceof LivingEntityRenderer living) {
+			attachRenderLayers(living);
+		}
+	}
+
+	@SuppressWarnings({"unchecked", "rawtypes"})
+	private static void attachRenderLayers(LivingEntityRenderer renderer) {
 		renderer.addLayer(new PlagueLayer<>(renderer));
 		if (renderer.getModel() instanceof HumanoidModel<?>) {
-			renderer.addLayer(new PartyHatLayer<>(renderer, new HumanoidModel<>(Minecraft.getInstance().getEntityModels().bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR))));
+			renderer.addLayer(new PartyHatLayer<>(renderer, new HumanoidModel<>(Minecraft.getInstance().getEntityModels().bakeLayer(ModelLayers.PLAYER_ARMOR.head()))));
 		}
 	}
 }

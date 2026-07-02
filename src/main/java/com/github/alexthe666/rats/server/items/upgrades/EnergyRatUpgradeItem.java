@@ -19,11 +19,15 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.IEnergyStorage;
+import net.neoforged.neoforge.transfer.access.ItemAccess;
+import net.neoforged.neoforge.transfer.energy.EnergyHandler;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class EnergyRatUpgradeItem extends BaseRatUpgradeItem implements ChangesOverlayUpgrade, ChangesAIUpgrade, TickRatUpgrade {
 
@@ -41,13 +45,13 @@ public class EnergyRatUpgradeItem extends BaseRatUpgradeItem implements ChangesO
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(stack, context, tooltip, flag);
-		tooltip.add(Component.translatable(RatsLangConstants.RAT_UPGRADE_ENERGY_DESC0).withStyle(ChatFormatting.GRAY));
-		tooltip.add(Component.translatable(RatsLangConstants.RAT_UPGRADE_ENERGY_DESC1).withStyle(ChatFormatting.GRAY));
-		tooltip.add(Component.translatable(RatsLangConstants.RAT_UPGRADE_ENERGY_TRANSFER, this.transferRate).withStyle(ChatFormatting.GRAY));
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+		super.appendHoverText(stack, context, display, tooltip, flag);
+		tooltip.accept(Component.translatable(RatsLangConstants.RAT_UPGRADE_ENERGY_DESC0).withStyle(ChatFormatting.GRAY));
+		tooltip.accept(Component.translatable(RatsLangConstants.RAT_UPGRADE_ENERGY_DESC1).withStyle(ChatFormatting.GRAY));
+		tooltip.accept(Component.translatable(RatsLangConstants.RAT_UPGRADE_ENERGY_TRANSFER, this.transferRate).withStyle(ChatFormatting.GRAY));
 		if (RatConfig.ratsChargeHeldItems) {
-			tooltip.add(Component.translatable(RatsLangConstants.RAT_UPGRADE_ENERGY_CHARGE, this.chargeRate).withStyle(ChatFormatting.GRAY));
+			tooltip.accept(Component.translatable(RatsLangConstants.RAT_UPGRADE_ENERGY_CHARGE, this.chargeRate).withStyle(ChatFormatting.GRAY));
 		}
 	}
 
@@ -66,10 +70,15 @@ public class EnergyRatUpgradeItem extends BaseRatUpgradeItem implements ChangesO
 	public void tick(TamedRat rat) {
 		if (RatConfig.ratsChargeHeldItems && rat.getHeldRF() > 0 && !rat.getMainHandItem().isEmpty()) {
 			ItemStack stack = rat.getMainHandItem();
-			IEnergyStorage energyStorage = stack.getCapability(Capabilities.EnergyStorage.ITEM);
-			if (energyStorage != null && energyStorage.getEnergyStored() < energyStorage.getMaxEnergyStored()) {
+			// 26.1: IEnergyStorage/Capabilities.EnergyStorage were replaced with the transfer API's EnergyHandler,
+			// and item capabilities now take an ItemAccess context.
+			EnergyHandler energyStorage = stack.getCapability(Capabilities.Energy.ITEM, ItemAccess.forStack(stack));
+			if (energyStorage != null && energyStorage.getAmountAsLong() < energyStorage.getCapacityAsLong()) {
 				int energyToTransfer = Math.min(rat.getHeldRF(), this.chargeRate);
-				energyToTransfer = energyStorage.receiveEnergy(energyToTransfer, false);
+				try (Transaction tx = Transaction.open(null)) {
+					energyToTransfer = energyStorage.insert(energyToTransfer, tx);
+					tx.commit();
+				}
 				rat.setHeldRF(Math.max(0, rat.getHeldRF() - energyToTransfer));
 			}
 		}

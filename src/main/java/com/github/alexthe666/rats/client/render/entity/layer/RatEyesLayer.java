@@ -30,7 +30,8 @@ public class RatEyesLayer<T extends AbstractRat> extends RenderLayer<LivingEntit
 		if (!(RatsClientKeys.getLiving(state) instanceof AbstractRat rat)) {
 			return;
 		}
-		long roundedTime = rat.level().getDayTime() % 24000;
+		// 26.1: getDayTime is gone; day time now comes from the world clock system.
+		long roundedTime = rat.level().getOverworldClockTime() % 24000;
 		boolean night = roundedTime >= 13000 && roundedTime <= 23000;
 		BlockPos ratPos = rat.getLightPosition();
 		int i = rat.level().getBrightness(LightLayer.SKY, ratPos);

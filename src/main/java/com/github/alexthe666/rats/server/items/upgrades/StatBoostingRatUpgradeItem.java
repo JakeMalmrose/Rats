@@ -8,11 +8,12 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class StatBoostingRatUpgradeItem extends BaseRatUpgradeItem implements StatBoostingUpgrade {
@@ -41,16 +42,16 @@ public class StatBoostingRatUpgradeItem extends BaseRatUpgradeItem implements St
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(stack, context, tooltip, flag);
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+		super.appendHoverText(stack, context, display, tooltip, flag);
 		this.statChanges.get().forEach((attribute, aDouble) -> {
 			if (aDouble > 0.0D) {
-				tooltip.add(Component.translatable(RatsLangConstants.RAT_UPGRADE_STAT_BOOST, aDouble.toString(), Component.translatable(attribute.value().getDescriptionId())).withStyle(ChatFormatting.AQUA));
+				tooltip.accept(Component.translatable(RatsLangConstants.RAT_UPGRADE_STAT_BOOST, aDouble.toString(), Component.translatable(attribute.value().getDescriptionId())).withStyle(ChatFormatting.AQUA));
 			}
 		});
 
 		if (this.regens) {
-			tooltip.add(Component.translatable(RatsLangConstants.RAT_UPGRADE_REGENS).withStyle(ChatFormatting.AQUA));
+			tooltip.accept(Component.translatable(RatsLangConstants.RAT_UPGRADE_REGENS).withStyle(ChatFormatting.AQUA));
 		}
 	}
 }

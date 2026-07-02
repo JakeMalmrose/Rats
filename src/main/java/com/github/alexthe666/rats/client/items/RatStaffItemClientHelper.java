@@ -8,18 +8,18 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 // Split out of RatStaffItem so the item class stays loadable on a dedicated server.
 @OnlyIn(Dist.CLIENT)
 public class RatStaffItemClientHelper {
 
-	public static void appendStaffTooltip(List<Component> tooltip) {
+	public static void appendStaffTooltip(Consumer<Component> tooltip) {
 		Minecraft mc = Minecraft.getInstance();
 		if (mc.level != null && mc.player != null) {
 			TamedRat rat = SelectedRat.get(mc.player);
 			if (rat != null) {
-				tooltip.add(Component.translatable("item.rats.cheese_staff.bound_rat", rat.getDisplayName(), rat.getUUID().toString()).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+				tooltip.accept(Component.translatable("item.rats.cheese_staff.bound_rat", rat.getDisplayName(), rat.getUUID().toString()).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
 			}
 		}
 	}

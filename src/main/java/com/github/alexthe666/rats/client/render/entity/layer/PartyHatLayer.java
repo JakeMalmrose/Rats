@@ -49,7 +49,7 @@ public class PartyHatLayer<S extends LivingEntityRenderState, M extends EntityMo
 		if (itemstack.getItem() instanceof PartyHatItem hat) {
 			stack.pushPose();
 			// 26.1: copyPropertiesTo is gone with the render-state split; the outer model was never drawn here, so it just stays hidden.
-			this.outerModel.setAllVisible(false);
+			this.outerModel.allParts().forEach(part -> part.visible = false); // 26.1: setAllVisible is gone
 			if (this.getParentModel() instanceof HumanoidModel<?> human) {
 				human.head.translateAndRotate(stack);
 				stack.translate(0.0F, -0.875F, 0.0F);

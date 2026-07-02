@@ -34,9 +34,10 @@ public abstract class AbstractRatRenderer<T extends AbstractRat> extends MobRend
 
 	public AbstractRatRenderer(EntityRendererProvider.Context context, AbstractRatModel<T> model) {
 		super(context, new RatsEntityModelBridge<>(model), 0.15F);
-		this.addLayer(new RatHelmetLayer<>(this, new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR))));
+		// 26.1: PLAYER_OUTER_ARMOR was folded into the PLAYER_ARMOR ArmorModelSet; head() is the helmet bake.
+		this.addLayer(new RatHelmetLayer<>(this, new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER_ARMOR.head())), context));
 		this.addLayer(new RatHeldItemLayer<>(this, context));
-		this.addLayer(new PartyHatLayer<>(this, new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER_OUTER_ARMOR))));
+		this.addLayer(new PartyHatLayer<>(this, new HumanoidModel<>(context.bakeLayer(ModelLayers.PLAYER_ARMOR.head()))));
 	}
 
 	@Override

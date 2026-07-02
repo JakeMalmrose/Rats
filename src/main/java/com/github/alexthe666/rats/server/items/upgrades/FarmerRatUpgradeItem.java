@@ -12,9 +12,9 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.item.ItemDisplayContext;
-import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.neoforged.neoforge.common.Tags;
 
 import java.util.List;
 
@@ -30,7 +30,8 @@ public class FarmerRatUpgradeItem extends BaseRatUpgradeItem implements ChangesA
 
 	@Override
 	public boolean shouldDepositItem(TamedRat rat, ItemStack stack) {
-		return !stack.is(Items.BONE_MEAL) && !(stack.getItem() instanceof ItemNameBlockItem);
+		// 26.1: ItemNameBlockItem was folded into BlockItem; match RatFarmGoal by keying off the SEEDS tag instead.
+		return !stack.is(Items.BONE_MEAL) && !stack.is(Tags.Items.SEEDS);
 	}
 
 	@Override

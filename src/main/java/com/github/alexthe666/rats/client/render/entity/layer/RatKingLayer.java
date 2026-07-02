@@ -37,7 +37,8 @@ public class RatKingLayer extends RenderLayer<LivingEntityRenderState, RatsEntit
 		if (!(RatsClientKeys.getLiving(state) instanceof RatKing king)) {
 			return;
 		}
-		long roundedTime = king.level().getDayTime() % 24000;
+		// 26.1: getDayTime is gone; day time now comes from the world clock system.
+		long roundedTime = king.level().getOverworldClockTime() % 24000;
 		boolean night = roundedTime >= 13000 && roundedTime <= 22000;
 		BlockPos ratPos = king.getLightPosition();
 		int brightI = king.level().getBrightness(LightLayer.SKY, ratPos);

@@ -48,8 +48,8 @@ public class ChefRatUpgradeItem extends BaseRatUpgradeItem implements TickRatUpg
 					rat.setItemInHand(InteractionHand.MAIN_HAND, burntItem);
 				} else {
 					if (!rat.tryDepositItemInContainers(burntItem)) {
-						if (!rat.level().isClientSide()) {
-							rat.spawnAtLocation(burntItem, 0.25F);
+						if (rat.level() instanceof net.minecraft.server.level.ServerLevel serverLevel) {
+							rat.spawnAtLocation(serverLevel, burntItem, 0.25F);
 						}
 					}
 				}
@@ -64,11 +64,14 @@ public class ChefRatUpgradeItem extends BaseRatUpgradeItem implements TickRatUpg
 			return specialChefRecipe.copy();
 		}
 
-		// 1.21: getRecipeFor takes (RecipeType, RecipeInput, Level) and returns Optional<RecipeHolder<T>>; SmeltingRecipe → SingleRecipeInput.
+		// 26.1: recipe lookup lives on the server RecipeManager (Level.recipeAccess has no getRecipeFor); results come from assemble().
+		if (!(rat.level() instanceof net.minecraft.server.level.ServerLevel serverLevel)) {
+			return ItemStack.EMPTY;
+		}
 		net.minecraft.world.item.crafting.SingleRecipeInput input = new net.minecraft.world.item.crafting.SingleRecipeInput(stack);
-		Optional<net.minecraft.world.item.crafting.RecipeHolder<SmeltingRecipe>> optional = rat.level().getRecipeManager().getRecipeFor(RecipeType.SMELTING, input, rat.level());
+		Optional<net.minecraft.world.item.crafting.RecipeHolder<SmeltingRecipe>> optional = serverLevel.recipeAccess().getRecipeFor(RecipeType.SMELTING, input, serverLevel);
 		if (optional.isPresent()) {
-			ItemStack itemstack = optional.get().value().getResultItem(rat.level().registryAccess());
+			ItemStack itemstack = optional.get().value().assemble(input);
 			if (!itemstack.isEmpty()) {
 				ItemStack itemstack1 = itemstack.copy();
 				itemstack1.setCount(stack.getCount() * itemstack.getCount());

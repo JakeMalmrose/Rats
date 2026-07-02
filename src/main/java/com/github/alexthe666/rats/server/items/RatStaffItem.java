@@ -6,10 +6,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.neoforged.api.distmarker.Dist;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.neoforged.fml.loading.FMLEnvironment;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 public class RatStaffItem extends LoreTagItem {
 	public RatStaffItem(Properties properties) {
@@ -23,12 +23,12 @@ public class RatStaffItem extends LoreTagItem {
 	}
 
 	@Override
-	public void appendHoverText(ItemStack stack, Item.TooltipContext context, List<Component> tooltip, TooltipFlag flag) {
-		super.appendHoverText(stack, context, tooltip, flag);
+	public void appendHoverText(ItemStack stack, Item.TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag flag) {
+		super.appendHoverText(stack, context, display, tooltip, flag);
 		// 1.21: Item.appendHoverText no longer receives Level. Tooltips only render on the client,
 		// but this method is also reachable on a dedicated server, so the Minecraft-touching logic
-		// lives in a client-only helper behind a dist check.
-		if (FMLEnvironment.dist == Dist.CLIENT) {
+		// lives in a client-only helper behind a dist check. (26.1: FMLEnvironment.dist -> getDist().)
+		if (FMLEnvironment.getDist().isClient()) {
 			RatStaffItemClientHelper.appendStaffTooltip(tooltip);
 		}
 	}

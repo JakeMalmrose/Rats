@@ -5,16 +5,18 @@ import com.github.alexthe666.rats.client.render.entity.layer.RatEyesLayer;
 import com.github.alexthe666.rats.server.entity.monster.Pirat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.entity.state.LivingEntityRenderState;
 
-public class PiratRenderer extends AbstractRatRenderer<Pirat, RatModel<Pirat>> {
+public class PiratRenderer extends AbstractRatRenderer<Pirat> {
 
 	public PiratRenderer(EntityRendererProvider.Context context) {
 		super(context, new RatModel<>());
 		this.addLayer(new RatEyesLayer<>(this));
 	}
 
-	protected void scale(Pirat rat, PoseStack stack, float partialTickTime) {
-		super.scale(rat, stack, partialTickTime);
+	@Override
+	protected void scale(LivingEntityRenderState state, PoseStack stack) {
+		super.scale(state, stack);
 		stack.scale(1.6F, 1.6F, 1.6F);
 	}
 }

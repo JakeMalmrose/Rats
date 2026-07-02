@@ -147,18 +147,13 @@ public class HatItem extends Item {
 		return 0.0F;
 	}
 
-	@Override
-	public void initializeClient(Consumer<IClientItemExtensions> consumer) {
-		// A separate @OnlyIn class (not an anonymous one) keeps client-only types out of this
-		// class's constant pool so it stays loadable on a dedicated server.
-		consumer.accept(new ClientExtensions(this));
-	}
-
+	// 26.1: Item#initializeClient is gone; client extensions are registered from client code via
+	// RegisterClientExtensionsEvent (see the client event handlers), which is why this class is public now.
 	@OnlyIn(Dist.CLIENT)
-	private static final class ClientExtensions implements IClientItemExtensions {
+	public static final class ClientExtensions implements IClientItemExtensions {
 		private final HatItem hat;
 
-		ClientExtensions(HatItem hat) {
+		public ClientExtensions(HatItem hat) {
 			this.hat = hat;
 		}
 
