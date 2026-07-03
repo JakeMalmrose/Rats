@@ -13,6 +13,6 @@ public class ProtectionRatUpgradeItem extends BaseRatUpgradeItem implements Dama
 
 	@Override
 	public boolean isImmuneToDamageSource(TamedRat rat, DamageSource source) {
-		return source.is(DamageTypeTags.WITCH_RESISTANT_TO) || source.is(DamageTypes.WITHER) || source.is(DamageTypeTags.IS_FIRE) || source.is(DamageTypeTags.IS_FALL) || source.is(DamageTypes.DROWN);
+		return source.is(DamageTypeTags.WITCH_RESISTANT_TO) || source.is(DamageTypes.WITHER) || source.is(DamageTypeTags.IS_FIRE) || source.is(DamageTypeTags.IS_FALL) || source.is(DamageTypes.DROWN) || source.is(DamageTypes.IN_WALL);
 	}
 }

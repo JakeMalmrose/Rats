@@ -37,9 +37,9 @@ import net.neoforged.neoforge.fluids.FluidType;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
-import net.neoforged.neoforge.fluids.capability.templates.FluidTank;
-import net.neoforged.neoforge.items.IItemHandler;
-import net.neoforged.neoforge.items.wrapper.SidedInvWrapper;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
+import net.neoforged.neoforge.transfer.fluid.FluidStacksResourceHandler;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Optional;
@@ -48,17 +48,27 @@ import net.minecraft.core.HolderLookup;
 public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements WorldlyContainer, MenuProvider {
 	private static final int[] SLOTS_TOP = new int[]{0};
 	private static final int[] SLOTS_BOTTOM = new int[]{1};
-	public final FluidTank tank = new FluidTank(FluidType.BUCKET_VOLUME * 5, fluidStack -> fluidStack.getFluid().isSame(NeoForgeMod.MILK.get()));
-	private final IItemHandler topHandler = new SidedInvWrapper(this, Direction.UP);
-	private final IItemHandler bottomHandler = new SidedInvWrapper(this, Direction.DOWN);
+	public static final int TANK_CAPACITY = FluidType.BUCKET_VOLUME * 5;
+	// 26.1: migrated from the legacy FluidTank to the transfer-API handler so the tank can be
+	// exposed through Capabilities.Fluid.BLOCK (RatDepositGoal needs it to drain milkmaid rats).
+	private final FluidStacksResourceHandler tank = new FluidStacksResourceHandler(1, TANK_CAPACITY) {
+		@Override
+		public boolean isValid(int index, FluidResource resource) {
+			return resource.getFluid().isSame(NeoForgeMod.MILK.get());
+		}
 
-	public IItemHandler itemHandler(@org.jetbrains.annotations.Nullable Direction side) {
-		if (this.remove) return null;
-		return side == Direction.DOWN ? this.bottomHandler : this.topHandler;
+		@Override
+		protected void onContentsChanged(int index, FluidStack previousContents) {
+			AutoCurdlerBlockEntity.this.setChanged();
+		}
+	};
+
+	public FluidStack getTankFluid() {
+		return this.tank.getResource(0).toStack(this.tank.getAmountAsInt(0));
 	}
 
-	public IFluidHandler fluidHandler(@org.jetbrains.annotations.Nullable Direction side) {
-		return this.tank;
+	public int getTankAmount() {
+		return this.tank.getAmountAsInt(0);
 	}
 	private NonNullList<ItemStack> curdlerStacks = NonNullList.withSize(2, ItemStack.EMPTY);
 	public int cookTime;
@@ -68,8 +78,8 @@ public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements 
 			return switch (index) {
 				case 0 -> AutoCurdlerBlockEntity.this.cookTime;
 				case 1 -> AutoCurdlerBlockEntity.this.totalCookTime;
-				case 2 -> AutoCurdlerBlockEntity.this.tank.getFluidAmount();
-				case 3 -> AutoCurdlerBlockEntity.this.tank.getCapacity();
+				case 2 -> AutoCurdlerBlockEntity.this.getTankAmount();
+				case 3 -> TANK_CAPACITY;
 				default -> 0;
 			};
 		}
@@ -153,7 +163,7 @@ public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements 
 	@Override
 	protected void loadAdditional(ValueInput compound) {
 		super.loadAdditional(compound);
-		// 26.1: FluidTank is ValueIOSerializable; it reads its "Fluid" entry from the input.
+		// 26.1: FluidStacksResourceHandler is ValueIOSerializable (reads its "stacks" entry).
 		this.tank.deserialize(compound);
 		this.curdlerStacks = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
 		ContainerHelper.loadAllItems(compound, this.curdlerStacks);
@@ -164,7 +174,7 @@ public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements 
 	@Override
 	public void saveAdditional(ValueOutput compound) {
 		super.saveAdditional(compound);
-		// 26.1: FluidTank is ValueIOSerializable; it writes its "Fluid" entry into the output.
+		// 26.1: FluidStacksResourceHandler is ValueIOSerializable (writes its "stacks" entry).
 		this.tank.serialize(compound);
 		compound.putInt("CookTime", (short) this.cookTime);
 		compound.putInt("CookTimeTotal", (short) this.totalCookTime);
@@ -184,7 +194,7 @@ public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements 
 	}
 
 	public boolean hasEnoughMilk() {
-		return this.tank.getFluidAmount() >= FluidType.BUCKET_VOLUME && this.isMilkFluid(this.tank.getFluid());
+		return this.getTankAmount() >= FluidType.BUCKET_VOLUME && this.isMilkFluid(this.getTankFluid());
 	}
 
 	public static void tick(Level level, BlockPos pos, BlockState state, AutoCurdlerBlockEntity te) {
@@ -210,9 +220,13 @@ public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements 
 				fluidStackOptional.ifPresent(fluidStack -> {
 					Optional<IFluidHandlerItem> fluidHandlerOptional = FluidUtil.getFluidHandler(te.getItem(0));
 					fluidHandlerOptional.ifPresent(fluidHandler -> {
-						if (fluidHandler.drain(te.tank.getCapacity() - te.tank.getFluidAmount(), IFluidHandler.FluidAction.SIMULATE).getAmount() > 0) {
-							if (te.tank.fill(fluidStack.copy(), IFluidHandler.FluidAction.SIMULATE) != 0) {
-								int amount = te.tank.fill(fluidStack.copy(), IFluidHandler.FluidAction.EXECUTE);
+						if (fluidHandler.drain(TANK_CAPACITY - te.getTankAmount(), IFluidHandler.FluidAction.SIMULATE).getAmount() > 0) {
+							int amount;
+							try (Transaction tx = Transaction.openRoot()) {
+								amount = te.tank.insert(FluidResource.of(fluidStack), fluidStack.getAmount(), tx);
+								tx.commit();
+							}
+							if (amount > 0) {
 								fluidHandler.drain(amount, IFluidHandler.FluidAction.EXECUTE);
 								//support container changing tanks
 								ItemStack container = fluidHandler.getContainer();
@@ -236,12 +250,15 @@ public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements 
 			} else if (this.getItem(1).isEmpty()) {
 				this.setItem(1, toAdd.copy());
 			}
-			this.tank.drain(FluidType.BUCKET_VOLUME, IFluidHandler.FluidAction.EXECUTE);
+			try (Transaction tx = Transaction.openRoot()) {
+				this.tank.extract(this.tank.getResource(0), FluidType.BUCKET_VOLUME, tx);
+				tx.commit();
+			}
 			level.playSound(null, this.getBlockPos(), RatsSoundRegistry.CHEESE_MADE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
 			for (int i = 0; i < 10; i++) {
 				((ServerLevel) level).sendParticles(RatsParticleRegistry.MILK_BUBBLE.get(),
 						this.getBlockPos().getX() + 0.25F + (level.getRandom().nextFloat() * 0.5F),
-						(this.getBlockPos().getY() + 0.55F) + (this.tank.getFluidAmount() * 0.0001F),
+						(this.getBlockPos().getY() + 0.55F) + (this.getTankAmount() * 0.0001F),
 						this.getBlockPos().getZ() + 0.25F + (level.getRandom().nextFloat() * 0.5F),
 						1, 0.0D, 0.0D, 0.0D, 0);
 			}
@@ -250,7 +267,7 @@ public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements 
 	}
 
 	public boolean canMakeCheese() {
-		if (this.tank.getFluidAmount() < FluidType.BUCKET_VOLUME) {
+		if (this.getTankAmount() < FluidType.BUCKET_VOLUME) {
 			return false;
 		} else {
 			ItemStack itemstack = new ItemStack(RatsBlockRegistry.BLOCK_OF_CHEESE.get());
@@ -277,7 +294,7 @@ public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements 
 	public void setChanged() {
 		super.setChanged();
 		if (this.getLevel() != null && !this.getLevel().isClientSide()) {
-			PacketDistributor.sendToAllPlayers(new UpdateCurdlerFluidPacket(this.getBlockPos().asLong(), this.tank.getFluid()));
+			PacketDistributor.sendToAllPlayers(new UpdateCurdlerFluidPacket(this.getBlockPos().asLong(), this.getTankFluid()));
 		}
 	}
 
@@ -300,7 +317,7 @@ public class AutoCurdlerBlockEntity extends BaseContainerBlockEntity implements 
 		this.curdlerStacks.clear();
 	}
 
-	public FluidTank getTank() {
+	public FluidStacksResourceHandler getTank() {
 		return this.tank;
 	}
 

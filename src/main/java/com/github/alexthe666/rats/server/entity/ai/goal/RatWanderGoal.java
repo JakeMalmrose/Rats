@@ -27,6 +27,13 @@ public class RatWanderGoal extends WaterAvoidingRandomStrollGoal {
 		return this.rat.canMove() && this.rat.shouldWander() && super.canUse();
 	}
 
+	// 26.1: goals without this only tick on alternating server ticks; flying rats need
+	// setFlying(true) refreshed every tick or the grounded-reset in TamedRat.aiStep wins.
+	@Override
+	public boolean requiresUpdateEveryTick() {
+		return true;
+	}
+
 	@Override
 	public void tick() {
 		if (this.rat.hasFlightUpgrade()) {

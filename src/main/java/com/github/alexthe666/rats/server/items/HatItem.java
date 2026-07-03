@@ -114,8 +114,15 @@ public class HatItem extends Item {
 		}
 		if (this == RatsItemRegistry.TOP_HAT.get()) {
 			stack.mulPose(Axis.XN.rotationDegrees(5.0F));
-			stack.translate(0.0F, 0.375F, 0.0F); // 26.1: +0.5 seat-lower like the pirat hat
+			// 26.1: unlike the other hats, the top hat's flattened pivot (y=-13) sat it LOWER, so the
+			// uniform +0.5 reseat buried it in the skull — keep the legacy offset instead.
+			stack.translate(0.0F, -0.125F, 0.0F);
 			stack.scale(1.425F, 1.425F, 1.425F);
+		}
+		if (this == RatsItemRegistry.EXTERMINATOR_HAT.get()) {
+			// 26.1: the exterminator hat had no reseat branch and its flattened pivot (y=+24, i.e.
+			// 1.5 blocks) left it floating almost a block above the skull; restore that offset.
+			stack.translate(0.0F, 1.5F, 0.0F);
 		}
 		if (this == RatsItemRegistry.SANTA_HAT.get()) {
 			stack.mulPose(Axis.XN.rotationDegrees(5.0F));

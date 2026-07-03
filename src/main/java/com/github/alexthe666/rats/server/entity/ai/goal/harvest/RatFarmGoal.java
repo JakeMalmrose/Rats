@@ -131,7 +131,9 @@ public class RatFarmGoal extends BaseRatHarvestGoal {
 	}
 
 	private boolean canPlantBeBonemealed(BlockPos pos, BlockState state) {
-		if (state.getBlock() instanceof BonemealableBlock bonemealable && state.is(BlockTags.BEE_GROWABLES)) {
+		// BEE_GROWABLES only covers crops/berries/cave vines — saplings need their own tag or the
+		// planter never bone-meals trees despite the upgrade description saying it does.
+		if (state.getBlock() instanceof BonemealableBlock bonemealable && (state.is(BlockTags.BEE_GROWABLES) || state.is(BlockTags.SAPLINGS))) {
 			if (bonemealable.isValidBonemealTarget(this.rat.level(), pos, state)) {
 				return bonemealable.isBonemealSuccess(this.rat.level(), this.rat.level().getRandom(), pos, state);
 			}

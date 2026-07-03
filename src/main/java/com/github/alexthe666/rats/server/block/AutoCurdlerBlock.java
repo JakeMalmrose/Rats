@@ -36,6 +36,10 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.fluids.FluidStack;
 import net.neoforged.neoforge.fluids.FluidUtil;
 import net.neoforged.neoforge.fluids.capability.IFluidHandler;
+import net.neoforged.neoforge.common.NeoForgeMod;
+import net.neoforged.neoforge.fluids.FluidType;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.fluids.capability.IFluidHandlerItem;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.Nullable;
@@ -91,10 +95,18 @@ public class AutoCurdlerBlock extends BaseEntityBlock {
 			IFluidHandlerItem fluidHandler = FluidUtil.getFluidHandler(stack).orElse(null);
 			if (!level.isClientSide() && fluidHandler != null) {
 				FluidStack fluidStack = FluidUtil.getFluidContained(stack).orElse(FluidStack.EMPTY);
+				// 26.1: milk buckets expose no fluid handler contents; fabricate the milk stack like RatMilkCowGoal does.
+				if (fluidStack.isEmpty() && stack.is(Items.MILK_BUCKET)) {
+					fluidStack = new FluidStack(NeoForgeMod.MILK.get(), FluidType.BUCKET_VOLUME);
+				}
 				FluidStack drain = fluidHandler.drain(Integer.MAX_VALUE, IFluidHandler.FluidAction.SIMULATE);
 				if (drain.getAmount() > 0 || stack.is(Items.MILK_BUCKET)) {
-					if (te.getTank().fill(fluidStack.copy(), IFluidHandler.FluidAction.SIMULATE) != 0) {
-						int amount = te.getTank().fill(fluidStack.copy(), IFluidHandler.FluidAction.EXECUTE);
+					int amount;
+					try (Transaction tx = Transaction.openRoot()) {
+						amount = te.getTank().insert(FluidResource.of(fluidStack), fluidStack.getAmount(), tx);
+						tx.commit();
+					}
+					if (amount != 0) {
 						level.playSound(null, pos, SoundEvents.BUCKET_EMPTY, SoundSource.BLOCKS, 1.0F, 1.0F);
 						if (!player.isCreative()) {
 							fluidHandler.drain(amount, IFluidHandler.FluidAction.EXECUTE);
@@ -107,7 +119,7 @@ public class AutoCurdlerBlock extends BaseEntityBlock {
 								player.getInventory().add(new ItemStack(Items.BUCKET));
 							}
 						}
-						PacketDistributor.sendToAllPlayers(new UpdateCurdlerFluidPacket(pos.asLong(), te.getTank().getFluid()));
+						PacketDistributor.sendToAllPlayers(new UpdateCurdlerFluidPacket(pos.asLong(), te.getTankFluid()));
 					}
 				}
 			}

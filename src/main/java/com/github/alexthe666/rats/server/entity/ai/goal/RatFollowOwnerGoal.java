@@ -6,8 +6,10 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.FollowOwnerGoal;
 import net.minecraft.world.entity.ai.goal.Goal;
+import net.minecraft.world.entity.ai.navigation.PathNavigation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
@@ -17,6 +19,7 @@ import java.util.EnumSet;
 public class RatFollowOwnerGoal extends FollowOwnerGoal {
 	private final TamedRat rat;
 	private final double speedModifier;
+	private final float startDistance;
 	private final float stopDistance;
 	private int timeToRecalcPath;
 
@@ -24,46 +27,69 @@ public class RatFollowOwnerGoal extends FollowOwnerGoal {
 		super(rat, speedModifier, startDist, stopDist);
 		this.rat = rat;
 		this.speedModifier = speedModifier;
+		this.startDistance = startDist;
 		this.stopDistance = stopDist;
 		this.setFlags(EnumSet.of(Goal.Flag.MOVE));
 	}
 
+	// 26.1 NOTES:
+	// (1) vanilla FollowOwnerGoal captures tamable.getNavigation() in its constructor, but
+	//     TamedRat.switchNavigator() replaces the navigation instance after goal registration, so
+	//     vanilla's pathing runs on an orphaned object the mob never ticks.
+	// (2) vanilla canUse/canContinueToUse now consult the final unableToMoveToOwner(), which rejects
+	//     ALL passengers — silently disabling follow for rats riding their mounts (in 1.21.1 the
+	//     passenger check only guarded the walk/teleport inside tick()). We therefore do not defer
+	//     to super.canUse() and replicate the intended gating ourselves.
+	// (3) while mounted, the rat's own navigation is inert (positionRider re-snaps it every tick);
+	//     steering has to drive the MOUNT's navigation instead.
+
+	/** The navigation that can actually move the rat: its mount's while riding, its own otherwise. */
+	private PathNavigation activeNavigation() {
+		return this.rat.getVehicle() instanceof Mob mount ? mount.getNavigation() : this.rat.getNavigation();
+	}
+
 	@Override
 	public boolean canUse() {
-		// 1.21: FollowOwnerGoal.unableToMove() was inlined; we replicate the equivalent gating here.
 		if (this.rat.isOrderedToSit() || this.rat.isLeashed() || this.rat.getVehicle() instanceof Player) {
 			return false;
 		}
-		return this.rat.canMove() && this.rat.isFollowing() && super.canUse();
+		if (!this.rat.canMove() || !this.rat.isFollowing()) {
+			return false;
+		}
+		LivingEntity owner = this.rat.getOwner();
+		if (owner == null || owner.isSpectator()) {
+			return false;
+		}
+		if (this.rat.distanceToSqr(owner) < (double) (this.startDistance * this.startDistance)) {
+			return false;
+		}
+		this.owner = owner;
+		return true;
 	}
-
-	// 26.1 NOTE: vanilla FollowOwnerGoal captures tamable.getNavigation() in its constructor, but
-	// TamedRat.switchNavigator() replaces the navigation instance after goal registration (and again
-	// whenever cage/tube/flight state is re-checked). The captured navigation is orphaned — the mob
-	// never ticks it — so vanilla's tick()/canContinueToUse()/stop() silently path on a dead object
-	// and the rat "follows" only via the teleport fallback. Everything below reimplements the vanilla
-	// logic against the LIVE this.rat.getNavigation().
 
 	@Override
 	public boolean canContinueToUse() {
-		if (this.rat.getNavigation().isDone()) {
+		if (this.activeNavigation().isDone()) {
 			return false;
 		}
-		return !this.rat.unableToMoveToOwner() && this.owner != null && !(this.rat.distanceToSqr(this.owner) <= this.stopDistance * this.stopDistance);
+		if (this.rat.isOrderedToSit() || this.rat.isLeashed() || this.rat.getVehicle() instanceof Player) {
+			return false;
+		}
+		return this.owner != null && !(this.rat.distanceToSqr(this.owner) <= this.stopDistance * this.stopDistance);
 	}
 
 	@Override
 	public void start() {
-		super.start();
-		this.rat.getNavigation().stop();
+		super.start(); // vanilla resets its own recalc timer and zeroes the water malus
+		this.activeNavigation().stop();
 		this.timeToRecalcPath = 0;
 	}
 
 	@Override
 	public void stop() {
-		super.stop(); // stops the stale captured navigation (harmless) and resets the water malus
+		super.stop(); // stops the stale captured navigation (harmless) and restores the water malus
 		this.owner = null;
-		this.rat.getNavigation().stop();
+		this.activeNavigation().stop();
 	}
 
 	@Override
@@ -85,9 +111,12 @@ public class RatFollowOwnerGoal extends FollowOwnerGoal {
 					this.maybeTeleportMount(this.owner);
 				} else if (!this.rat.isPassenger()) {
 					this.rat.tryToTeleportToOwner();
+				} else {
+					// non-teleporting mount (e.g. biplane): keep steering toward the owner instead
+					this.activeNavigation().moveTo(this.owner, this.speedModifier);
 				}
 			} else {
-				this.rat.getNavigation().moveTo(this.owner, this.speedModifier);
+				this.activeNavigation().moveTo(this.owner, this.speedModifier);
 			}
 		}
 	}
@@ -109,7 +138,7 @@ public class RatFollowOwnerGoal extends FollowOwnerGoal {
 		BlockPos pos = new BlockPos(x, y, z);
 		if (!this.canTeleportTo(pos)) return false;
 		mount.snapTo(x + 0.5D, (double) y, z + 0.5D, mount.getYRot(), mount.getXRot());
-		this.rat.getNavigation().stop();
+		this.activeNavigation().stop();
 		return true;
 	}
 

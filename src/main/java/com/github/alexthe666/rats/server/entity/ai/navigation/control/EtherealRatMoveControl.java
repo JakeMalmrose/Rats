@@ -12,6 +12,9 @@ public class EtherealRatMoveControl extends RatMoveControl {
 
 	public void tick() {
 		if (this.operation == Operation.MOVE_TO) {
+			// 26.1: seed the entity speed — LivingEntity.speed defaults to 0 unless something set it,
+			// and the vertical term below multiplies by getSpeed().
+			this.rat.setSpeed((float) (this.speedModifier * this.rat.getAttributeValue(net.minecraft.world.entity.ai.attributes.Attributes.MOVEMENT_SPEED)));
 			Vec3 vector3d = new Vec3(this.wantedX - this.rat.getX(), this.wantedY - this.rat.getY(), this.wantedZ - this.rat.getZ());
 			double d0 = vector3d.length();
 

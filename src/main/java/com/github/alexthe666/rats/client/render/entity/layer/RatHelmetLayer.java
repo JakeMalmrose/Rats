@@ -154,22 +154,22 @@ public class RatHelmetLayer<T extends AbstractRat> extends RenderLayer<LivingEnt
 				}
 			}
 			stack.popPose();
-
-			//Rats: render a banner if the rat has one in its banner slot
-			stack.pushPose();
-			ItemStack banner = rat.getItemBySlot(EquipmentSlot.OFFHAND);
-			if (banner.getItem() instanceof BannerItem) {
-				this.ratModel().translateToBody(stack);
-				stack.translate(0.0D, -0.5D, -0.2D);
-				stack.mulPose(Axis.ZP.rotationDegrees(180.0F));
-				float sitProgress = rat.sitProgress / 20.0F;
-				stack.mulPose(Axis.XP.rotationDegrees(sitProgress * -40.0F));
-				stack.translate(0.0D, 0.0D, -sitProgress * 0.04F);
-				stack.scale(1.7F, 1.7F, 1.7F);
-				this.submitItem(banner, ItemDisplayContext.FIXED, stack, collector, light, state);
-			}
-			stack.popPose();
 		}
+
+		//Rats: render a banner if the rat has one in its banner slot (independent of any head item)
+		stack.pushPose();
+		ItemStack banner = rat.getItemBySlot(EquipmentSlot.OFFHAND);
+		if (banner.getItem() instanceof BannerItem) {
+			this.ratModel().translateToBody(stack);
+			stack.translate(0.0D, -0.5D, -0.2D);
+			stack.mulPose(Axis.ZP.rotationDegrees(180.0F));
+			float sitProgress = rat.sitProgress / 20.0F;
+			stack.mulPose(Axis.XP.rotationDegrees(sitProgress * -40.0F));
+			stack.translate(0.0D, 0.0D, -sitProgress * 0.04F);
+			stack.scale(1.7F, 1.7F, 1.7F);
+			this.submitItem(banner, ItemDisplayContext.FIXED, stack, collector, light, state);
+		}
+		stack.popPose();
 	}
 
 	private static void zeroPart(net.minecraft.client.model.geom.ModelPart part) {

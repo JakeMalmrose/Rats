@@ -326,11 +326,98 @@ public class ForgeClientEvents {
 		}
 	}
 
+	// 26.1: the staff world overlays are re-implemented on the submit pipeline (the old
+	// Tesselator/BufferUploader immediate-mode path was removed with the render-pipeline rework).
 	@SubscribeEvent
-	public static void onRenderWorld(RenderLevelStageEvent.AfterTranslucentBlocks event) {
-		// TODO(26.1): the cheese/radius/patrol staff world overlays used immediate-mode drawing
-		// (Tesselator + BufferUploader.drawWithShader), which was removed with the render-pipeline
-		// rework. Reimplement on the submit/level-render-state path once the rest of the port settles.
+	public static void onSubmitWorldOverlays(net.neoforged.neoforge.client.event.SubmitCustomGeometryEvent event) {
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.player == null || mc.level == null || !SelectedRat.has(mc.player)) {
+			return;
+		}
+		TamedRat rat = SelectedRat.get(mc.player);
+		if (rat == null) {
+			return;
+		}
+		ItemStack heldItem = mc.player.getItemInHand(InteractionHand.MAIN_HAND);
+		PoseStack stack = event.getPoseStack();
+		net.minecraft.client.renderer.SubmitNodeCollector collector = event.getSubmitNodeCollector();
+		net.minecraft.client.renderer.state.level.CameraRenderState camera = event.getLevelRenderState().cameraRenderState;
+		Vec3 viewPosition = camera.pos;
+		org.joml.Quaternionf cameraOrientation = camera.orientation;
+		float partial = mc.getDeltaTracker().getGameTimeDeltaPartialTick(false);
+		float bob = 1.5F + 0.3F * (Mth.sin((partial + mc.player.tickCount) * 0.1F) + 1F);
+		if (heldItem.is(RatsItemRegistry.CHEESE_STICK.get())) {
+			float finalBob = bob;
+			rat.getDepositPos().ifPresent(pos -> {
+				if (mc.player.level().isLoaded(pos.pos()) && pos.dimension().equals(rat.level().dimension())) {
+					RatsIconRenderUtil.renderPOIIcon(RAT_DEPOSIT_TEXTURE, viewPosition, pos.pos(), finalBob, stack, collector, cameraOrientation);
+				}
+			});
+			rat.getPickupPos().ifPresent(pos -> {
+				if (mc.player.level().isLoaded(pos.pos()) && pos.dimension().equals(rat.level().dimension())) {
+					RatsIconRenderUtil.renderPOIIcon(RAT_PICKUP_TEXTURE, viewPosition, pos.pos(), finalBob, stack, collector, cameraOrientation);
+				}
+			});
+			rat.getHomePoint().ifPresent(pos -> {
+				if (mc.player.level().isLoaded(pos.pos()) && pos.dimension().equals(rat.level().dimension())) {
+					RatsIconRenderUtil.renderPOIIcon(HOME_TEXTURE, viewPosition, pos.pos(), finalBob, stack, collector, cameraOrientation);
+				}
+			});
+			if (mc.hitResult != null && mc.hitResult.getType() == HitResult.Type.BLOCK) {
+				BlockHitResult over = (BlockHitResult) mc.hitResult;
+				if (mc.level.getBlockState(over.getBlockPos()).is(RatsBlockRegistry.RAT_QUARRY.get())
+						&& mc.level.getBlockEntity(over.getBlockPos()) instanceof RatQuarryBlockEntity quarry) {
+					BlockPos blockPos = quarry.getBlockPos().offset(-quarry.getRadius(), 0, -quarry.getRadius());
+					AABB aabb = new AABB(0, -0.05, 0, 1 + quarry.getRadius() * 2, 0.1, 1 + quarry.getRadius() * 2);
+					RatsIconRenderUtil.renderBox(QUARRY_TEXTURE, viewPosition, Vec3.atLowerCornerOf(blockPos), aabb, stack, collector);
+				}
+			}
+		} else if (heldItem.is(RatsItemRegistry.RADIUS_STICK.get())) {
+			BlockPos blockPos = rat.getSearchCenter();
+			if (!mc.player.level().isLoaded(blockPos)) return;
+			Vec3 renderCenter = new Vec3(blockPos.getX() + 0.5D, blockPos.getY() + 0.5D, blockPos.getZ() + 0.5D);
+			double renderRadius = rat.getRadius();
+			AABB aabb = new AABB(-renderRadius, -renderRadius, -renderRadius, renderRadius, renderRadius, renderRadius);
+			RatsIconRenderUtil.renderBox(RADIUS_TEXTURE, viewPosition, renderCenter, aabb, stack, collector);
+		} else if (heldItem.is(RatsItemRegistry.PATROL_STICK.get())) {
+			bob = 1.5F + 0.05F * (Mth.sin((partial + (float) mc.player.tickCount) * 0.1F) + 1.0F);
+			for (int i = 0; i < rat.getPatrolNodes().size(); ++i) {
+				GlobalPos node = rat.getPatrolNodes().get(i);
+				if (!mc.player.level().isLoaded(node.pos())) return;
+				float r = 0.6F;
+				float g = 0.1F;
+				GlobalPos prev;
+				if (i > 0) {
+					prev = rat.getPatrolNodes().get(i - 1);
+				} else {
+					prev = rat.getPatrolNodes().get(rat.getPatrolNodes().size() - 1);
+					r = 0.5F;
+					g = 0.3F;
+				}
+				float lr = r;
+				float lg = g;
+				float lb = 0.1F;
+
+				if (node.dimension().equals(mc.player.level().dimension()) && prev.dimension().equals(mc.player.level().dimension())) {
+					float lineBob = bob;
+					stack.pushPose();
+					stack.translate(prev.pos().getX() + 0.5D - viewPosition.x(), prev.pos().getY() + lineBob - 0.25D - viewPosition.y(), prev.pos().getZ() + 0.5D - viewPosition.z());
+					float pdx = (float) (node.pos().getX() - prev.pos().getX());
+					float pdy = (float) (node.pos().getY() - prev.pos().getY());
+					float pdz = (float) (node.pos().getZ() - prev.pos().getZ());
+					collector.submitCustomGeometry(stack, net.minecraft.client.renderer.rendertype.RenderTypes.LINES, (pose, consumer) -> {
+						float len = Math.max(1.0E-4F, (float) Math.sqrt(pdx * pdx + pdy * pdy + pdz * pdz));
+						consumer.addVertex(pose, pdx, pdy, pdz).setColor(lr, lg, lb, 1.0F).setNormal(pose, pdx / len, pdy / len, pdz / len);
+						consumer.addVertex(pose, 0.0F, 0.0F, 0.0F).setColor(lr, lg, lb, 1.0F).setNormal(pose, pdx / len, pdy / len, pdz / len);
+					});
+					stack.popPose();
+				}
+
+				if (node.dimension().equals(mc.player.level().dimension())) {
+					RatsIconRenderUtil.renderPOIIcon(RAT_PATROL_NODE_TEXTURE, viewPosition, node.pos(), bob, stack, collector, cameraOrientation);
+				}
+			}
+		}
 	}
 
 	public static boolean isRatSelectedOnStaff(TamedRat rat) {

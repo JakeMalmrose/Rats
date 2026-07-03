@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.capabilities.Capabilities;
-import net.neoforged.neoforge.energy.EnergyStorage;
+import net.neoforged.neoforge.transfer.energy.SimpleEnergyHandler;
 import net.neoforged.neoforge.transfer.energy.EnergyHandler;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
@@ -28,11 +28,13 @@ public class RatCageWheelBlockEntity extends DecoratedRatCageBlockEntity {
 	public float rotationSpeed = 1.0F;
 	private TamedRat wheeler;
 	private int dismountCooldown = 0;
-	public final EnergyStorage energyStorage;
+	// 26.1: migrated from the legacy EnergyStorage to the transfer-API handler so it can be exposed
+	// through Capabilities.Energy.BLOCK (energy rats pick RF up from the wheel via that cap).
+	public final SimpleEnergyHandler energyStorage;
 
 	public RatCageWheelBlockEntity(BlockPos pos, BlockState state) {
 		super(RatsBlockEntityRegistry.RAT_CAGE_WHEEL.get(), pos, state);
-		this.energyStorage = new EnergyStorage(1000, 10, 10, 0);
+		this.energyStorage = new SimpleEnergyHandler(1000, 10, 10, 0);
 	}
 
 	@Override
@@ -47,7 +49,7 @@ public class RatCageWheelBlockEntity extends DecoratedRatCageBlockEntity {
 	@Override
 	protected void saveAdditional(ValueOutput compound) {
 		compound.putInt("UseTicks", this.useTicks);
-		// 26.1: EnergyStorage implements ValueIOSerializable and writes into a child output.
+		// 26.1: SimpleEnergyHandler implements ValueIOSerializable and writes into a child output.
 		this.energyStorage.serialize(compound.child("Energy"));
 		compound.putInt("DismountCooldown", this.dismountCooldown);
 		super.saveAdditional(compound);
@@ -100,8 +102,10 @@ public class RatCageWheelBlockEntity extends DecoratedRatCageBlockEntity {
 				te.wheeler.yBodyRot = te.wheeler.yBodyRotO = te.wheeler.getYRot();
 
 				int nrg = Mth.ceil(10 * te.rotationSpeed);
-				if (te.energyStorage.receiveEnergy(nrg, true) != 0) {
-					te.energyStorage.receiveEnergy(nrg, false);
+				try (Transaction tx = Transaction.openRoot()) {
+					if (te.energyStorage.insert(nrg, tx) != 0) {
+						tx.commit();
+					}
 				}
 
 				if (te.useTicks > 200 && te.useTicks % 100 == 0 && level.getRandom().nextFloat() > 0.25F) {
@@ -118,7 +122,7 @@ public class RatCageWheelBlockEntity extends DecoratedRatCageBlockEntity {
 	}
 
 	private void sendEnergy(Level level, BlockPos pos) {
-		int remaining = this.energyStorage.getEnergyStored();
+		int remaining = this.energyStorage.getAmountAsInt();
 
 		for (int i = 0; (i < Direction.values().length) && (remaining > 0); i++) {
 			Direction facing = Direction.values()[i];
@@ -139,7 +143,10 @@ public class RatCageWheelBlockEntity extends DecoratedRatCageBlockEntity {
 				}
 				if (received > 0) {
 					remaining -= received;
-					this.energyStorage.extractEnergy(received, false);
+					try (Transaction transaction = Transaction.openRoot()) {
+						this.energyStorage.extract(received, transaction);
+						transaction.commit();
+					}
 					this.setChanged();
 				}
 			}

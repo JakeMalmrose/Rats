@@ -82,7 +82,9 @@ public final class ClientPacketHandlers {
 		BlockPos pos = BlockPos.of(packet.blockPos());
 		Level level = mc.level;
 		if (level != null && level.getBlockEntity(pos) instanceof AutoCurdlerBlockEntity curdler) {
-			curdler.getTank().setFluid(packet.fluid());
+			// 26.1: FluidStacksResourceHandler has no setFluid; overwrite slot 0 directly.
+			net.neoforged.neoforge.fluids.FluidStack synced = packet.fluid();
+			curdler.getTank().set(0, synced.isEmpty() ? net.neoforged.neoforge.transfer.fluid.FluidResource.EMPTY : net.neoforged.neoforge.transfer.fluid.FluidResource.of(synced), synced.getAmount());
 		}
 	}
 

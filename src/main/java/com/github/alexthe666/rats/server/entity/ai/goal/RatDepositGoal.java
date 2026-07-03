@@ -228,7 +228,7 @@ public class RatDepositGoal extends Goal implements RatWorkGoal {
 						if (!this.rat.level().isClientSide()) {
 							PacketDistributor.sendToAllPlayers(new UpdateRatFluidPacket(this.rat.getId(), this.rat.transportingFluid));
 							if (this.rat.level().getBlockEntity(this.targetBlock) instanceof AutoCurdlerBlockEntity curdler) {
-								PacketDistributor.sendToAllPlayers(new UpdateCurdlerFluidPacket(this.targetBlock.asLong(), curdler.getTank().getFluid()));
+								PacketDistributor.sendToAllPlayers(new UpdateCurdlerFluidPacket(this.targetBlock.asLong(), curdler.getTankFluid()));
 							}
 						}
 						SoundEvent sound = this.rat.transportingFluid.isEmpty() ? SoundEvents.BUCKET_EMPTY : SoundEvents.BUCKET_FILL;

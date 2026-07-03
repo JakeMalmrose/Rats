@@ -155,6 +155,8 @@ public class TamedRat extends InventoryRat {
 	public int pickpocketCooldown = 0;
 	public int randomEffectCooldown = 0;
 	private int updateNavigationCooldown;
+	// 26.1: lift-off grace so the alternating-tick goal scheduler can't kill flight before takeoff.
+	private int timeFlying;
 	public boolean isCurrentlyWorking;
 	private final Multimap<net.minecraft.core.Holder<Attribute>, AttributeModifier> attributeChanges = HashMultimap.create();
 
@@ -384,9 +386,13 @@ public class TamedRat extends InventoryRat {
 		return RatUpgradeUtils.hasUpgrade(this, RatsItemRegistry.RAT_UPGRADE_SCULKED.get()) ? MovementEmission.SOUNDS : MovementEmission.ALL;
 	}
 
+	// 26.1: the canDrownInFluidType hook is dead (its CommonHooks call site was removed); air
+	// depletion now consults vanilla canBreatheUnderwater, so aquatic/underwater rats must hook that.
 	@Override
-	public boolean canDrownInFluidType(FluidType type) {
-		return type == NeoForgeMod.WATER_TYPE.value() && (!RatUpgradeUtils.hasUpgrade(this, RatsItemRegistry.RAT_UPGRADE_AQUATIC.get()) || !RatUpgradeUtils.hasUpgrade(this, RatsItemRegistry.RAT_UPGRADE_UNDERWATER.get()));
+	public boolean canBreatheUnderwater() {
+		return super.canBreatheUnderwater()
+				|| RatUpgradeUtils.hasUpgrade(this, RatsItemRegistry.RAT_UPGRADE_AQUATIC.get())
+				|| RatUpgradeUtils.hasUpgrade(this, RatsItemRegistry.RAT_UPGRADE_UNDERWATER.get());
 	}
 
 	@Override
@@ -505,14 +511,26 @@ public class TamedRat extends InventoryRat {
 				this.switchNavigator(2);
 			} else if (this.hasFlightUpgrade()) {
 				this.switchNavigator(1);
+			} else if (RatUpgradeUtils.hasUpgrade(this, RatlantisItemRegistry.RAT_UPGRADE_ETHEREAL.get())) {
+				// navigatorType is not persisted, so re-derive ethereal/aquatic here or these rats
+				// come back from a reload as ground rats until their upgrade GUI is reopened.
+				this.switchNavigator(4);
+			} else if (RatUpgradeUtils.hasUpgrade(this, RatsItemRegistry.RAT_UPGRADE_AQUATIC.get())) {
+				this.switchNavigator(3);
 			} else {
 				this.switchNavigator(savedNav);
 			}
 		}
 
-		this.setNoGravity(this.isFlying());
+		// 26.1: ethereal rats float purely via noGravity (their FlyingPathNavigation can't ground-path),
+		// and onUpgradeChanged's setNoGravity(true) was being clobbered here every tick.
+		this.setNoGravity(this.isFlying() || RatUpgradeUtils.hasUpgrade(this, RatlantisItemRegistry.RAT_UPGRADE_ETHEREAL.get()));
 		if (this.isFlying()) {
-			if (this.isOrderedToSit() || this.verticalCollisionBelow || this.onGround()) {
+			// 26.1: goals tick on alternating ticks, but this grounded-reset ran every tick, so the
+			// wander goal's setFlying(true) could never survive to a second consecutive tick and bee/
+			// dragon rats never lifted off. Give lift-off a grace period (mirrors AM's blue jay).
+			this.timeFlying++;
+			if (this.isOrderedToSit() || (this.timeFlying > 10 && (this.verticalCollisionBelow || this.onGround()))) {
 				this.setFlying(false);
 			}
 			if (Math.abs(this.getDeltaMovement().x()) < 0.01D && Math.abs(this.getDeltaMovement().z()) < 0.01D) {
@@ -520,6 +538,8 @@ public class TamedRat extends InventoryRat {
 					this.setDeltaMovement(this.getDeltaMovement().multiply(1.0D, 0.1D, 1.0D));
 				}
 			}
+		} else {
+			this.timeFlying = 0;
 		}
 
 		if (this.isInWheel() && !this.level().getBlockState(this.blockPosition()).is(RatsBlockRegistry.RAT_CAGE_WHEEL.get())) {
@@ -531,6 +551,11 @@ public class TamedRat extends InventoryRat {
 		}
 		if (this.rangedAttackCooldown > 0) {
 			this.rangedAttackCooldown--;
+		}
+		// The bee/christmas passive effects gate on this hitting 0, but nothing ever decremented it,
+		// so they fired at most once per rat. (Long-standing upstream bug, surfaced by playtesting.)
+		if (this.randomEffectCooldown > 0) {
+			this.randomEffectCooldown--;
 		}
 		if (this.visualCooldown > 0) {
 			this.visualCooldown--;

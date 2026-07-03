@@ -13,6 +13,7 @@ public class UnderwaterRatUpgradeItem extends BaseRatUpgradeItem implements Dama
 
 	@Override
 	public boolean isImmuneToDamageSource(TamedRat rat, DamageSource source) {
-		return source.is(DamageTypeTags.WITCH_RESISTANT_TO) || source.is(DamageTypes.DROWN);
+		// tooltip promises suffocation immunity too; IN_WALL was never included
+		return source.is(DamageTypeTags.WITCH_RESISTANT_TO) || source.is(DamageTypes.DROWN) || source.is(DamageTypes.IN_WALL);
 	}
 }

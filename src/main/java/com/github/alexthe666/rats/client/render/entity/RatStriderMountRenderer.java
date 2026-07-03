@@ -22,7 +22,8 @@ public class RatStriderMountRenderer extends MobRenderer<RatStriderMount, Living
 
 	public RatStriderMountRenderer(EntityRendererProvider.Context context) {
 		super(context, new RatStriderMountModel(context.bakeLayer(RatsModelLayers.RAT_STRIDER_MOUNT)), 0.5F);
-		this.addLayer(new AlwaysSaddledLayer<>(this, new RatStriderMountModel(context.bakeLayer(RatsModelLayers.RAT_STRIDER_MOUNT)), Identifier.parse("textures/entity/strider/strider_saddle.png")));
+		this.addLayer(new AlwaysSaddledLayer<>(this, new RatStriderMountModel(context.bakeLayer(RatsModelLayers.RAT_STRIDER_MOUNT)), // 26.1: the saddle texture moved into the equipment-asset layout
+				Identifier.parse("minecraft:textures/entity/equipment/strider_saddle/saddle.png")));
 	}
 
 	@Override

@@ -57,7 +57,7 @@ public class AutoCurdlerRenderer implements BlockEntityRenderer<AutoCurdlerBlock
 		if (entity.getLevel() != null && entity.getLevel().getBlockState(entity.getBlockPos()).getBlock() instanceof AutoCurdlerBlock) {
 			state.rotation = entity.getLevel().getBlockState(entity.getBlockPos()).getValue(AutoCurdlerBlock.FACING).getClockWise().toYRot() + 90;
 		}
-		FluidStack fluidStack = entity.getTank().getFluid();
+		FluidStack fluidStack = entity.getTankFluid();
 		state.fluidAmount = fluidStack.getAmount();
 		state.fluidSprite = null;
 		if (!fluidStack.isEmpty()) {
