@@ -19,9 +19,11 @@ public record UpdateRatFluidPacket(int ratId, FluidStack fluid) implements Custo
 
     public static final Type<UpdateRatFluidPacket> TYPE = new Type<>(Identifier.fromNamespaceAndPath(RatsMod.MODID, "update_rat_fluid"));
 
+    // This packet also syncs the emptied state after a deposit (RatDepositGoal sends FluidStack.EMPTY),
+    // and FluidStack.STREAM_CODEC throws EncoderException on empty stacks, kicking every client.
     public static final StreamCodec<RegistryFriendlyByteBuf, UpdateRatFluidPacket> STREAM_CODEC = StreamCodec.composite(
                 ByteBufCodecs.VAR_INT, UpdateRatFluidPacket::ratId,
-                FluidStack.STREAM_CODEC, UpdateRatFluidPacket::fluid,
+                FluidStack.OPTIONAL_STREAM_CODEC, UpdateRatFluidPacket::fluid,
                 UpdateRatFluidPacket::new
         );
 

@@ -7,7 +7,7 @@
   },
   "display": {
     "announce_to_chat": false,
-    "background": "rats:textures/block/marbled_cheese.png",
+    "background": "rats:block/marbled_cheese",
     "description": {
       "translate": "advancement.ratlantis.root.desc"
     },

@@ -7,7 +7,7 @@
   },
   "display": {
     "announce_to_chat": false,
-    "background": "rats:textures/block/block_of_cheese.png",
+    "background": "rats:block/block_of_cheese",
     "description": {
       "translate": "advancement.rats.root.desc"
     },

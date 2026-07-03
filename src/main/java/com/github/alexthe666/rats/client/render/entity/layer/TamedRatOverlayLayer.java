@@ -27,7 +27,11 @@ public class TamedRatOverlayLayer extends RenderLayer<LivingEntityRenderState, R
 	private static final RenderType TEXTURE_DYED_NOT = RenderTypes.entityCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/undyed_part.png"));
 	// 26.1: entityNoOutline was removed; entityTranslucent with affectsOutline=false is the equivalent no-outline pass.
 	private static final RenderType TEXTURE_DYED = RenderTypes.entityTranslucent(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/dyed_part.png"), false);
-	private static final RenderType TOGA_TEX = RenderTypes.entityCutout(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/toga.png"));
+	// Must be a blending type: 26.1 buckets custom geometry by RenderType.hasBlending() and draws the
+	// solid bucket first — as entityCutout the toga drew BEFORE the coplanar entityTranslucent dye
+	// overlay, which then blended over it and hid it on every dyed rat. entityTranslucent keeps it in
+	// the same (submission-ordered) bucket as the dye, after it.
+	private static final RenderType TOGA_TEX = RenderTypes.entityTranslucent(Identifier.fromNamespaceAndPath(RatsMod.MODID, "textures/entity/rat/upgrades/toga.png"), false);
 
 	// 26.1: RenderLayer no longer exposes getTextureLocation; keep the parent renderer around to look up
 	// the rat's texture for the god upgrade glint.

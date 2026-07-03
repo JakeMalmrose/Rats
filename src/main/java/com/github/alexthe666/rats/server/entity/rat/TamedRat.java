@@ -523,12 +523,25 @@ public class TamedRat extends InventoryRat {
 			if (this.navigatorType != desiredNav) {
 				this.switchNavigator(desiredNav);
 			}
+			// Lift-off used to be granted only by RatWanderGoal.tick, so follow/work/attack goals
+			// drove the flight navigator with gravity still on and the rat scooted along the ground
+			// (or fell back to follow's teleport). Engage the flag centrally whenever the flight
+			// move control is steering somewhere; the grounded-reset below still lands the rat.
+			if (desiredNav == 1 && !this.isFlying() && !this.isOrderedToSit() && this.getMoveControl().hasWanted()) {
+				this.setFlying(true);
+			}
 		}
 
 		// 26.1: ethereal rats float purely via noGravity (their FlyingPathNavigation can't ground-path),
 		// and onUpgradeChanged's setNoGravity(true) was being clobbered here every tick. Tube rats float
 		// through the pipe network the same way.
 		this.setNoGravity(this.isFlying() || this.isInTube() || RatUpgradeUtils.hasUpgrade(this, RatlantisItemRegistry.RAT_UPGRADE_ETHEREAL.get()));
+		// Tube descent moves with negative dy, which accrues fallDistance every tick (onClimbable()
+		// only covers ascent via climbingTube) — the whole drop then lands as fall damage at the
+		// bottom of the pipe run. Zero it while inside.
+		if (this.isInTube()) {
+			this.resetFallDistance();
+		}
 		if (this.isFlying()) {
 			// 26.1: goals tick on alternating ticks, but this grounded-reset ran every tick, so the
 			// wander goal's setFlying(true) could never survive to a second consecutive tick and bee/
@@ -536,6 +549,11 @@ public class TamedRat extends InventoryRat {
 			this.timeFlying++;
 			if (this.isOrderedToSit() || (this.timeFlying > 10 && (this.verticalCollisionBelow || this.onGround()))) {
 				this.setFlying(false);
+			}
+			// No destination (goal finished away from the ground)? Drift down so the grounded-reset
+			// above can land the rat instead of parking it midair with gravity off.
+			if (!this.level().isClientSide() && !this.getMoveControl().hasWanted() && !this.onGround()) {
+				this.setDeltaMovement(this.getDeltaMovement().add(0.0D, -0.02D, 0.0D));
 			}
 			if (Math.abs(this.getDeltaMovement().x()) < 0.01D && Math.abs(this.getDeltaMovement().z()) < 0.01D) {
 				if (Math.abs(this.getDeltaMovement().y()) > 0.0D) {
@@ -980,9 +998,14 @@ public class TamedRat extends InventoryRat {
 					}
 					return InteractionResult.PASS;
 				} else {
-					RatSackItem.packRatIntoSack(itemstack, this, RatSackItem.getRatsInSack(itemstack) + 1);
-					this.playSound(SoundEvents.ARMOR_EQUIP_LEATHER.value(), 1, 1);
-					this.discard();
+					// 26.1: the client's LeashData is network-id-only (no attachment) and its codec
+					// hard-fails on save, so a rat that was ever leashed crashes if serialized
+					// client-side — pack and discard on the server only.
+					if (!this.level().isClientSide()) {
+						RatSackItem.packRatIntoSack(itemstack, this, RatSackItem.getRatsInSack(itemstack) + 1);
+						this.playSound(SoundEvents.ARMOR_EQUIP_LEATHER.value(), 1, 1);
+						this.discard();
+					}
 					player.swing(hand);
 					return InteractionResult.SUCCESS;
 				}
@@ -996,26 +1019,29 @@ public class TamedRat extends InventoryRat {
 				}
 				return InteractionResult.SUCCESS;
 			} else if (itemstack.is(Items.ARROW)) {
-				itemstack.shrink(1);
-				ItemStack arrow = new ItemStack(RatsItemRegistry.RAT_ARROW.get());
-				CompoundTag tag = new CompoundTag();
-				// 26.1: entity save data goes through ValueOutput, bridged via TagValueOutput; custom names round-trip through ComponentSerialization.CODEC.
-				net.minecraft.world.level.storage.TagValueOutput ratOutput = net.minecraft.world.level.storage.TagValueOutput.createWithContext(net.minecraft.util.ProblemReporter.DISCARDING, this.registryAccess());
-				this.addAdditionalSaveData(ratOutput);
-				CompoundTag ratTag = ratOutput.buildResult();
-				if (this.hasCustomName()) {
-					ratTag.store("CustomName", net.minecraft.network.chat.ComponentSerialization.CODEC, this.getCustomName());
+				// Serialize server-side only — same client LeashData crash as the rat sack branch above.
+				if (!this.level().isClientSide()) {
+					itemstack.shrink(1);
+					ItemStack arrow = new ItemStack(RatsItemRegistry.RAT_ARROW.get());
+					CompoundTag tag = new CompoundTag();
+					// 26.1: entity save data goes through ValueOutput, bridged via TagValueOutput; custom names round-trip through ComponentSerialization.CODEC.
+					net.minecraft.world.level.storage.TagValueOutput ratOutput = net.minecraft.world.level.storage.TagValueOutput.createWithContext(net.minecraft.util.ProblemReporter.DISCARDING, this.registryAccess());
+					this.addAdditionalSaveData(ratOutput);
+					CompoundTag ratTag = ratOutput.buildResult();
+					if (this.hasCustomName()) {
+						ratTag.store("CustomName", net.minecraft.network.chat.ComponentSerialization.CODEC, this.getCustomName());
+					}
+					tag.put("Rat", ratTag);
+					arrow.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.of(tag));
+					if (itemstack.isEmpty()) {
+						player.setItemInHand(hand, arrow);
+					} else if (!player.getInventory().add(arrow)) {
+						player.drop(arrow, false);
+					}
+					this.playSound(RatsSoundRegistry.RAT_HURT.get(), 1, 1);
+					this.discard();
 				}
-				tag.put("Rat", ratTag);
-				arrow.set(net.minecraft.core.component.DataComponents.CUSTOM_DATA, net.minecraft.world.item.component.CustomData.of(tag));
-				if (itemstack.isEmpty()) {
-					player.setItemInHand(hand, arrow);
-				} else if (!player.getInventory().add(arrow)) {
-					player.drop(arrow, false);
-				}
-				this.playSound(RatsSoundRegistry.RAT_HURT.get(), 1, 1);
 				player.swing(hand);
-				this.discard();
 				return InteractionResult.SUCCESS;
 			} else {
 				return super.mobInteract(player, hand);
@@ -1085,7 +1111,7 @@ public class TamedRat extends InventoryRat {
 	// 26.1: fall distance widened to double, and invulnerability checks need the ServerLevel.
 	@Override
 	public boolean causeFallDamage(double dist, float mult, DamageSource source) {
-		if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel && !this.isInvulnerableTo(serverLevel, source) && !this.isPassenger()) {
+		if (this.level() instanceof net.minecraft.server.level.ServerLevel serverLevel && !this.isInvulnerableTo(serverLevel, source) && !this.isPassenger() && !this.isInTube()) {
 			return super.causeFallDamage(dist, mult, source);
 		}
 		return false;
