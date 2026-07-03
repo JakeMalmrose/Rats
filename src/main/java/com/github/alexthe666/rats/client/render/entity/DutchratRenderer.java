@@ -90,10 +90,16 @@ public class DutchratRenderer extends MobRenderer<Dutchrat, LivingEntityRenderSt
 		@Override
 		public void submit(PoseStack stack, SubmitNodeCollector collector, int light, LivingEntityRenderState state, float netHeadYaw, float headPitch) {
 			this.getParentModel().setupAnim(state);
-			collector.submitCustomGeometry(stack, RatsRenderType.getGlowingTranslucent(GLOW_1), (pose, consumer) ->
-					this.getParentModel().renderCitadelToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF));
-			collector.submitCustomGeometry(stack, RatsRenderType.getGlowingTranslucent(GLOW_2), (pose, consumer) ->
-					this.getParentModel().renderCitadelToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0x80FFFFFF));
+			collector.submitCustomGeometry(stack, RatsRenderType.getGlowingTranslucent(GLOW_1), (pose, consumer) -> {
+					// re-pose the shared model at draw time: other entities re-run setupAnim between submit and draw
+					this.getParentModel().setupAnim(state);
+					this.getParentModel().renderCitadelToBuffer(pose, consumer, light, OverlayTexture.NO_OVERLAY, 0xFFFFFFFF);
+				});
+			collector.submitCustomGeometry(stack, RatsRenderType.getGlowingTranslucent(GLOW_2), (pose, consumer) -> {
+					// re-pose the shared model at draw time: other entities re-run setupAnim between submit and draw
+					this.getParentModel().setupAnim(state);
+					this.getParentModel().renderCitadelToBuffer(pose, consumer, light, OverlayTexture.NO_OVERLAY, 0x80FFFFFF);
+				});
 		}
 	}
 }

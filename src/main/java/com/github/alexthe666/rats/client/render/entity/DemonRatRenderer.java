@@ -47,8 +47,11 @@ public class DemonRatRenderer extends AbstractRatRenderer<DemonRat> {
 		public void submit(PoseStack stack, SubmitNodeCollector collector, int light, LivingEntityRenderState state, float netHeadYaw, float headPitch) {
 			boolean soul = RatsClientKeys.getLiving(state) instanceof DemonRat rat && rat.isSoulVariant();
 			this.getParentModel().setupAnim(state);
-			collector.submitCustomGeometry(stack, RenderTypes.eyes(soul ? SOUL_EYE_TEXTURE : BASE_EYE_TEXTURE), (pose, consumer) ->
-					this.getParentModel().renderCitadelToBuffer(stack, consumer, 15728640, OverlayTexture.NO_OVERLAY, -1));
+			collector.submitCustomGeometry(stack, RenderTypes.eyes(soul ? SOUL_EYE_TEXTURE : BASE_EYE_TEXTURE), (pose, consumer) -> {
+					// re-pose the shared model at draw time: other entities re-run setupAnim between submit and draw
+					this.getParentModel().setupAnim(state);
+					this.getParentModel().renderCitadelToBuffer(pose, consumer, 15728640, OverlayTexture.NO_OVERLAY, -1);
+				});
 		}
 	}
 }

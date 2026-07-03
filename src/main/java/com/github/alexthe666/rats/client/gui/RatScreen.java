@@ -90,19 +90,19 @@ public class RatScreen extends AbstractContainerScreen<RatMenu> {
 
 	@Override
 	protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
-		graphics.text(this.font, this.getTitle(), this.imageWidth / 2 - this.font.width(this.getTitle()) / 2, 6, 4210752, false);
+		graphics.text(this.font, this.getTitle(), this.imageWidth / 2 - this.font.width(this.getTitle()) / 2, 6, 0xFF404040, false);
 
 		Component commandDesc = Component.translatable(RatsLangConstants.RAT_CURRENT_COMMAND);
-		graphics.text(this.font, commandDesc, this.imageWidth / 2 - this.font.width(commandDesc) / 2 + 38, 19, 4210752, false);
+		graphics.text(this.font, commandDesc, this.imageWidth / 2 - this.font.width(commandDesc) / 2 + 38, 19, 0xFF404040, false);
 
 		Component command = Component.translatable(rat.getCommand().getTranslateName());
-		graphics.text(this.font, command, this.imageWidth / 2 - this.font.width(command) / 2 + 36, 31, 0XFFFFFF, false);
+		graphics.text(this.font, command, this.imageWidth / 2 - this.font.width(command) / 2 + 36, 31, 0xFFFFFFFF, false);
 
 		Component statusDesc = Component.translatable(RatsLangConstants.RAT_COMMAND_SET);
-		graphics.text(this.font, statusDesc, this.imageWidth / 2 - this.font.width(statusDesc) / 2 + 36, 44, 4210752, false);
+		graphics.text(this.font, statusDesc, this.imageWidth / 2 - this.font.width(statusDesc) / 2 + 36, 44, 0xFF404040, false);
 		RatCommand command1 = RatUtils.wrapCommand(currentDisplayCommand);
 		Component command2 = Component.translatable(command1.getTranslateName());
-		graphics.text(this.font, command2, this.imageWidth / 2 - this.font.width(command2) / 2 + 36, 56, 0XFFFFFF, false);
+		graphics.text(this.font, command2, this.imageWidth / 2 - this.font.width(command2) / 2 + 36, 56, 0xFFFFFFFF, false);
 		int i = (this.width - 248) / 2;
 		int j = (this.height - 166) / 2;
 		if (mouseX > i + 116 && mouseX < i + 198 && mouseY > j + 22 && mouseY < j + 45) {

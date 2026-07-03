@@ -98,6 +98,13 @@ public class ModClientEvents {
 		event.register(Identifier.fromNamespaceAndPath(RatsMod.MODID, "soul"), RatsItemProperties.DemonSoul.MAP_CODEC);
 	}
 
+	// 26.1: builtin/entity item models are gone; block-entity items (rat trap, trash can, auto curdler,
+	// rat head, ratlantis portal) render through the rats:block_entity special model type instead.
+	@SubscribeEvent
+	public static void registerSpecialModelRenderers(net.neoforged.neoforge.client.event.RegisterSpecialModelRendererEvent event) {
+		event.register(Identifier.fromNamespaceAndPath(RatsMod.MODID, "block_entity"), com.github.alexthe666.rats.client.render.RatsBEWLR.Unbaked.MAP_CODEC);
+	}
+
 	@SubscribeEvent
 	public static void registerItemTintSources(RegisterColorHandlersEvent.ItemTintSources event) {
 		event.register(Identifier.fromNamespaceAndPath(RatsMod.MODID, "spawn_egg_layer"), RatsSpawnEggTintSource.MAP_CODEC);

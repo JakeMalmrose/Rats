@@ -47,8 +47,11 @@ public class GhostPiratRenderer extends AbstractRatRenderer<GhostPirat> {
 		public void submit(PoseStack stack, SubmitNodeCollector collector, int light, LivingEntityRenderState state, float netHeadYaw, float headPitch) {
 			float f = state.ageInTicks;
 			this.getParentModel().setupAnim(state);
-			collector.submitCustomGeometry(stack, RenderTypes.energySwirl(GHOST_OVERLAY, f * 0.01F, f * 0.01F), (pose, consumer) ->
-					this.getParentModel().renderCitadelToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, 0xFF808080));
+			collector.submitCustomGeometry(stack, RenderTypes.energySwirl(GHOST_OVERLAY, f * 0.01F, f * 0.01F), (pose, consumer) -> {
+					// re-pose the shared model at draw time: other entities re-run setupAnim between submit and draw
+					this.getParentModel().setupAnim(state);
+					this.getParentModel().renderCitadelToBuffer(pose, consumer, light, OverlayTexture.NO_OVERLAY, 0xFF808080);
+				});
 		}
 	}
 }

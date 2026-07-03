@@ -99,9 +99,9 @@ public class RatCraftingTableScreen extends AbstractContainerScreen<RatCraftingT
 	@Override
 	protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		String s = this.getTitle().getString();
-		graphics.text(this.font, s, this.imageWidth / 2 - this.font.width(s) / 2, 5, 4210752, false);
-		graphics.text(this.font, this.playerInventory.getDisplayName().getString(), 8, this.imageHeight - 93, 4210752, false);
-		graphics.text(this.font, Component.translatable(RatsLangConstants.CRAFTING_INPUT), 8, this.imageHeight - 125, 4210752, false);
+		graphics.text(this.font, s, this.imageWidth / 2 - this.font.width(s) / 2, 5, 0xFF404040, false);
+		graphics.text(this.font, this.playerInventory.getDisplayName().getString(), 8, this.imageHeight - 93, 0xFF404040, false);
+		graphics.text(this.font, Component.translatable(RatsLangConstants.CRAFTING_INPUT), 8, this.imageHeight - 125, 0xFF404040, false);
 
 		if (!this.table.getCraftingTable().hasRat()) {
 			if (this.isHovering(6, 34, 25, 29, mouseX, mouseY)) {

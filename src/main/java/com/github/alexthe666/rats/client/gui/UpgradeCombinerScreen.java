@@ -47,8 +47,8 @@ public class UpgradeCombinerScreen extends AbstractContainerScreen<UpgradeCombin
 	@Override
 	protected void extractLabels(GuiGraphicsExtractor graphics, int mouseX, int mouseY) {
 		String s = this.getTitle().getString();
-		graphics.text(this.font, s, this.imageWidth / 2 - this.font.width(s) / 2, 5, 4210752, false);
-		graphics.text(this.font, this.playerInventory.getDisplayName().getString(), 8, this.imageHeight - 94 + 2, 4210752, false);
+		graphics.text(this.font, s, this.imageWidth / 2 - this.font.width(s) / 2, 5, 0xFF404040, false);
+		graphics.text(this.font, this.playerInventory.getDisplayName().getString(), 8, this.imageHeight - 94 + 2, 0xFF404040, false);
 		int screenW = (this.width - this.imageWidth) / 2;
 		int screenH = (this.height - this.imageHeight) / 2;
 		if (UpgradeCombinerBlockEntity.canCombine(this.combiner.container.getItem(0), this.combiner.container.getItem(2)) && !this.combiner.container.getItem(0).isEmpty() && !this.combiner.container.getItem(2).isEmpty()) {

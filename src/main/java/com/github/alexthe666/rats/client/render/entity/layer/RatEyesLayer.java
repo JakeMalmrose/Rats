@@ -44,12 +44,18 @@ public class RatEyesLayer<T extends AbstractRat> extends RenderLayer<LivingEntit
 		}
 		if (rat instanceof Rat plagueable && plagueable.hasPlague()) {
 			this.getParentModel().setupAnim(state);
-			collector.submitCustomGeometry(stack, PLAGUE_EYES, (pose, consumer) ->
-					this.getParentModel().renderCitadelToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, -1));
+			collector.submitCustomGeometry(stack, PLAGUE_EYES, (pose, consumer) -> {
+					// re-pose the shared model at draw time: other entities re-run setupAnim between submit and draw
+					this.getParentModel().setupAnim(state);
+					this.getParentModel().renderCitadelToBuffer(pose, consumer, light, OverlayTexture.NO_OVERLAY, -1);
+				});
 		} else if (brightness < 7) {
 			this.getParentModel().setupAnim(state);
-			collector.submitCustomGeometry(stack, EYES, (pose, consumer) ->
-					this.getParentModel().renderCitadelToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, -1));
+			collector.submitCustomGeometry(stack, EYES, (pose, consumer) -> {
+					// re-pose the shared model at draw time: other entities re-run setupAnim between submit and draw
+					this.getParentModel().setupAnim(state);
+					this.getParentModel().renderCitadelToBuffer(pose, consumer, light, OverlayTexture.NO_OVERLAY, -1);
+				});
 		}
 	}
 }

@@ -1,1 +1,9 @@
-{"model": {"type": "minecraft:model", "model": "rats:item/rat_trap"}}
+{
+  "model": {
+    "type": "minecraft:special",
+    "base": "rats:item/rat_trap",
+    "model": {
+      "type": "rats:block_entity"
+    }
+  }
+}

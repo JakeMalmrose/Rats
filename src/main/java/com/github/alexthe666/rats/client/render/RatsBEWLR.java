@@ -78,6 +78,27 @@ public class RatsBEWLR implements SpecialModelRenderer<ItemStack> {
 	}
 
 	/**
+	 * Data-driven hook: registered as the {@code rats:block_entity} special model type in ModClientEvents,
+	 * referenced from assets/rats/items/&lt;name&gt;.json via {@code {"type": "minecraft:special",
+	 * "base": "rats:item/&lt;name&gt;", "model": {"type": "rats:block_entity"}}} — the base model supplies
+	 * the display transforms the old builtin/entity models carried.
+	 */
+	public record Unbaked() implements SpecialModelRenderer.Unbaked<ItemStack> {
+		public static final Unbaked INSTANCE = new Unbaked();
+		public static final com.mojang.serialization.MapCodec<Unbaked> MAP_CODEC = com.mojang.serialization.MapCodec.unit(INSTANCE);
+
+		@Override
+		public SpecialModelRenderer<ItemStack> bake(SpecialModelRenderer.BakingContext context) {
+			return RatsBEWLR.INSTANCE;
+		}
+
+		@Override
+		public com.mojang.serialization.MapCodec<? extends SpecialModelRenderer.Unbaked<ItemStack>> type() {
+			return MAP_CODEC;
+		}
+	}
+
+	/**
 	 * {@link ItemModel} bridging the model system to {@link RatsBEWLR}; substituted for each block-entity
 	 * item's baked model in {@code ModelEvent.ModifyBakingResult}.
 	 */

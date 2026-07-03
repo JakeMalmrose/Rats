@@ -30,8 +30,11 @@ public class RatbotEyesLayer extends RenderLayer<LivingEntityRenderState, RatsEn
 			return;
 		}
 		this.getParentModel().setupAnim(state);
-		collector.submitCustomGeometry(stack, this.getTextureForTick(entity.tickCount * 3), (pose, consumer) ->
-				this.getParentModel().renderCitadelToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, -1));
+		collector.submitCustomGeometry(stack, this.getTextureForTick(entity.tickCount * 3), (pose, consumer) -> {
+				// re-pose the shared model at draw time: other entities re-run setupAnim between submit and draw
+				this.getParentModel().setupAnim(state);
+				this.getParentModel().renderCitadelToBuffer(pose, consumer, light, OverlayTexture.NO_OVERLAY, -1);
+			});
 	}
 
 	private RenderType getTextureForTick(int tickCount) {

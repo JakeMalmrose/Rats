@@ -101,7 +101,7 @@ public class MobFilterScreen extends Screen {
 		this.searchBar = new EditBox(this.font, this.leftPos + 121, this.topPos + 8, 85, 12, Component.empty());
 		this.searchBar.setMaxLength(50);
 		this.searchBar.setBordered(false);
-		this.searchBar.setTextColor(16777215);
+		this.searchBar.setTextColor(0xFFFFFFFF);
 		this.addWidget(this.searchBar);
 	}
 
@@ -122,7 +122,7 @@ public class MobFilterScreen extends Screen {
 		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
 		super.extractRenderState(graphics, mouseX, mouseY, partialTicks);
 		//draw title
-		graphics.text(this.font, this.title, this.leftPos + 7, this.topPos + 7, 4210752, false);
+		graphics.text(this.font, this.title, this.leftPos + 7, this.topPos + 7, 0xFF404040, false);
 		//draw whitelist/blacklist icon under checkbox
 		graphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, this.leftPos + 8, this.topPos + 35, this.isWhitelist ? 44 : 30, 125, 12, 14, 256, 256);
 		//draw selected mob icon
@@ -170,7 +170,7 @@ public class MobFilterScreen extends Screen {
 		for (int i = this.startIndex; i < startIndex && i < this.filteredMobs.size(); ++i) {
 			int j = i - this.startIndex;
 			int y = startY + j * 18;
-			this.renderScrollingString(graphics, this.filteredMobs.get(i).getSecond(), startX, y, startX + 88, y + 15, this.selectedMobs.contains(this.filteredMobs.get(i).getFirst()) ? 0X4CFF00 : 0xFFFFFF);
+			this.renderScrollingString(graphics, this.filteredMobs.get(i).getSecond(), startX, y, startX + 88, y + 15, this.selectedMobs.contains(this.filteredMobs.get(i).getFirst()) ? 0X4CFF00 : 0xFFFFFFFF);
 		}
 	}
 

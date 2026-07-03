@@ -40,8 +40,11 @@ public class TamedRatEyesLayer extends RatEyesLayer<TamedRat> {
 			if (!skip.get()) {
 				if (tex.get() != null || RatUpgradeUtils.forEachUpgradeBool(rat, upgrade -> upgrade instanceof ChangesTextureUpgrade eyeTex && eyeTex.makesEyesGlowByDefault(), false)) {
 					this.getParentModel().setupAnim(state);
-					collector.submitCustomGeometry(stack, tex.get(), (pose, consumer) ->
-							this.getParentModel().renderCitadelToBuffer(stack, consumer, light, OverlayTexture.NO_OVERLAY, -1));
+					collector.submitCustomGeometry(stack, tex.get(), (pose, consumer) -> {
+							// re-pose the shared model at draw time: other entities re-run setupAnim between submit and draw
+							this.getParentModel().setupAnim(state);
+							this.getParentModel().renderCitadelToBuffer(pose, consumer, light, OverlayTexture.NO_OVERLAY, -1);
+						});
 				}
 			}
 		} else {

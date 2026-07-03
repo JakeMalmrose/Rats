@@ -105,8 +105,13 @@ public class RatHelmetLayer<T extends AbstractRat> extends RenderLayer<LivingEnt
 					if (itemstack.getItem() instanceof HatItem hat) {
 						hat.transformOnHead(rat, stack);
 					}
+					// The NeoForge extension returns null for "no override" (all vanilla armor); fall
+					// back to the equipment-asset texture ourselves or plain helmets render nothing.
 					Identifier texture = IClientItemExtensions.of(itemstack)
 							.getArmorTexture(itemstack, EquipmentClientInfo.LayerType.HUMANOID, null, fallbackArmorTexture(equippable));
+					if (texture == null) {
+						texture = fallbackArmorTexture(equippable);
+					}
 					int tint = -1;
 					if (itemstack.has(DataComponents.DYED_COLOR)) {
 						tint = 0xFF000000 | itemstack.get(DataComponents.DYED_COLOR).rgb();
