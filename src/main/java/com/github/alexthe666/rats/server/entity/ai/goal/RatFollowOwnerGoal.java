@@ -69,9 +69,10 @@ public class RatFollowOwnerGoal extends FollowOwnerGoal {
 
 	@Override
 	public boolean canContinueToUse() {
-		if (this.activeNavigation().isDone()) {
-			return false;
-		}
+		// Unlike vanilla, do NOT stop when the navigation is done: switching navigators (entering a
+		// tube/cage) clears the path mid-follow, and once inside the rat is usually closer than
+		// startDistance so the goal could never restart — it would park in the tube forever.
+		// tick() re-paths every 10 ticks, so staying active is safe.
 		if (this.rat.isOrderedToSit() || this.rat.isLeashed() || this.rat.getVehicle() instanceof Player) {
 			return false;
 		}

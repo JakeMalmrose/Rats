@@ -72,6 +72,28 @@ public class RatTubeBlock extends BaseEntityBlock {
 	public static final BooleanProperty OPEN_DOWN = BooleanProperty.create("open_down");
 	public static final BooleanProperty[] ALL_OPEN_PROPS = new BooleanProperty[]{OPEN_DOWN, OPEN_UP, OPEN_NORTH, OPEN_SOUTH, OPEN_WEST, OPEN_EAST};
 
+	public static BooleanProperty connectionProperty(Direction direction) {
+		return switch (direction) {
+			case NORTH -> NORTH;
+			case SOUTH -> SOUTH;
+			case EAST -> EAST;
+			case WEST -> WEST;
+			case UP -> UP;
+			case DOWN -> DOWN;
+		};
+	}
+
+	public static BooleanProperty openProperty(Direction direction) {
+		return switch (direction) {
+			case NORTH -> OPEN_NORTH;
+			case SOUTH -> OPEN_SOUTH;
+			case EAST -> OPEN_EAST;
+			case WEST -> OPEN_WEST;
+			case UP -> OPEN_UP;
+			case DOWN -> OPEN_DOWN;
+		};
+	}
+
 	private static final VoxelShape UP_AABB = Block.box(3, 12, 3, 13, 13, 13);
 	private static final VoxelShape UP_AABB_CONNECT_1 = Block.box(3, 13, 3, 13, 16, 4);
 	private static final VoxelShape UP_AABB_CONNECT_2 = Block.box(3, 13, 3, 4, 16, 13);

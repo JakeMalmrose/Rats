@@ -37,9 +37,17 @@ public class RatTubeBlockEntity extends BlockEntity {
 			float j = pos.getY() + 0.2F;
 			float k = pos.getZ() + 0.5F;
 			float d0 = 0.4F;
-			for (Rat rat : level.getEntitiesOfClass(Rat.class, new AABB((double) i - d0, (double) j - d0, (double) k - d0, (double) i + d0, (double) j + d0, (double) k + d0))) {
+			// Tube rework: this targeted the wild Rat class, but tamed rats (the ones that use tube
+			// networks) are a separate hierarchy — suck in any AbstractRat near the open end.
+			for (com.github.alexthe666.rats.server.entity.rat.AbstractRat rat : level.getEntitiesOfClass(com.github.alexthe666.rats.server.entity.rat.AbstractRat.class, new AABB((double) i - d0, (double) j - d0, (double) k - d0, (double) i + d0, (double) j + d0, (double) k + d0))) {
 				rat.makeStuckInBlock(state, new Vec3(1.75F, 1, 1.75F));
-				te.updateRat(rat);
+				if (rat instanceof com.github.alexthe666.rats.server.entity.rat.TamedRat && !rat.blockPosition().equals(pos) && rat.getNavigation().getPath() != null && !rat.getNavigation().isDone()) {
+					// gentle pull toward the entrance center for rats actively pathing here
+					Vec3 pull = new Vec3(i - rat.getX(), j - rat.getY(), k - rat.getZ());
+					if (pull.lengthSqr() > 1.0E-4D) {
+						rat.setDeltaMovement(rat.getDeltaMovement().add(pull.normalize().scale(0.04D)));
+					}
+				}
 			}
 		}
 	}

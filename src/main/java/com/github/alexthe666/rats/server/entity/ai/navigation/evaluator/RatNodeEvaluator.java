@@ -20,7 +20,11 @@ public class RatNodeEvaluator extends WalkNodeEvaluator {
 		BlockGetter getter = context.level();
 		Block block = getter.getBlockState(pos).getBlock();
 		if (mob instanceof TamedRat rat) {
-			if (block instanceof RatHoleBlock || block instanceof RatTrapBlock || block instanceof RatCageBlock || RatUtils.isOpenRatTube(getter, pos)) {
+			// Tube rework: ALL tube blocks are walkable for tamed rats, not just open ends. The block's
+			// getBlockPathType hook can't help — 26.1 pathfinding evaluates it with a null mob, so it
+			// always reported BLOCKED (this is why tubes never pathed). Ground A* can now route through
+			// horizontal tube runs and reach entrances; vertical runs are RatTubeNavigation's job.
+			if (block instanceof RatHoleBlock || block instanceof RatTrapBlock || block instanceof RatCageBlock || block instanceof RatTubeBlock) {
 				types = PathType.WALKABLE;
 			}
 			if (block instanceof RatQuarryPlatformBlock) {

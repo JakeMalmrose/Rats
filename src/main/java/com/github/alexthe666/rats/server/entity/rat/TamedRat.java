@@ -308,7 +308,7 @@ public class TamedRat extends InventoryRat {
 			this.navigatorType = 1;
 		} else if (type == 2) { //tube
 			this.moveControl = new RatTubeMoveControl(this);
-			this.navigation = new RatNavigation(this, this.level());
+			this.navigation = new com.github.alexthe666.rats.server.entity.ai.navigation.navigation.RatTubeNavigation(this, this.level());
 			this.navigatorType = 2;
 		} else if (type == 3) { //aquatic
 			this.moveControl = new SmoothSwimmingMoveControl(this, 360, 360, 10.0F, 1.0F, true);
@@ -502,29 +502,33 @@ public class TamedRat extends InventoryRat {
 			});
 		}
 
-		if (this.updateNavigationCooldown-- == 0) {
-			this.updateNavigationCooldown = 60;
-			int savedNav = this.navigatorType;
+		// Tube rework: derive the desired navigator every tick and switch only on change. The old
+		// 60-tick cooldown meant rats sat at tube entrances for up to 3 seconds before tube movement
+		// engaged (and cage/tube navigators leaked into savedNav, sticking after the rat left).
+		if (!this.level().isClientSide()) {
+			int desiredNav;
 			if (this.isInCage()) {
-				this.switchNavigator(5);
+				desiredNav = 5;
 			} else if (this.isInTube()) {
-				this.switchNavigator(2);
+				desiredNav = 2;
 			} else if (this.hasFlightUpgrade()) {
-				this.switchNavigator(1);
+				desiredNav = 1;
 			} else if (RatUpgradeUtils.hasUpgrade(this, RatlantisItemRegistry.RAT_UPGRADE_ETHEREAL.get())) {
-				// navigatorType is not persisted, so re-derive ethereal/aquatic here or these rats
-				// come back from a reload as ground rats until their upgrade GUI is reopened.
-				this.switchNavigator(4);
+				desiredNav = 4;
 			} else if (RatUpgradeUtils.hasUpgrade(this, RatsItemRegistry.RAT_UPGRADE_AQUATIC.get())) {
-				this.switchNavigator(3);
+				desiredNav = 3;
 			} else {
-				this.switchNavigator(savedNav);
+				desiredNav = 0;
+			}
+			if (this.navigatorType != desiredNav) {
+				this.switchNavigator(desiredNav);
 			}
 		}
 
 		// 26.1: ethereal rats float purely via noGravity (their FlyingPathNavigation can't ground-path),
-		// and onUpgradeChanged's setNoGravity(true) was being clobbered here every tick.
-		this.setNoGravity(this.isFlying() || RatUpgradeUtils.hasUpgrade(this, RatlantisItemRegistry.RAT_UPGRADE_ETHEREAL.get()));
+		// and onUpgradeChanged's setNoGravity(true) was being clobbered here every tick. Tube rats float
+		// through the pipe network the same way.
+		this.setNoGravity(this.isFlying() || this.isInTube() || RatUpgradeUtils.hasUpgrade(this, RatlantisItemRegistry.RAT_UPGRADE_ETHEREAL.get()));
 		if (this.isFlying()) {
 			// 26.1: goals tick on alternating ticks, but this grounded-reset ran every tick, so the
 			// wander goal's setFlying(true) could never survive to a second consecutive tick and bee/
