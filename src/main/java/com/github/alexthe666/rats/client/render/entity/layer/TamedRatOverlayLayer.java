@@ -88,10 +88,13 @@ public class TamedRatOverlayLayer extends RenderLayer<LivingEntityRenderState, R
 	}
 
 	private void submitOverlay(PoseStack stack, SubmitNodeCollector collector, LivingEntityRenderState state, RenderType type, int light, int overlay, int color) {
+		// capture the bridge at submit time — the renderer swaps this.model per entity (adult vs
+		// pinkie), so getParentModel() at draw time can be another rat's model (ghost-baby overlay)
+		final var submitModel = this.getParentModel();
 		collector.submitCustomGeometry(stack, type, (pose, consumer) -> {
 			// re-pose the shared model at draw time: other entities re-run setupAnim between submit and draw
-			this.getParentModel().setupAnim(state);
-			this.getParentModel().renderCitadelToBuffer(pose, consumer, light, overlay, color);
+			submitModel.setupAnim(state);
+			submitModel.renderCitadelToBuffer(pose, consumer, light, overlay, color);
 		});
 	}
 }

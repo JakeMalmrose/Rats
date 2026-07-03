@@ -71,7 +71,7 @@ public class HatItem extends Item {
 	public void transformOnHead(AbstractRat rat, PoseStack stack) {
 		if (this == RatsItemRegistry.CHEF_TOQUE.get()) {
 			stack.mulPose(Axis.XN.rotationDegrees(25.0F));
-			stack.translate(0.0F, 0.6F, 0.3F); // 26.1: +0.5 seat-lower like the pirat hat (flattened pivots)
+			stack.translate(0.0F, 0.35F, 0.3F); // 26.1: seat-lower like the pirat hat, backed off 0.25 (sat half a head too low at +0.5)
 		}
 		if (this == RatsItemRegistry.PIPER_HAT.get()) {
 			stack.mulPose(Axis.XN.rotationDegrees(10.0F));

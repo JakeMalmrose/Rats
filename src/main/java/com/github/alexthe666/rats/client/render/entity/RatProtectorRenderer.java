@@ -37,10 +37,13 @@ public class RatProtectorRenderer extends AbstractRatRenderer<RatProtector> {
 		@Override
 		public void submit(PoseStack stack, SubmitNodeCollector collector, int light, LivingEntityRenderState state, float netHeadYaw, float headPitch) {
 			this.getParentModel().setupAnim(state);
+			// capture the bridge at submit time — the renderer swaps this.model per entity (adult vs
+			// pinkie), so getParentModel() at draw time can be another rat's model (ghost-baby overlay)
+			final var submitModel = this.getParentModel();
 			collector.submitCustomGeometry(stack, RatsRenderType.getYellowGlint(), (pose, consumer) -> {
 					// re-pose the shared model at draw time: other entities re-run setupAnim between submit and draw
-					this.getParentModel().setupAnim(state);
-					this.getParentModel().renderCitadelToBuffer(pose, consumer, light, OverlayTexture.NO_OVERLAY, 0xFF808080);
+					submitModel.setupAnim(state);
+					submitModel.renderCitadelToBuffer(pose, consumer, light, OverlayTexture.NO_OVERLAY, 0xFF808080);
 				});
 		}
 	}
