@@ -52,10 +52,11 @@ public class RatTrapBlock extends BaseEntityBlock {
 		this.registerDefaultState(this.getStateDefinition().any().setValue(FACING, Direction.NORTH).setValue(SHUT, false));
 	}
 
-	// 26.1: RenderShape.ENTITYBLOCK_ANIMATED was removed; the BER still animates, visibility is model-driven.
+	// 26.1: ENTITYBLOCK_ANIMATED was removed; BE-rendered blocks return INVISIBLE (the generated
+	// blockstate is an oak_planks placeholder that would otherwise draw around the BER trap model).
 	@Override
 	public RenderShape getRenderShape(BlockState state) {
-		return RenderShape.MODEL;
+		return RenderShape.INVISIBLE;
 	}
 
 	@Override

@@ -17,12 +17,14 @@ import java.util.EnumSet;
 public class RatFollowOwnerGoal extends FollowOwnerGoal {
 	private final TamedRat rat;
 	private final double speedModifier;
+	private final float stopDistance;
 	private int timeToRecalcPath;
 
 	public RatFollowOwnerGoal(TamedRat rat, double speedModifier, float startDist, float stopDist) {
 		super(rat, speedModifier, startDist, stopDist);
 		this.rat = rat;
 		this.speedModifier = speedModifier;
+		this.stopDistance = stopDist;
 		this.setFlags(EnumSet.of(Goal.Flag.MOVE));
 	}
 
@@ -35,6 +37,21 @@ public class RatFollowOwnerGoal extends FollowOwnerGoal {
 		return this.rat.canMove() && this.rat.isFollowing() && super.canUse();
 	}
 
+	// 26.1 NOTE: vanilla FollowOwnerGoal captures tamable.getNavigation() in its constructor, but
+	// TamedRat.switchNavigator() replaces the navigation instance after goal registration (and again
+	// whenever cage/tube/flight state is re-checked). The captured navigation is orphaned — the mob
+	// never ticks it — so vanilla's tick()/canContinueToUse()/stop() silently path on a dead object
+	// and the rat "follows" only via the teleport fallback. Everything below reimplements the vanilla
+	// logic against the LIVE this.rat.getNavigation().
+
+	@Override
+	public boolean canContinueToUse() {
+		if (this.rat.getNavigation().isDone()) {
+			return false;
+		}
+		return !this.rat.unableToMoveToOwner() && this.owner != null && !(this.rat.distanceToSqr(this.owner) <= this.stopDistance * this.stopDistance);
+	}
+
 	@Override
 	public void start() {
 		super.start();
@@ -43,19 +60,36 @@ public class RatFollowOwnerGoal extends FollowOwnerGoal {
 	}
 
 	@Override
+	public void stop() {
+		super.stop(); // stops the stale captured navigation (harmless) and resets the water malus
+		this.owner = null;
+		this.rat.getNavigation().stop();
+	}
+
+	@Override
 	public void tick() {
-		// If the rat is riding a custom mount (RatMount) and the owner is far away, hop the whole
-		// mount to the owner instead of letting vanilla teleport just the passenger off the saddle.
+		if (this.owner == null) {
+			return;
+		}
+		boolean ownerFarAway = this.rat.shouldTryTeleportToOwner();
+		if (!ownerFarAway) {
+			this.rat.getLookControl().setLookAt(this.owner, 10.0F, this.rat.getMaxHeadXRot());
+		}
+
 		if (--this.timeToRecalcPath <= 0) {
 			this.timeToRecalcPath = this.adjustedTickDelay(10);
-			LivingEntity owner = this.rat.getOwner();
-			if (owner != null && this.rat.distanceToSqr(owner) > 144.0D && this.rat.getVehicle() instanceof RatMount mount && mount.shouldTeleportWhenFarAway()) {
-				if (this.maybeTeleportMount(owner)) {
-					return;
+			if (ownerFarAway) {
+				// If the rat is riding a custom mount (RatMount), hop the whole mount to the owner
+				// instead of letting vanilla teleport just the passenger off the saddle.
+				if (this.rat.getVehicle() instanceof RatMount mount && mount.shouldTeleportWhenFarAway()) {
+					this.maybeTeleportMount(this.owner);
+				} else if (!this.rat.isPassenger()) {
+					this.rat.tryToTeleportToOwner();
 				}
+			} else {
+				this.rat.getNavigation().moveTo(this.owner, this.speedModifier);
 			}
 		}
-		super.tick();
 	}
 
 	private boolean maybeTeleportMount(LivingEntity owner) {

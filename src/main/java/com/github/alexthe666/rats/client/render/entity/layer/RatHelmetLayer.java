@@ -104,6 +104,9 @@ public class RatHelmetLayer<T extends AbstractRat> extends RenderLayer<LivingEnt
 					stack.scale(0.55F, 0.55F, 0.55F);
 					if (itemstack.getItem() instanceof HatItem hat) {
 						hat.transformOnHead(rat, stack);
+					} else {
+						// vanilla armor gets the same +0.5 flattened-pivot reseat the mod hats apply in transformOnHead
+						stack.translate(0.0F, 0.5F, 0.0F);
 					}
 					// The NeoForge extension returns null for "no override" (all vanilla armor); fall
 					// back to the equipment-asset texture ourselves or plain helmets render nothing.

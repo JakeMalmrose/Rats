@@ -274,10 +274,12 @@ public class ModClientEvents {
 	// 26.1: block color handlers register BlockTintSource lists per block.
 	@SubscribeEvent
 	public static void onBlockColors(RegisterColorHandlersEvent.BlockTintSources event) {
+		// 26.1: block tints multiply as full ARGB (QuadInstance.multiplyColor) — an alpha-less color
+		// like DyeColor.getFireworkColor() zeroes the quad alpha, turning translucent tubes invisible.
 		event.register(java.util.List.of(new net.minecraft.client.color.block.BlockTintSource() {
 			@Override
 			public int color(net.minecraft.world.level.block.state.BlockState state) {
-				return DyeColor.WHITE.getFireworkColor();
+				return net.minecraft.util.ARGB.opaque(DyeColor.WHITE.getFireworkColor());
 			}
 
 			@Override
@@ -286,19 +288,19 @@ public class ModClientEvents {
 				if (level != null && pos != null && level.getBlockEntity(pos) instanceof RatTubeBlockEntity tube) {
 					meta = tube.getColor();
 				}
-				return DyeColor.byId(meta).getFireworkColor();
+				return net.minecraft.util.ARGB.opaque(DyeColor.byId(meta).getFireworkColor());
 			}
 		}), RatsBlockRegistry.RAT_TUBE_COLOR.get());
 
 		event.register(java.util.List.of(new net.minecraft.client.color.block.BlockTintSource() {
 			@Override
 			public int color(net.minecraft.world.level.block.state.BlockState state) {
-				return FoliageColor.get(0.5D, 1.0D);
+				return net.minecraft.util.ARGB.opaque(FoliageColor.get(0.5D, 1.0D));
 			}
 
 			@Override
 			public int colorInWorld(net.minecraft.world.level.block.state.BlockState state, net.minecraft.client.renderer.block.BlockAndTintGetter level, net.minecraft.core.BlockPos pos) {
-				return level != null && pos != null ? BiomeColors.getAverageFoliageColor(level, pos) : FoliageColor.get(0.5D, 1.0D);
+				return net.minecraft.util.ARGB.opaque(level != null && pos != null ? BiomeColors.getAverageFoliageColor(level, pos) : FoliageColor.get(0.5D, 1.0D));
 			}
 		}), RatlantisBlockRegistry.MARBLED_CHEESE_GRASS.get());
 	}
